@@ -327,6 +327,9 @@ class service(CommonAttributes):
         else:
             ValueError("mytype not right must be one of these value %s" %",".join(values))
     
+    def set_type(self,mtype):
+        self.type = mtype
+        
     def set_profile(self,profile):
         self.profile = profile
 
