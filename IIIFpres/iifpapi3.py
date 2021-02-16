@@ -1,5 +1,5 @@
 
-import plus
+from . import plus
 import json
 global BASE_URL
 BASE_URL = "https://iiif.io/api/cookbook/recipe/0009-book-1/"

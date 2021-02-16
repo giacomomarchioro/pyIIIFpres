@@ -1,4 +1,4 @@
-import iifpapi3
+from IIIFpres import iifpapi3
 iifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0009-book-1"
 m = iifpapi3.Manifest()
 m.set_id(extendbase_url="manifest.json")
