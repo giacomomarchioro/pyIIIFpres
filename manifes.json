@@ -41,8 +41,8 @@
                     "profile": "level1"
                   }
                 ],
-                "width": 3204,
-                "height": 4613
+                "width": 4613,
+                "height": 3204
               },
               "target": "https://iiif.io/api/cookbook/recipe/0009-book-1/canvas/p1"
             }
@@ -80,8 +80,8 @@
                     "profile": "level1"
                   }
                 ],
-                "width": 3204,
-                "height": 4613
+                "width": 3186,
+                "height": 4612
               },
               "target": "https://iiif.io/api/cookbook/recipe/0009-book-1/canvas/p2"
             }
@@ -158,8 +158,8 @@
                     "profile": "level1"
                   }
                 ],
-                "width": 3204,
-                "height": 4613
+                "width": 3174,
+                "height": 4578
               },
               "target": "https://iiif.io/api/cookbook/recipe/0009-book-1/canvas/p4"
             }
@@ -197,8 +197,8 @@
                     "profile": "level1"
                   }
                 ],
-                "width": 3204,
-                "height": 4613
+                "width": 3198,
+                "height": 4632
               },
               "target": "https://iiif.io/api/cookbook/recipe/0009-book-1/canvas/p5"
             }
@@ -206,6 +206,5 @@
         }
       ]
     }
-  ],
-  "viewingDirection": "right-to-left"
+  ]
 }

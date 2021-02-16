@@ -82,18 +82,23 @@ class CoreAttributes(object):
             self.label = {}
         self.label[language] = [text]
 
-    def json_dumps(self):
+    def json_dumps(self,dumps_errors=False):
         context = "http://iiif.io/api/presentation/3/context.json"
-        def serializer(obj):
+        def serializerwitherrors(obj):
             return {k: v for k, v in obj.__dict__.items() if v is not None}
-        res = json.dumps(self,default = serializer,indent=2)
+        def serializer(obj):
+            return {k: v for k, v in obj.__dict__.items() if not unused(v)}
+        if dumps_errors:
+            res = json.dumps(self,default = serializerwitherrors,indent=2)
+        else:
+            res = json.dumps(self,default = serializer,indent=2)
         # little hack for fixing context first 3 chrs "{\n"
         res = "".join(('{\n "@context" : "%s", \n'%context,res[3:]))
         return res
 
-    def json_save(self,filename):
+    def json_save(self,filename,save_errors=False):
         with open(filename,'w') as f:
-            f.write(self.json_dumps())
+            f.write(self.json_dumps(dumps_errors=save_errors))
 
 
 class SeeAlso(CoreAttributes):
