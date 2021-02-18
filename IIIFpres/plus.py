@@ -25,3 +25,14 @@ class ViewingDirection(object):
         if viewingDirection not in viewingDirections:
             ValueError("viewingDirection mu must be one of these values %s" %viewingDirections)
         self.viewingDirection = viewingDirection
+
+class navDate(object):
+    def __init__(self):
+        self.navDate = None
+
+    def set_navDate(self,date):
+        #TODO
+        self.navDate = date
+
+class format(object):
+    pass

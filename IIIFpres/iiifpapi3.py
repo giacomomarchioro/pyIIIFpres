@@ -38,7 +38,7 @@ def unused(attr):
 class CoreAttributes(object):
     """
     Core attributes are the attributes that are with all the major
-    classes/container of IIIF namely: Collection, Manifest, Canvas, Range and
+    classes/containers of IIIF namely: Collection, Manifest, Canvas, Range and
     Annotation Page, Annotation and Content and also in the minor classes such 
     as SeeAlso and partOf.
 
@@ -89,19 +89,25 @@ class CoreAttributes(object):
         def serializer(obj):
             return {k: v for k, v in obj.__dict__.items() if not unused(v)}
         if dumps_errors:
-            res = json.dumps(self,default = serializerwitherrors,indent=2)
+            res = json.dumps(self,default = serializerwitherrors,indent=1)
         else:
-            res = json.dumps(self,default = serializer,indent=2)
+            res = json.dumps(self,default = serializer,indent=1)
         # little hack for fixing context first 3 chrs "{\n"
-        res = "".join(('{\n "@context" : "%s", \n'%context,res[3:]))
+        res = "".join(('{\n "@context" : "%s", \n '%context,res[3:]))
         return res
 
     def json_save(self,filename,save_errors=False):
         with open(filename,'w') as f:
             f.write(self.json_dumps(dumps_errors=save_errors))
 
+    def show_errors(self):
+        return print(self.json_dumps(dumps_errors=True))
 
-class SeeAlso(CoreAttributes):
+    def __repr__(self) -> str:
+        return self.json_dumps()
+
+
+class seeAlso(CoreAttributes):
     """
     IIF: A machine-readable resource such as an XML or RDF description that is related to the
     current resource that has the seeAlso property. Properties of the resource should be given 
@@ -115,7 +121,7 @@ class SeeAlso(CoreAttributes):
     with distinct id and format properties.
     """
     def __init__(self):
-        super(SeeAlso, self).__init__()
+        super(seeAlso, self).__init__()
         self.format = Suggested()
         self.profile = Suggested()
 
@@ -127,9 +133,9 @@ class SeeAlso(CoreAttributes):
         #TODO: add check
         self.profile = profile
     
-    def set_format(self,profile):
+    def set_format(self,format):
         #TODO: add check
-        self.profile = format
+        self.format = format
 
 
 class partOf(CoreAttributes): 
@@ -143,10 +149,16 @@ class partOf(CoreAttributes):
     reference a containing Collection using partOf to aid in navigation.
     """
     def __init__(self):
-        self.format = Suggested()
-        self.profile = Suggested()     
+        super(partOf,self).__init__()
+    
+    def set_type(self,type):
+        self.type = type
 
-class Supplementary(CoreAttributes):
+    def set_id(self, objid):
+        self.id = objid
+
+
+class supplementary(CoreAttributes):
     """
     A link from this Range to an Annotation Collection that includes the supplementing Annotations 
     of content resources for the Range. Clients might use this to present additional content to the 
@@ -159,7 +171,7 @@ class Supplementary(CoreAttributes):
     be the Annotations that transcribe or translate, respectively.
     """
     def __init__(self):
-        super(Supplementary,self).__init__()
+        super(supplementary,self).__init__()
         self.type = "Supplementary"
     
     def set_type(self):
@@ -242,6 +254,14 @@ class CommonAttributes(CoreAttributes):
         self.summary[language] = [text]
     
     def add_requiredStatement(self,label,value,language):
+
+        if unused(self.requiredStatement):
+            self.requiredStatement = {}
+        self.requiredStatement["label"] = {language:[label]}
+        self.requiredStatement["value"] = {language:[value]}
+    
+    def add_requiredStatement(self,label=None,value=None,language_l=None,
+                     language_v=None,entry=None):
         """
         IIIF: Text that must be displayed when the resource is displayed or used. 
         For example, the requiredStatement property could be used to present 
@@ -254,9 +274,14 @@ class CommonAttributes(CoreAttributes):
         """
         if unused(self.requiredStatement):
             self.requiredStatement = {}
-        self.requiredStatement["label"] = {language:[label]}
-        self.requiredStatement["value"] = {language:[value]}
-    
+        arggr = [label,value,language_l,language_v]
+        if any(elem is not None for elem in arggr ) and entry is not None:
+            ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
+        if entry is None:
+            entry = {"label":{language_l:[label]},
+                    "value":{language_l:[value]}}
+        self.requiredStatement = entry
+
     def set_rights(self,rights):
         """
         A string that identifies a license or rights statement that applies to the 
@@ -273,10 +298,19 @@ class CommonAttributes(CoreAttributes):
 
     def add_thumbnail(self,obj):
         """
-        #TODO:
+        https://iiif.io/api/presentation/3.0/#thumbnail
+        A content resource, such as a small image or short audio clip, that represents the 
+        resource that has the thumbnail property. A resource may have multiple thumbnail resources
+         that have the same or different type and format.
+
+        The value must be an array of JSON objects, each of which must have the id and type properties, 
+        and should have the format property. Images and videos should have the width and height properties,
+        and time-based media should have the duration property. It is recommended that a IIIF Image API 
+        service be available for images to enable manipulations such as resizing.
         """
         if unused(self.thumbnail):
-            self.thumbnail = {}
+            self.thumbnail = []
+        self.thumbnail.append(obj)
 
     def add_behavior(self,behavior):
         """
@@ -285,9 +319,38 @@ class CommonAttributes(CoreAttributes):
         if unused(self.behavior):
             self.behavior = []
         self.behavior.append(behavior)
+    
+    def add_hompage(self,hompage):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.hompage):
+            self.hompage = []
+        self.hompage.append(hompage)
+    
+    def add_seeAlso(self,seeAlso):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.seeAlso):
+            self.seeAlso = []
+        self.seeAlso.append(seeAlso)
 
-    def add_seeAlso(self,t):
-        pass
+    def add_partOf(self,partOf):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.partOf):
+            self.partOf = []
+        self.partOf.append(partOf)
+    
+    def add_rendering(self,rendering):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.rendering):
+            self.rendering = []
+        self.rendering.append(rendering)
         
 
 class service(CommonAttributes):
@@ -316,7 +379,7 @@ class service(CommonAttributes):
     def __init__(self):
         super(service,self).__init__()
         self.profile = Suggested("Each object should have a profile property.")
-
+        self.service = None
 
 
     def set_type(self,mytype):
@@ -337,6 +400,11 @@ class service(CommonAttributes):
         
     def set_profile(self,profile):
         self.profile = profile
+    
+    def add_service(self,service):
+        if unused(self.service):
+            self.service = []
+        self.service.append(service)
 
 class Annotation(CommonAttributes):
     """
@@ -469,15 +537,20 @@ class Canvas(CommonAttributes):
         self.height = height
     
     def set_hightwidth(self,height:int,width:int):
-        self.set_width = width
-        self.set_height = height
+        self.set_width(width)
+        self.set_height(height)
 
     def add_item(self,item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
+    
+    def add_annotation(self,annotation):
+        if unused(self.annotations):
+            self.annotations = []
+        self.annotations.append(annotation)
 
-class Manifest(CommonAttributes,plus.ViewingDirection):
+class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
     """
     The Manifest resource typically represents a single object 
     and any intellectual work or works embodied within that 
@@ -506,29 +579,316 @@ class Manifest(CommonAttributes,plus.ViewingDirection):
     """
     def __init__(self):
         super(Manifest, self).__init__()
-        self.items = []
+        self.start = None
+        self.services = None
+        self.items = Required()
+        self.annotations = None
 
     def add_item(self,item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
+    
+    def add_start(self,start):
+        if unused(self.start):
+            self.start = []
+        self.start.append(start)
+    
+    def add_services(self,services=None):
+        if unused(self.services):
+            self.services = []
+        self.services.append(services)
+    
+    def add_annotation(self,annotation):
+        if unused(self.annotation):
+            self.annotation = []
+        self.start.append(annotation)
+        
         
 
 class Collection(CommonAttributes):
     def __init__(self):
         super(Collection, self).__init__()
-        self.other  = None
-        self.seeAlso = SeeAlso()
+        self.services = None
+        self.annotations = None
+        self.items = Required()
+    
+    def add_services(self,services=None):
+        if unused(self.services):
+            self.services = []
+        self.services.append(services)
+    
+    def add_annotation(self,annotation):
+        if unused(self.annotation):
+            self.annotation = []
+        self.start.append(annotation)
+    
+    def add_item(self,item):
+        if unused(self.items):
+            self.items = []
+        self.items.append(item)
 
 
-    def set_seeAlso(self):
-        pass
+class Range(CommonAttributes):
+    def __init__(self):
+        super(Range, self).__init__()
+        self.annotations = None
+        self.items = Required()
+        self.supplementaries = None 
+    
+    def add_annotation(self,annotation):
+        if unused(self.annotation):
+            self.annotation = []
+        self.start.append(annotation)
+    
+    def add_item(self,item):
+        if unused(self.items):
+            self.items = []
+        self.items.append(item)
+    
+    def add_start(self,start):
+        if unused(self.start):
+            self.start = []
+        self.start.append(start)
 
-    def  set_Pass(self):
-        pass
+    def add_supplementary(self,supplementary):
+        if unused(self.supplementary):
+            self.supplementary = []
+        self.start.append(supplementary)
+
+class thumbnail(CoreAttributes,plus.HeightWidthDuration):
+    def __init__(self):
+        super(thumbnail, self).__init__()
+        self.service = None
+
+    def set_type(self,mtype):
+        self.type = mtype
+
+    def set_format(self,format):
+        self.format = format
+    
+    def add_service(self,service):
+        if unused(self.service):
+            self.service = []
+        self.service.append(service)
 
 
+class provider(CoreAttributes):
+    """
+    IIIF: An organization or person that contributed to providing the content of the resource. 
+    Clients can then display this information to the user to acknowledge the provider’s contributions. 
+    This differs from the requiredStatement property, in that the data is structured, allowing 
+    the client to do more than just present text but instead have richer information about the 
+    people and organizations to use in different interfaces.
+
+      "provider": [
+    {
+      "id": "https://example.org/about",
+      "type": "Agent",
+      "label": { "en": [ "Example Organization" ] },
+      "homepage": [
+        {
+          "id": "https://example.org/",
+          "type": "Text",
+          "label": { "en": [ "Example Organization Homepage" ] },
+          "format": "text/html"
+        }
+      ],
+      "logo": [
+        {
+          "id": "https://example.org/images/logo.png",
+          "type": "Image",
+          "format": "image/png",
+          "height": 100,
+          "width": 120
+        }
+      ],
+      "seeAlso": [
+        {
+          "id": "https://data.example.org/about/us.jsonld",
+          "type": "Dataset",
+          "format": "application/ld+json",
+          "profile": "https://schema.org/"
+        }
+      ]
+    }
+    ]
+    """
+    def __init__(self):
+        super(provider, self).__init__()
+        self.context = None
+        self.type = "Agent"
+        self.items = []
+        self.hompage = Suggested()
+        self.logo = Suggested()
+        self.seeAlso = None 
+
+    def set_type(self):
+        print("The type property must be kept Agent.")
+    
+    def add_logo(self,logo):
+        if unused(self.logo):
+            self.logo = []
+        self.logo.append(logo)
+
+    def add_hompage(self,hompage):
+        if unused(self.hompage):
+            self.hompage = []
+        self.hompage.append(hompage)
+    
+    def add_seeAlso(self,seeAlso):
+        if unused(self.seeAlso):
+            self.seeAlso = []
+        self.seeAlso.append(seeAlso)
+
+
+class hompage(CoreAttributes):
+    """https://iiif.io/api/presentation/3.0/#homepage
+    """
+    def __init__(self):
+        super(hompage, self).__init__()
+        self.language = None
+        self.format = Suggested()
+    
+    def set_language(self,language):
+        if unused(self.language):
+            self.language = []
+        self.language.append(language)
+
+    def set_format(self,format):
+        self.format = format
+    
+    def set_type(self,mtype):
+        self.type = mtype
         
+class logo(CoreAttributes,plus.HeightWidthDuration):
+    """
+    A small image resource that represents the Agent resource it is associated with.
+    The logo must be clearly rendered when the resource is displayed or used, 
+    without cropping, rotating or otherwise distorting the image. It is recommended that
+    a IIIF Image API service be available for this image for other manipulations 
+    such as resizing.
 
+    When more than one logo is present, the client should pick only one of them, based on the information in the logo properties. For example, the client could select a logo of appropriate aspect ratio based on the height and width properties of the available logos. The client may decide on the logo by inspecting properties defined as extensions.
+    
+    "logo": [
+    {
+      "id": "https://example.org/img/logo.jpg",
+      "type": "Image",
+      "format": "image/jpeg",
+      "height": 100,
+      "width": 120
+    }
+    ]
+    #TODO Duration should not be included
+    """
+    def __init__(self):
+        super(logo, self).__init__()
+        self.format = Suggested()
+        self.service = Suggested()
+    
+    def set_format(self,format):
+        self.format = format
+    
+    def set_type(self,mtype):
+        self.type = mtype
+
+    def set_label(self,label):
+        ValueError("Label not permitted in logo.")
+    
+    def add_service(self,service):
+        if unused(self.service):
+            self.service = []
+        self.service.append(service)
+
+class rendering(CoreAttributes):
+    """
+    https://iiif.io/api/presentation/3.0/#rendering
+    A resource that is an alternative, non-IIIF representation
+    of the resource that has the rendering property.
+    Such representations typically cannot be painted onto a 
+    single Canvas, as they either include too many views, 
+    have incompatible dimensions, or are compound resources 
+    requiring additional rendering functionality. 
+    The rendering resource must be able to be displayed
+    directly to a human user, although the presentation may
+    be outside of the IIIF client. The resource must not 
+    have a splash page or other interstitial resource that 
+    mediates access to it. If access control is required, 
+    then the IIIF Authentication API is recommended. 
+    Examples include a rendering of a book as a PDF or EPUB,
+    a slide deck with images of a building, or a 3D model 
+    of a statue.
+
+    "rendering": [
+    {
+      "id": "https://example.org/1.pdf",
+      "type": "Text",
+      "label": { "en": [ "PDF Rendering of Book" ] },
+      "format": "application/pdf"
+    }
+    ]
+    """
+    def __init__(self):
+        super(rendering, self).__init__()
+        self.format = Suggested()
+    
+    def set_format(self,format):
+        self.format = format
+    
+    def set_type(self,type):
+        self.type = type 
+
+class services(CoreAttributes):
+    """
+    A list of one or more service definitions on the 
+    top-most resource of the document, that are typically 
+    shared by more than one subsequent resource. 
+    This allows for these shared services to be collected 
+    together in a single place, rather than either having 
+    their information duplicated potentially many times 
+    throughout the document, or requiring a consuming client
+    to traverse the entire document structure to find the
+    information. The resource that the service applies to
+    must still have the service property, as described
+    above, where the service resources have at least the id
+    and type or @id and @type properties. This allows the 
+    client to know that the service applies to that resource.
+    Usage of the services property is at the discretion of 
+    the publishing system.
+    """
+    def __init__(self):
+        super(services, self).__init__()
+        self.profile = Suggested()
+        self.service = Required()
+    
+    def set_profile(self,profile):
+        self.profile = profile
+
+    def add_service(self,service):
+        if unused(self.service):
+            self.service = []
+        self.service.append(service)
+
+
+class start(CommonAttributes):
+
+    def __init__(self):
+        super(start, self).__init__()
+        self.profile = Suggested()
+        self.source = None
+        self.selector = None
+    
+    def set_type(self,mtype):
+        if mtype is not "Canvas":
+            self.source = Required("If you are not pointing to a Canvas please specify a source.")
+            self.selector = Required("If you are not pointing to a Canvas please specify a selector")
+        self.type = mtype
+    
+    def set_source(self,source):
+        self.set_source = source
+    
+    def set_selector(self,selector):
+        self.selector = selector
 
  #json.dumps(g, default=lambda x:x.__dict__)
