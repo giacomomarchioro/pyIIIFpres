@@ -1,8 +1,8 @@
 #https://iiif.io/api/presentation/3.0/#b-example-manifest-response
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = "https://example.org/iiif/book1/manifest"
+iiifpapi3.BASE_URL = "https://example.org/iiif/book1"
 manifest = iiifpapi3.Manifest()
-manifest.set_id()
+manifest.set_id(extendbase_url="manifest")
 manifest.add_label("en","Book 1")
 manifest.add_metadata(label="Author",value="Anne Author",language_l="en")
 # more complex entry can be mapped directly to a dictionary and inserted using entry arguments
@@ -15,12 +15,12 @@ entry = {
         }
 manifest.add_metadata(entry=entry)
 manifest.add_metadata(label="Notes",value=["Text of note 1","Text of note 2"],language_l="en",language_v="en")
-manifest.add_metadata(label="Source",value="<span>From: <a href=\"https://example.org/db/1.html\">Some Collection</a></span>",language_l="en")
+manifest.add_metadata(label="Source",value="<span>From: <a href=\"https://example.org/db/1.html\">Some Collection</a></span>",language_l="en", language_v="none")
 manifest.add_summary("Book 1, written be Anne Author, published in Paris around 1400.",language="en")
 thum = iiifpapi3.thumbnail()
 thum.set_id("https://example.org/iiif/book1/page1/full/80,100/0/default.jpg")
 thum.set_type("Image")
-thum.set_format("Image/jpeg")
+thum.set_format("image/jpeg")
 tserv = iiifpapi3.service()
 tserv.set_id("https://example.org/iiif/book1/page1")
 tserv.set_type("ImageService3")
@@ -30,15 +30,17 @@ manifest.add_thumbnail(thum)
 manifest.set_viewingDirection("right-to-left")
 manifest.add_behavior("paged")
 manifest.set_navDate("1856-01-01T00:00:00Z")
+manifest.set_rights("https://creativecommons.org/licenses/by/4.0/")
 manifest.add_requiredStatement(label="Attribution",value="Provided by Example Organization",language_l="en",language_v="en")
 prov = iiifpapi3.provider()
-prov.add_label("en","Example Oranization")
+prov.add_label("en","Example Organization")
+prov.set_id("https://example.org/about")
 homp = iiifpapi3.homepage()
-homp.set_id()
-homp.set_type("Text")
+homp.set_id("https://example.org/")
 homp.set_type("Text")
 homp.add_label("en","Example Organization Homepage")
 homp.set_format("text/html")
+prov.add_homepage(homp)
 logo = iiifpapi3.logo()
 logo.set_id("https://example.org/service/inst1/full/max/0/default.png")
 logo.set_type("Image")
@@ -55,6 +57,7 @@ seeAl.set_type("Dataset")
 seeAl.set_format("application/ld+json")
 seeAl.set_profile("https://schema.org/")
 prov.add_seeAlso(seeAl)
+manifest.add_provider(prov)
 homp2 =iiifpapi3.homepage()
 homp2.set_id("https://example.org/info/book1/")
 homp2.set_type("Text")
@@ -65,6 +68,7 @@ serv2 = iiifpapi3.service()
 serv2.set_id("https://example.org/service/example")
 serv2.set_type("ExampleExtensionService")
 serv2.set_profile("https://example.org/docs/example-service.html")
+manifest.add_service(serv2)
 sal2 = iiifpapi3.seeAlso()
 sal2.set_id("https://example.org/library/catalog/book1.xml")
 sal2.set_type("Dataset")
@@ -84,7 +88,7 @@ manifest.add_partOf(po)
 start = iiifpapi3.start()
 start.set_id("https://example.org/iiif/book1/canvas/p2")
 start.set_type("Canvas")
-manifest.add_start(start)
+manifest.set_start(start)
 mycomplexserv =  {
       "@id": "https://example.org/iiif/auth/login",
       "@type": "AuthCookieService1",
@@ -102,8 +106,8 @@ manifest.add_services(mycomplexserv)
 
 
 
-data = (("p. 1",750,1500, "https://example.org/iiif/book1/page1","/full/max/0/default.jpg","annotation"),
-        ("p. 2",750,1000, "https://example.org/iiif/book1/page2","/full/max/0/default.jpg",False),
+data = (("p. 1",750,1000, "https://example.org/iiif/book1/page1","/full/max/0/default.jpg","annotation",True),
+        ("p. 2",750,1000, "https://example.org/iiif/book1/page2","/full/max/0/default.jpg",False,False),
         )
 for idx,d in enumerate(data):
     idx+=1 
@@ -111,26 +115,27 @@ for idx,d in enumerate(data):
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
     canvas.set_height(d[2])
     canvas.set_width(d[1])
-    canvas.add_label(None,d[0])
+    canvas.add_label("none",d[0])
     annopage = iiifpapi3.AnnotationPage()
-    annopage.set_id("https://example.org/iiif/book1/canvas/p%s" %idx)
+    annopage.set_id(extendbase_url=["page","p%s"%idx,"1"])
     annotation = iiifpapi3.Annotation(target=canvas.id)
-    annotation.set_id("https://example.org/iiif/book1/page/p%s/1" %idx)
+    annotation.set_id(extendbase_url=["annotation","p%s-image"%str(idx).zfill(4)])
     annotation.set_motivation("painting")
-    annotation.body.set_id("".join(d[3:-1]))
+    annotation.body.set_id("".join(d[3:-2]))
     annotation.body.set_type("Image")
     annotation.body.set_format("image/jpeg")
-    annotation.body.set_width(1000)
+    annotation.body.set_width(1500)
     annotation.body.set_height(2000)
     s = iiifpapi3.service()
-    s.set_id("https://example.org/iiif/book1/page1")
+    s.set_id(d[3])
     s.set_type("ImageService3")
     s.set_profile("level2")
-    subserv =  {
-        "@id": "https://example.org/iiif/auth/login",
-        "@type": "AuthCookieService1"
-        }
-    s.add_service(subserv)
+    if d[6]:
+        subserv =  {
+                "@id": "https://example.org/iiif/auth/login",
+                "@type": "AuthCookieService1"
+                }
+        s.add_service(subserv)
     annotation.body.add_service(s)
     annopage.add_item(annotation)
     canvas.add_item(annopage)
@@ -141,8 +146,10 @@ for idx,d in enumerate(data):
         canvas.add_annotation(annopage2)
     manifest.add_item(canvas)
 rng = iiifpapi3.Range()
+rng.set_id(extendbase_url=["range","r0"])
 rng.add_label("en","Table of Contents")
 rng2 = iiifpapi3.Range()
+rng2.set_id(extendbase_url=["range","r1"])
 rng2.add_label("en","Introduction")
 rng2.set_supplementary("https://example.org/iiif/book1/annocoll/introTexts")
 rng2.add_canvas_to_items("https://example.org/iiif/book1/canvas/p1")
@@ -151,6 +158,9 @@ sr.set_source("https://example.org/iiif/book1/canvas/p2")
 fs = iiifpapi3.FragmentSelector()
 fs.set_xywh(0,0,750,300)
 sr.set_selector(fs)
+rng2.add_item(sr)
+rng.add_item(rng2)
+manifest.add_structure(rng)
 annopage3 = iiifpapi3.AnnotationPage()
 annopage3.set_id("https://example.org/iiif/book1/page/manifest/1")
 anno = iiifpapi3.Annotation(manifest.id)
@@ -162,4 +172,4 @@ annopage3.add_item(anno)
 annopage3.set_id("https://example.org/iiif/book1/page/manifest/1")        
 manifest.add_annotation(annopage3)
 
-manifest.json_save("manifes.json",save_errors=True)
+manifest.json_save("manifest.json")

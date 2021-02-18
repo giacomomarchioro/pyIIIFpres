@@ -82,6 +82,8 @@ class CoreAttributes(object):
         """
         if unused(self.label):
             self.label = {}
+        if language is None:
+            language = "none"
         self.label[language] = [text]
 
     def json_dumps(self,dumps_errors=False):
@@ -91,11 +93,11 @@ class CoreAttributes(object):
         def serializer(obj):
             return {k: v for k, v in obj.__dict__.items() if not unused(v)}
         if dumps_errors:
-            res = json.dumps(self,default = serializerwitherrors,indent=1)
+            res = json.dumps(self,default = serializerwitherrors,indent=2)
         else:
-            res = json.dumps(self,default = serializer,indent=1)
+            res = json.dumps(self,default = serializer,indent=2)
         # little hack for fixing context first 3 chrs "{\n"
-        res = "".join(('{\n "@context" : "%s", \n '%context,res[3:]))
+        res = "".join(('{\n  "@context": "%s", \n '%context,res[3:]))
         return res
 
     def json_save(self,filename,save_errors=False):
@@ -262,7 +264,7 @@ class CommonAttributes(CoreAttributes):
 
         if entry is None:
             entry = {"label":{language_l:[label]},
-                    "value":{language_l:value}}
+                    "value":{language_v:value}}
         self.metadata.append(entry)
 
     def add_summary(self,text,language):
@@ -612,18 +614,19 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
         self.viewingDirection = None
         self.navDate = None
         self.services = None
+        self.service = None
         self.items = Required()
         self.annotations = None
+        self.provider = None
+        self.structures = None
 
     def add_item(self,item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
     
-    def add_start(self,start):
-        if unused(self.start):
-            self.start = []
-        self.start.append(start)
+    def set_start(self,start):
+        self.start = start
     
     def add_services(self,services=None):
         if unused(self.services):
@@ -634,7 +637,21 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
         if unused(self.annotations):
             self.annotations = []
         self.annotations.append(annotation)
-        
+    
+    def add_service(self,service=None):
+        if unused(self.service):
+            self.service = []
+        self.service.append(service)
+    
+    def add_provider(self,provider):
+        if unused(self.provider):
+            self.provider = []
+        self.provider.append(provider)
+    
+    def add_structure(self,structure):
+        if unused(self.structures):
+            self.structures = []
+        self.structures.append(structure)
         
 
 class Collection(CommonAttributes):
@@ -652,7 +669,7 @@ class Collection(CommonAttributes):
     def add_annotation(self,annotation):
         if unused(self.annotation):
             self.annotation = []
-        self.start.append(annotation)
+        self.annotation.append(annotation)
     
     def add_item(self,item):
         if unused(self.items):
@@ -670,17 +687,15 @@ class Range(CommonAttributes):
     def add_annotation(self,annotation):
         if unused(self.annotation):
             self.annotation = []
-        self.start.append(annotation)
+        self.annotation.append(annotation)
     
     def add_item(self,item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
     
-    def add_start(self,start):
-        if unused(self.start):
-            self.start = []
-        self.start.append(start)
+    def set_start(self,start):
+        self.start = start
 
     def set_supplementary(self,objid=None,extendbase_url=None):
         self.supplementary = supplementary()
@@ -757,7 +772,6 @@ class provider(CoreAttributes):
         super(provider, self).__init__()
         self.context = None
         self.type = "Agent"
-        self.items = []
         self.homepage = Suggested()
         self.logo = Suggested()
         self.seeAlso = None 
@@ -916,7 +930,7 @@ class SpecificResource(CommonAttributes):
         self.source = None
     
     def set_source(self,source):
-        self.set_source = source
+        self.source = source
 
     def set_selector(self,selector):
         self.selector = selector
@@ -936,7 +950,7 @@ class start(CommonAttributes):
         self.type = mtype
     
     def set_source(self,source):
-        self.set_source = source
+        self.source = source
     
     def set_selector(self,selector):
         self.selector = selector
