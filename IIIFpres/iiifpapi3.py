@@ -2,7 +2,7 @@
 from . import plus
 import json
 global BASE_URL
-BASE_URL = "https://iiif.io/api/cookbook/recipe/0009-book-1/"
+BASE_URL = "https://"
 
 class Required(object):
     """
@@ -24,7 +24,6 @@ class Suggested(object):
     def __repr__(self): 
         return 'Suggested attribute:%s' %self.suggested
 
-# Let's group all the common arguments across the differnet types of collection
 
 def unused(attr):
     """
@@ -35,9 +34,12 @@ def unused(attr):
     else:
         return False
 
+# Let's group all the common arguments across the differnet types of collection
+
+
 class CoreAttributes(object):
     """
-    Core attributes are the attributes that are with all the major
+    Core attributes are the attributes in all the major
     classes/containers of IIIF namely: Collection, Manifest, Canvas, Range and
     Annotation Page, Annotation and Content and also in the minor classes such 
     as SeeAlso and partOf.
@@ -63,7 +65,7 @@ class CoreAttributes(object):
                 extendbase_url.insert(0,BASE_URL )
                 self.id = "/".join(extendbase_url)
         elif objid is None:
-            objid = BASE_URL
+            self.id = BASE_URL
         else:
             self.id = objid
    
@@ -172,15 +174,34 @@ class supplementary(CoreAttributes):
     """
     def __init__(self):
         super(supplementary,self).__init__()
-        self.type = "Supplementary"
+        self.type = "AnnotationCollection"
     
     def set_type(self):
         print("type must be AnnotationCollection")
 
 
-class body(CoreAttributes,plus.HeightWidthDuration):
+class bodycommenting(object):
     def __init__(self):
-        super(body,self).__init__()
+        self.type = "TextualBody"
+        self.value = None
+        self.language = None
+    
+    def set_type(self,mytype):
+        print("Commenting body should be TextualBody not %s" %mtype)
+    
+    def set_format(self,format):
+        self.format = format
+
+    def set_value(self,value):
+        self.value = value
+
+    def set_language(self,language):
+        self.language = language
+
+
+class bodypainting(CoreAttributes,plus.HeightWidthDuration):
+    def __init__(self):
+        super(bodypainting,self).__init__()
         self.type = Required("The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
         self.format = Suggested("The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
         self.profile = Suggested("The profile of the resource, if it has one, should also be included.")
@@ -216,12 +237,12 @@ class CommonAttributes(CoreAttributes):
         self.behavior = None
         self.seeAlso = None
         self.service = None
-        self.hompage = None
+        self.homepage = None
         self.rendering = None
         self.partOf = None
     
-    def add_metadata(self,label=None,value=None,language_l=None,
-                     language_v=None,entry=None):
+    def add_metadata(self,label=None,value=None,language_l="none",
+                     language_v="none",entry=None):
         """
         An ordered list of descriptions to be displayed to the user when they interact
         with the resource, given as pairs of human readable label and value entries. 
@@ -235,9 +256,13 @@ class CommonAttributes(CoreAttributes):
         arggr = [label,value,language_l,language_v]
         if any(elem is not None for elem in arggr ) and entry is not None:
             ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
+        
+        if not isinstance(value, list):
+            value = [value]
+
         if entry is None:
             entry = {"label":{language_l:[label]},
-                    "value":{language_l:[value]}}
+                    "value":{language_l:value}}
         self.metadata.append(entry)
 
     def add_summary(self,text,language):
@@ -320,13 +345,13 @@ class CommonAttributes(CoreAttributes):
             self.behavior = []
         self.behavior.append(behavior)
     
-    def add_hompage(self,hompage):
+    def add_homepage(self,homepage):
         """
         """
         #TODO: CHECK IF ALLOWED
-        if unused(self.hompage):
-            self.hompage = []
-        self.hompage.append(hompage)
+        if unused(self.homepage):
+            self.homepage = []
+        self.homepage.append(homepage)
     
     def add_seeAlso(self,seeAlso):
         """
@@ -438,7 +463,7 @@ class Annotation(CommonAttributes):
     def __init__(self,target):
         super(CommonAttributes, self).__init__()
         self.motivation = None
-        self.body = body()
+        self.body = None
         self.target = target
           
     def set_motivation(self,motivation):
@@ -499,6 +524,10 @@ class Annotation(CommonAttributes):
         motivations = ["painting","supplementing"]
         if motivation not in motivations:
             pass #TODO:warning
+        if motivation == "painting":
+            self.body =bodypainting()
+        if motivation == "commenting":
+            self.body = bodycommenting()
         self.motivation = motivation
 
 
@@ -580,6 +609,8 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
     def __init__(self):
         super(Manifest, self).__init__()
         self.start = None
+        self.viewingDirection = None
+        self.navDate = None
         self.services = None
         self.items = Required()
         self.annotations = None
@@ -600,9 +631,9 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
         self.services.append(services)
     
     def add_annotation(self,annotation):
-        if unused(self.annotation):
-            self.annotation = []
-        self.start.append(annotation)
+        if unused(self.annotations):
+            self.annotations = []
+        self.annotations.append(annotation)
         
         
 
@@ -634,7 +665,7 @@ class Range(CommonAttributes):
         super(Range, self).__init__()
         self.annotations = None
         self.items = Required()
-        self.supplementaries = None 
+        self.supplementary = None 
     
     def add_annotation(self,annotation):
         if unused(self.annotation):
@@ -651,10 +682,18 @@ class Range(CommonAttributes):
             self.start = []
         self.start.append(start)
 
-    def add_supplementary(self,supplementary):
-        if unused(self.supplementary):
-            self.supplementary = []
-        self.start.append(supplementary)
+    def set_supplementary(self,objid=None,extendbase_url=None):
+        self.supplementary = supplementary()
+        self.supplementary.set_id(objid,extendbase_url)
+
+    def add_canvas_to_items(self,canvas_id):
+        """Add a canvas to items by id of the canvas
+        """
+        if unused(self.items):
+            self.items = []
+        entry = {"id": canvas_id,
+                "type": "Canvas"}
+        self.items.append(entry)
 
 class thumbnail(CoreAttributes,plus.HeightWidthDuration):
     def __init__(self):
@@ -719,7 +758,7 @@ class provider(CoreAttributes):
         self.context = None
         self.type = "Agent"
         self.items = []
-        self.hompage = Suggested()
+        self.homepage = Suggested()
         self.logo = Suggested()
         self.seeAlso = None 
 
@@ -731,10 +770,10 @@ class provider(CoreAttributes):
             self.logo = []
         self.logo.append(logo)
 
-    def add_hompage(self,hompage):
-        if unused(self.hompage):
-            self.hompage = []
-        self.hompage.append(hompage)
+    def add_homepage(self,homepage):
+        if unused(self.homepage):
+            self.homepage = []
+        self.homepage.append(homepage)
     
     def add_seeAlso(self,seeAlso):
         if unused(self.seeAlso):
@@ -742,11 +781,11 @@ class provider(CoreAttributes):
         self.seeAlso.append(seeAlso)
 
 
-class hompage(CoreAttributes):
+class homepage(CoreAttributes):
     """https://iiif.io/api/presentation/3.0/#homepage
     """
     def __init__(self):
-        super(hompage, self).__init__()
+        super(homepage, self).__init__()
         self.language = None
         self.format = Suggested()
     
@@ -871,6 +910,17 @@ class services(CoreAttributes):
         self.service.append(service)
 
 
+class SpecificResource(CommonAttributes):
+    def __init__(self):
+        super(SpecificResource, self).__init__()
+        self.source = None
+    
+    def set_source(self,source):
+        self.set_source = source
+
+    def set_selector(self,selector):
+        self.selector = selector
+
 class start(CommonAttributes):
 
     def __init__(self):
@@ -880,7 +930,7 @@ class start(CommonAttributes):
         self.selector = None
     
     def set_type(self,mtype):
-        if mtype is not "Canvas":
+        if mtype != "Canvas":
             self.source = Required("If you are not pointing to a Canvas please specify a source.")
             self.selector = Required("If you are not pointing to a Canvas please specify a selector")
         self.type = mtype
@@ -890,5 +940,73 @@ class start(CommonAttributes):
     
     def set_selector(self,selector):
         self.selector = selector
+
+class ImageApiSelector(object):
+    def __init__(self) -> None:
+        self.type = None
+        self.region = None
+        self.size = None 
+        self.rotation = None 
+        self.quality = None
+        self.fromat = None
+
+    def set_type(self,type):
+        self.type = type
+
+    def set_region(self,region):
+        self.region = region
+
+    def set_rotation(self,rotation):
+        self.rotation = rotation
+
+    def set_quality(self,quality):
+        self.quality = quality
+
+    def set_format(self,format):
+        self.fromat = format
+
+class PointSelector(object):
+    """
+    There are common use cases in which a point, rather than a range or area, is the target of the Annotation. For example, putting a pin in a map should result in an exact point, not a very small rectangle. Points in time are not very short durations, and user interfaces should also treat these differently. This is particularly important when zooming in (either spatially or temporally) beyond the scale of the frame of reference. Even if the point takes up a 10 by 10 pixel square at the user’s current resolution, it is not a rectangle bounding an area.
+
+    It is not possible to select a point using URI Fragments with the Media Fragment specification, as zero-sized fragments are not allowed. In order to fulfill the use cases, this specification defines a new Selector class called PointSelector.
+
+    Property	Description
+    type	Required. Must be the value “PointSelector”.
+    x	Optional. An integer giving the x coordinate of the point, relative to the dimensions of the target resource.
+    y	Optional. An integer giving the y coordinate of the point, relative to the dimensions of the target resource.
+    t	Optional. A floating point number giving the time of the point in seconds, relative to the duration of the target resource
+    """
+    def __init__(self) -> None:
+        self.type = None
+        self.x = None
+        self.y = None 
+        self.t = None 
+
+    def set_type(self,type):
+        self.type = type
+
+    def set_x(self,x):
+        self.x = x
+
+    def set_y(self,y):
+        self.y = y
+
+    def set_t(self,t):
+        self.t = t  
+
+class FragmentSelector(object):
+    def __init__(self) -> None:
+        self.type = "FragmentSelector"
+        self.value = Required()
+
+    def set_type(self,type):
+        print("Type should be kept FragmentSelector")
+
+    def set_value(self,value):
+        self.value = value
+
+    def set_xywh(self,x,y,w,h):
+        self.value = "xywh=%i,%i,%i,%i" %(x,y,w,h)
 
  #json.dumps(g, default=lambda x:x.__dict__)

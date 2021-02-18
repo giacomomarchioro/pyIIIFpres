@@ -1,8 +1,6 @@
 {
  "@context" : "http://iiif.io/api/presentation/3/context.json", 
- "id": {
-  "problem_description": "A Manifest should have the ID property with at least one item."
- },
+ "id": "https://example.org/iiif/book1/manifest",
  "type": "Manifest",
  "label": {
   "en": [
@@ -12,12 +10,12 @@
  "metadata": [
   {
    "label": {
-    "en": [
+    "null": [
      "Author"
     ]
    },
    "value": {
-    "en": [
+    "null": [
      "Anne Author"
     ]
    }
@@ -45,10 +43,8 @@
    },
    "value": {
     "en": [
-     [
-      "Text of note 1",
-      "Text of note 2"
-     ]
+     "Text of note 1",
+     "Text of note 2"
     ]
    }
   },
@@ -107,13 +103,13 @@
    "profile": "https://example.org/profiles/bibliographic"
   }
  ],
- "hompage": [
+ "homepage": [
   {
    "id": "https://example.org/info/book1/",
    "type": "Text",
    "label": {
     "en": [
-     "Hompage for Book 1"
+     "homepage for Book 1"
     ]
    },
    "format": "text/html"
@@ -144,6 +140,8 @@
    "profile": {}
   }
  ],
+ "viewingDirection": "right-to-left",
+ "navDate": "1856-01-01T00:00:00Z",
  "services": [
   {
    "@id": "https://example.org/iiif/auth/login",
@@ -164,23 +162,23 @@
    "id": "https://example.org/iiif/book1/manifest/canvas/p1",
    "type": "Canvas",
    "label": {
-    "en": [
+    "null": [
      "p. 1"
     ]
    },
-   "height": 1000,
+   "height": 1500,
    "width": 750,
    "items": [
     {
-     "id": "https://example.org/iiif/book1/manifest/page/p1/1",
+     "id": "https://example.org/iiif/book1/canvas/p1",
      "type": "AnnotationPage",
      "items": [
       {
-       "id": "https://example.org/iiif/book1/manifest/annotation/p0001-image",
+       "id": "https://example.org/iiif/book1/page/p1/1",
        "type": "Annotation",
        "motivation": "painting",
        "body": {
-        "id": "https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f18/full/max/0/default.jpg",
+        "id": "https://example.org/iiif/book1/page1/full/max/0/default.jpg",
         "type": "Image",
         "format": "image/jpeg",
         "profile": {
@@ -188,7 +186,7 @@
         },
         "service": [
          {
-          "id": "https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f18",
+          "id": "https://example.org/iiif/book1/page1",
           "type": "ImageService3",
           "service": [
            {
@@ -219,7 +217,7 @@
    "id": "https://example.org/iiif/book1/manifest/canvas/p2",
    "type": "Canvas",
    "label": {
-    "en": [
+    "null": [
      "p. 2"
     ]
    },
@@ -227,15 +225,15 @@
    "width": 750,
    "items": [
     {
-     "id": "https://example.org/iiif/book1/manifest/page/p2/1",
+     "id": "https://example.org/iiif/book1/canvas/p2",
      "type": "AnnotationPage",
      "items": [
       {
-       "id": "https://example.org/iiif/book1/manifest/annotation/p0002-image",
+       "id": "https://example.org/iiif/book1/page/p2/1",
        "type": "Annotation",
        "motivation": "painting",
        "body": {
-        "id": "https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f19/full/max/0/default.jpg",
+        "id": "https://example.org/iiif/book1/page2/full/max/0/default.jpg",
         "type": "Image",
         "format": "image/jpeg",
         "profile": {
@@ -243,7 +241,7 @@
         },
         "service": [
          {
-          "id": "https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f19",
+          "id": "https://example.org/iiif/book1/page1",
           "type": "ImageService3",
           "service": [
            {
@@ -264,6 +262,23 @@
    ]
   }
  ],
- "viewingDirection": "right-to-left",
- "navDate": "1856-01-01T00:00:00Z"
+ "annotations": [
+  {
+   "id": "https://example.org/iiif/book1/page/manifest/1",
+   "type": "AnnotationPage",
+   "items": [
+    {
+     "id": "https://example.org/iiif/book1/page/manifest/a1",
+     "type": "Annotation",
+     "motivation": "commenting",
+     "body": {
+      "type": "TextualBody",
+      "value": "I love this manifest!",
+      "language": "en"
+     },
+     "target": "https://example.org/iiif/book1/manifest"
+    }
+   ]
+  }
+ ]
 }
