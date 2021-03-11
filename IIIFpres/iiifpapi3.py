@@ -24,7 +24,6 @@ class Suggested(object):
     def __repr__(self): 
         return 'Suggested attribute:%s' %self.suggested
 
-
 def unused(attr):
     """
     This function check if an attribute is not set (has no value in it).
@@ -34,8 +33,21 @@ def unused(attr):
     else:
         return False
 
+def check(selfx,classx,obj):   
+    """
+    """
+    if unused(selfx):
+        selfx = []
+    if obj is None:
+        obj = classx()
+        selfx.append(obj)
+        return obj
+    else:
+        if isinstance(obj,classx):
+            selfx.append(obj)
+        else:
+            ValueError("Trying to add wrong object to")
 # Let's group all the common arguments across the differnet types of collection
-
 
 class CoreAttributes(object):
     """
@@ -110,7 +122,6 @@ class CoreAttributes(object):
     def __repr__(self) -> str:
         return self.json_dumps()
 
-
 class seeAlso(CoreAttributes):
     """
     IIF: A machine-readable resource such as an XML or RDF description that is related to the
@@ -141,7 +152,6 @@ class seeAlso(CoreAttributes):
         #TODO: add check
         self.format = format
 
-
 class partOf(CoreAttributes): 
     """
     A containing resource that includes the resource that has the partOf property. 
@@ -160,7 +170,6 @@ class partOf(CoreAttributes):
 
     def set_id(self, objid):
         self.id = objid
-
 
 class supplementary(CoreAttributes):
     """
@@ -181,7 +190,6 @@ class supplementary(CoreAttributes):
     def set_type(self):
         print("type must be AnnotationCollection")
 
-
 class bodycommenting(object):
     def __init__(self):
         self.type = "TextualBody"
@@ -200,7 +208,6 @@ class bodycommenting(object):
     def set_language(self,language):
         self.language = language
 
-
 class bodypainting(CoreAttributes,plus.HeightWidthDuration):
     def __init__(self):
         super(bodypainting,self).__init__()
@@ -215,172 +222,21 @@ class bodypainting(CoreAttributes,plus.HeightWidthDuration):
     def set_format(self,format):
         self.format = format
     
-    def add_service(self,service):
+    def add_service(self,serviceobj=None):
         if unused(self.service):
             self.service = []
-        self.service.append(service)
-
-class CommonAttributes(CoreAttributes):
-    """
-    Common attributes are the attributes that are in common with all the major
-    classes/container of IIIF namely: Collection, Manifest, Canvas, Range and
-    Annotation Page, Annotation and Content.
-
-    ID an type attributes are required. The other might vary. 
-    """
-    def __init__(self):
-        super(CommonAttributes, self).__init__()
-        self.metadata = None
-        self.summary = None
-        self.requiredStatement = None
-        self.rights = None
-        # https://iiif.io/api/presentation/3.0/#thumbnail
-        self.thumbnail = None
-        self.behavior = None
-        self.seeAlso = None
-        self.service = None
-        self.homepage = None
-        self.rendering = None
-        self.partOf = None
+        if serviceobj is None: 
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+                self.service.append(serviceobj)
+            else:
+                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
     
-    def add_metadata(self,label=None,value=None,language_l="none",
-                     language_v="none",entry=None):
-        """
-        An ordered list of descriptions to be displayed to the user when they interact
-        with the resource, given as pairs of human readable label and value entries. 
-        The content of these entries is intended for presentation only; descriptive 
-        semantics should not be inferred. An entry might be used to convey 
-        information about the creation of the object, a physical description, 
-        ownership information, or other purposes.
-        """
-        if unused(self.metadata):
-            self.metadata = []
-        arggr = [label,value,language_l,language_v]
-        if any(elem is not None for elem in arggr ) and entry is not None:
-            ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
-        
-        if not isinstance(value, list):
-            value = [value]
 
-        if entry is None:
-            entry = {"label":{language_l:[label]},
-                    "value":{language_v:value}}
-        self.metadata.append(entry)
-
-    def add_summary(self,text,language):
-        """
-        An ordered list of descriptions to be displayed to the user when they interact
-        with the resource, given as pairs of human readable label and value entries. 
-        The content of these entries is intended for presentation only; descriptive 
-        semantics should not be inferred. An entry might be used to convey 
-        information about the creation of the object, a physical description, 
-        ownership information, or other purposes.
-        """
-        if unused(self.summary):
-            self.summary = {}
-        self.summary[language] = [text]
-    
-    def add_requiredStatement(self,label,value,language):
-
-        if unused(self.requiredStatement):
-            self.requiredStatement = {}
-        self.requiredStatement["label"] = {language:[label]}
-        self.requiredStatement["value"] = {language:[value]}
-    
-    def add_requiredStatement(self,label=None,value=None,language_l=None,
-                     language_v=None,entry=None):
-        """
-        IIIF: Text that must be displayed when the resource is displayed or used. 
-        For example, the requiredStatement property could be used to present 
-        copyright or ownership statements, an acknowledgement of the owning and/or
-        publishing institution, or any other text that the publishing organization 
-        deems critical to display to the user. Given the wide variation of potential 
-        client user interfaces, it will not always be possible to display this 
-        statement to the user in the client’s initial state. If initially hidden, 
-        clients must make the method of revealing it as obvious as possible.
-        """
-        if unused(self.requiredStatement):
-            self.requiredStatement = {}
-        arggr = [label,value,language_l,language_v]
-        if any(elem is not None for elem in arggr ) and entry is not None:
-            ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
-        if entry is None:
-            entry = {"label":{language_l:[label]},
-                    "value":{language_l:[value]}}
-        self.requiredStatement = entry
-
-    def set_rights(self,rights):
-        """
-        A string that identifies a license or rights statement that applies to the 
-        content of the resource, such as the JSON of a Manifest or the pixels of an
-        image. The value must be drawn from the set of Creative Commons license URIs,
-        the RightsStatements.org rights statement URIs, or those added via the 
-        extension mechanism. The inclusion of this property is informative, and for
-        example could be used to display an icon representing the rights assertions.
-        
-        Not sure if it is suggested or mandatory.
-        """
-        #TODO: CHECK IF IT IS A VALID URL
-        self.rights =  rights
-
-    def add_thumbnail(self,obj):
-        """
-        https://iiif.io/api/presentation/3.0/#thumbnail
-        A content resource, such as a small image or short audio clip, that represents the 
-        resource that has the thumbnail property. A resource may have multiple thumbnail resources
-         that have the same or different type and format.
-
-        The value must be an array of JSON objects, each of which must have the id and type properties, 
-        and should have the format property. Images and videos should have the width and height properties,
-        and time-based media should have the duration property. It is recommended that a IIIF Image API 
-        service be available for images to enable manipulations such as resizing.
-        """
-        if unused(self.thumbnail):
-            self.thumbnail = []
-        self.thumbnail.append(obj)
-
-    def add_behavior(self,behavior):
-        """
-        """
-        #TODO: CHECK IF ALLOWED
-        if unused(self.behavior):
-            self.behavior = []
-        self.behavior.append(behavior)
-    
-    def add_homepage(self,homepage):
-        """
-        """
-        #TODO: CHECK IF ALLOWED
-        if unused(self.homepage):
-            self.homepage = []
-        self.homepage.append(homepage)
-    
-    def add_seeAlso(self,seeAlso):
-        """
-        """
-        #TODO: CHECK IF ALLOWED
-        if unused(self.seeAlso):
-            self.seeAlso = []
-        self.seeAlso.append(seeAlso)
-
-    def add_partOf(self,partOf):
-        """
-        """
-        #TODO: CHECK IF ALLOWED
-        if unused(self.partOf):
-            self.partOf = []
-        self.partOf.append(partOf)
-    
-    def add_rendering(self,rendering):
-        """
-        """
-        #TODO: CHECK IF ALLOWED
-        if unused(self.rendering):
-            self.rendering = []
-        self.rendering.append(rendering)
-        
-
-class service(CommonAttributes):
+class service(CoreAttributes):
     """https://iiif.io/api/presentation/3.0/#service
     A service that the client might interact with directly and 
     gain additional information or functionality for using the 
@@ -428,287 +284,19 @@ class service(CommonAttributes):
     def set_profile(self,profile):
         self.profile = profile
     
-    def add_service(self,service):
+    def add_service(self,serviceobj=None):
         if unused(self.service):
             self.service = []
-        self.service.append(service)
-
-class Annotation(CommonAttributes):
-    """
-
-    https://iiif.io/api/presentation/3.0/#56-annotation 
-    Annotations follow the Web Annotation data model. The description provided here is a summary 
-    plus any IIIF specific requirements. The W3C standard is the official documentation.
-
-    Annotations must have their own HTTP(S) URIs, conveyed in the id property. The JSON-LD 
-    description of the Annotation should be returned if the URI is dereferenced, according to 
-    the Web Annotation Protocol.
-
-    When Annotations are used to associate content resources with a Canvas, the content resource
-    is linked in the body of the Annotation. The URI of the Canvas must be repeated in the target
-    property of the Annotation, or the source property of a Specific Resource used in the target 
-    property.
-
-    Note that the Web Annotation data model defines different patterns for the value property, 
-    when used within an Annotation. The value of a Textual Body or a Fragment Selector, for example,
-    are strings rather than JSON objects with languages and values. Care must be taken to use the 
-    correct string form in these cases.
-
-    Additional features of the Web Annotation data model may also be used, such as selecting a 
-    segment of the Canvas or content resource, or embedding the comment or transcription within 
-    the Annotation. The use of these advanced features sometimes results in situations where the 
-    target is not a content resource, but instead a SpecificResource, a Choice, or other 
-    non-content object. Implementations should check the type of the resource and not assume that 
-    it is always content to be rendered.
-    """
-    #https://iiif.io/api/presentation/3.0/#56-annotation 
-    def __init__(self,target):
-        super(CommonAttributes, self).__init__()
-        self.motivation = None
-        self.body = None
-        self.target = target
-          
-    def set_motivation(self,motivation):
-        """
-        https://iiif.io/api/presentation/3.0/#values-for-motivation
-        Values for motivation
-        This specification defines two values for the Web Annotation property of 
-        motivation, or purpose when used on a Specific Resource or Textual 
-        Body.
-
-        While any resource may be the target of an Annotation, this 
-        specification defines only motivations for Annotations that 
-        target Canvases. These motivations allow clients to determine 
-        how the Annotation should be rendered, by distinguishing between 
-        Annotations that provide the content of the Canvas, from ones with
-        externally defined motivations which are typically comments about
-        the Canvas.
-
-        Additional motivations may be added to the Annotation to further 
-        clarify the intent, drawn from extensions or other sources. 
-        Clients must ignore motivation values that they do not understand.
-        Other motivation values given in the Web Annotation specification 
-        should be used where appropriate, and examples are given in the 
-        Presentation API Cookbook.
-
-        Value	Description
-        painting	Resources associated with a Canvas by an Annotation
-        that has the motivation value painting must be presented to the 
-        user as the representation of the Canvas. The content can be 
-        thought of as being of the Canvas. The use of this motivation 
-        with target resources other than Canvases is undefined. 
-        For example, an Annotation that has the motivation value
-        painting, a body of an Image and the target of the Canvas is
-        an instruction to present that Image as (part of) the visual
-        representation of the Canvas. Similarly, a textual body is 
-        to be presented as (part of) the visual representation of 
-        the Canvas and not positioned in some other part of the 
-        user interface.
-
-        supplementing	Resources associated with a Canvas by an 
-        Annotation that has the motivation value supplementing may 
-        be presented to the user as part of the representation of t
-        he Canvas, or may be presented in a different part of the 
-        user interface. The content can be thought of as being from 
-        the Canvas. The use of this motivation with target resources 
-        other than Canvases is undefined. For example, an Annotation 
-        that has the motivation value supplementing, a body of an 
-        Image and the target of part of the Canvas is an instruction
-        to present that Image to the user either in the Canvas’s 
-        rendering area or somewhere associated with it, and could be
-        used to present an easier to read representation of a diagram.
-        Similarly, a textual body is to be presented either in the
-        targeted region of the Canvas or otherwise associated with it,
-        and might be OCR, a manual transcription or a translation of
-        handwritten text, or captions for what is
-        """
-
-        motivations = ["painting","supplementing"]
-        if motivation not in motivations:
-            pass #TODO:warning
-        if motivation == "painting":
-            self.body =bodypainting()
-        if motivation == "commenting":
-            self.body = bodycommenting()
-        self.motivation = motivation
-
-
-class AnnotationPage(CommonAttributes):
-    """
- 
-    """
-    def __init__(self):
-        super(AnnotationPage, self).__init__()
-        self.items = Suggested()
-        self.annotations = None
-
-    def add_item(self,item):
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
-
-class Canvas(CommonAttributes):
-    """
-    https://iiif.io/api/presentation/3.0/#53-canvas
-    The Canvas represents an individual page or view and acts as a central point for assembling the
-    different content resources that make up the display. Canvases must be identified by a URI and it 
-    must be an HTTP(S) URI.
-    """
-    def __init__(self):
-        super(Canvas, self).__init__()
-        self.height = Required()
-        self.width = Required()
-        self.items = Suggested()
-        self.annotations = None
-    
-    def set_width(self,width:int):
-        self.width = width
-    
-    def set_height(self,height:int):
-        self.height = height
-    
-    def set_hightwidth(self,height:int,width:int):
-        self.set_width(width)
-        self.set_height(height)
-
-    def add_item(self,item):
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
-    
-    def add_annotation(self,annotation):
-        if unused(self.annotations):
-            self.annotations = []
-        self.annotations.append(annotation)
-
-class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
-    """
-    The Manifest resource typically represents a single object 
-    and any intellectual work or works embodied within that 
-    object. In particular it includes descriptive, rights and 
-    linking information for the object. The Manifest embeds 
-    the Canvases that should be rendered as views of the object 
-    and contains sufficient information for the client to 
-    initialize itself and begin to display something quickly to
-     the user.
-
-    The identifier in id must be able to be dereferenced to 
-    retrieve the JSON description of the Manifest, and thus 
-    must use the HTTP(S) URI scheme.
-
-    The Manifest must have an items property, which is an array
-    of JSON-LD objects. Each object is a Canvas, with 
-    requirements as described in the next section.
-    The Manifest may also have a structures property listing 
-    one or more Ranges which describe additional structure of 
-    the content, such as might be rendered as a table of
-    contents. The Manifest may have an annotations property, 
-    which includes Annotation Page resources where the 
-    Annotations have the Manifest as their target. 
-    These will typically be comment style Annotations,
-    and must not have painting as their motivation.
-    """
-    def __init__(self):
-        super(Manifest, self).__init__()
-        self.start = None
-        self.viewingDirection = None
-        self.navDate = None
-        self.services = None
-        self.service = None
-        self.items = Required()
-        self.annotations = None
-        self.provider = None
-        self.structures = None
-
-    def add_item(self,item):
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
-    
-    def set_start(self,start):
-        self.start = start
-    
-    def add_services(self,services=None):
-        if unused(self.services):
-            self.services = []
-        self.services.append(services)
-    
-    def add_annotation(self,annotation):
-        if unused(self.annotations):
-            self.annotations = []
-        self.annotations.append(annotation)
-    
-    def add_service(self,service=None):
-        if unused(self.service):
-            self.service = []
-        self.service.append(service)
-    
-    def add_provider(self,provider):
-        if unused(self.provider):
-            self.provider = []
-        self.provider.append(provider)
-    
-    def add_structure(self,structure):
-        if unused(self.structures):
-            self.structures = []
-        self.structures.append(structure)
-        
-
-class Collection(CommonAttributes):
-    def __init__(self):
-        super(Collection, self).__init__()
-        self.services = None
-        self.annotations = None
-        self.items = Required()
-    
-    def add_services(self,services=None):
-        if unused(self.services):
-            self.services = []
-        self.services.append(services)
-    
-    def add_annotation(self,annotation):
-        if unused(self.annotation):
-            self.annotation = []
-        self.annotation.append(annotation)
-    
-    def add_item(self,item):
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
-
-
-class Range(CommonAttributes):
-    def __init__(self):
-        super(Range, self).__init__()
-        self.annotations = None
-        self.items = Required()
-        self.supplementary = None 
-    
-    def add_annotation(self,annotation):
-        if unused(self.annotation):
-            self.annotation = []
-        self.annotation.append(annotation)
-    
-    def add_item(self,item):
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
-    
-    def set_start(self,start):
-        self.start = start
-
-    def set_supplementary(self,objid=None,extendbase_url=None):
-        self.supplementary = supplementary()
-        self.supplementary.set_id(objid,extendbase_url)
-
-    def add_canvas_to_items(self,canvas_id):
-        """Add a canvas to items by id of the canvas
-        """
-        if unused(self.items):
-            self.items = []
-        entry = {"id": canvas_id,
-                "type": "Canvas"}
-        self.items.append(entry)
+        if serviceobj is None: 
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+                self.service.append(serviceobj)
+            else:
+                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+  
 
 class thumbnail(CoreAttributes,plus.HeightWidthDuration):
     def __init__(self):
@@ -721,11 +309,19 @@ class thumbnail(CoreAttributes,plus.HeightWidthDuration):
     def set_format(self,format):
         self.format = format
     
-    def add_service(self,service):
+    def add_service(self,serviceobj=None):
         if unused(self.service):
             self.service = []
-        self.service.append(service)
-
+        if serviceobj is None: 
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+                self.service.append(serviceobj)
+            else:
+                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+  
 
 class provider(CoreAttributes):
     """
@@ -779,21 +375,52 @@ class provider(CoreAttributes):
     def set_type(self):
         print("The type property must be kept Agent.")
     
-    def add_logo(self,logo):
+    def add_logo(self,logoobj=None):
         if unused(self.logo):
             self.logo = []
-        self.logo.append(logo)
+        if logoobj is None: 
+            logoobj = logo()
+            self.logo.append(logoobj)
+            return logoobj
+        else:
+            if isinstance(logoobj,logo):
+                self.logo.append(logoobj)
+            else:
+                ValueError("Trying to add wrong object to logo in %s" %self.__class__.__name__)
+    
 
-    def add_homepage(self,homepage):
+    def add_homepage(self,homepageobj=None):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
         if unused(self.homepage):
             self.homepage = []
-        self.homepage.append(homepage)
+        if homepageobj is None:
+            homepageobj = homepage()
+            self.homepage.append(homepageobj)
+            return homepageobj
+        else:
+            if isinstance(homepageobj,homepage):
+                self.homepage.append(homepageobj)
+            else:
+                ValueError("Trying to add wrong object to homepage in %s" %self.__class__.__name__)
     
-    def add_seeAlso(self,seeAlso):
+    
+    def add_seeAlso(self,seeAlsoobj=None):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
         if unused(self.seeAlso):
             self.seeAlso = []
-        self.seeAlso.append(seeAlso)
-
+        if seeAlsoobj is None:
+            seeAlsoobj = seeAlso()
+            self.seeAlso.append(seeAlsoobj)
+            return seeAlsoobj
+        else:
+            if isinstance(seeAlsoobj,seeAlso):
+                self.seeAlso.append(seeAlsoobj)
+            else:
+                ValueError("Trying to add wrong object to seeAlso in %s" %self.__class__.__name__)
 
 class homepage(CoreAttributes):
     """https://iiif.io/api/presentation/3.0/#homepage
@@ -849,10 +476,19 @@ class logo(CoreAttributes,plus.HeightWidthDuration):
     def set_label(self,label):
         ValueError("Label not permitted in logo.")
     
-    def add_service(self,service):
+    def add_service(self,serviceobj=None):
         if unused(self.service):
             self.service = []
-        self.service.append(service)
+        if serviceobj is None: 
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+                self.service.append(serviceobj)
+            else:
+                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+  
 
 class rendering(CoreAttributes):
     """
@@ -918,11 +554,563 @@ class services(CoreAttributes):
     def set_profile(self,profile):
         self.profile = profile
 
-    def add_service(self,service):
+    def add_service(self,serviceobj=None):
         if unused(self.service):
             self.service = []
-        self.service.append(service)
+        if serviceobj is None: 
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+                self.service.append(serviceobj)
+            else:
+                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+  
 
+
+
+##
+#COMMON ATTRIBUTES TO MAJOR CONTAINERS
+##
+
+class CommonAttributes(CoreAttributes):
+    """
+    Common attributes are the attributes that are in common with all the major
+    classes/container of IIIF namely: Collection, Manifest, Canvas, Range and
+    Annotation Page, Annotation and Content.
+
+    ID an type attributes are required. The other might vary. 
+    """
+    def __init__(self):
+        super(CommonAttributes, self).__init__()
+        self.metadata = None
+        self.summary = None
+        self.requiredStatement = None
+        self.rights = None
+        # https://iiif.io/api/presentation/3.0/#thumbnail
+        self.thumbnail = None
+        self.behavior = None
+        self.seeAlso = None
+        self.service = None
+        self.homepage = None
+        self.rendering = None
+        self.partOf = None
+    
+    def add_metadata(self,label=None,value=None,language_l="none",
+                     language_v="none",entry=None):
+        """
+        An ordered list of descriptions to be displayed to the user when they interact
+        with the resource, given as pairs of human readable label and value entries. 
+        The content of these entries is intended for presentation only; descriptive 
+        semantics should not be inferred. An entry might be used to convey 
+        information about the creation of the object, a physical description, 
+        ownership information, or other purposes.
+        """
+        if unused(self.metadata):
+            self.metadata = []
+        arggr = [label,value,language_l,language_v]
+        if any(elem is not None for elem in arggr ) and entry is not None:
+            ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
+        
+        if not isinstance(value, list):
+            value = [value]
+
+        if entry is None:
+            entry = {"label":{language_l:[label]},
+                    "value":{language_v:value}}
+        self.metadata.append(entry)
+
+    def add_summary(self,text,language):
+        """
+        An ordered list of descriptions to be displayed to the user when they interact
+        with the resource, given as pairs of human readable label and value entries. 
+        The content of these entries is intended for presentation only; descriptive 
+        semantics should not be inferred. An entry might be used to convey 
+        information about the creation of the object, a physical description, 
+        ownership information, or other purposes.
+        """
+        if unused(self.summary):
+            self.summary = {}
+        self.summary[language] = [text]
+    
+    def add_requiredStatement(self,label=None,value=None,language_l=None,
+                     language_v=None,entry=None):
+        """
+        IIIF: Text that must be displayed when the resource is displayed or used. 
+        For example, the requiredStatement property could be used to present 
+        copyright or ownership statements, an acknowledgement of the owning and/or
+        publishing institution, or any other text that the publishing organization 
+        deems critical to display to the user. Given the wide variation of potential 
+        client user interfaces, it will not always be possible to display this 
+        statement to the user in the client’s initial state. If initially hidden, 
+        clients must make the method of revealing it as obvious as possible.
+        """
+        if unused(self.requiredStatement):
+            self.requiredStatement = {}
+        arggr = [label,value,language_l,language_v]
+        if any(elem is not None for elem in arggr ) and entry is not None:
+            ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
+        if entry is None:
+            entry = {"label":{language_l:[label]},
+                    "value":{language_l:[value]}}
+        self.requiredStatement = entry
+
+    def set_rights(self,rights):
+        """
+        A string that identifies a license or rights statement that applies to the 
+        content of the resource, such as the JSON of a Manifest or the pixels of an
+        image. The value must be drawn from the set of Creative Commons license URIs,
+        the RightsStatements.org rights statement URIs, or those added via the 
+        extension mechanism. The inclusion of this property is informative, and for
+        example could be used to display an icon representing the rights assertions.
+        
+        Not sure if it is suggested or mandatory.
+        """
+        #TODO: CHECK IF IT IS A VALID URL
+        self.rights =  rights
+
+    def add_thumbnail(self,thumbnailobj=None):
+        """
+        https://iiif.io/api/presentation/3.0/#thumbnail
+        A content resource, such as a small image or short audio clip, that represents the 
+        resource that has the thumbnail property. A resource may have multiple thumbnail resources
+         that have the same or different type and format.
+
+        The value must be an array of JSON objects, each of which must have the id and type properties, 
+        and should have the format property. Images and videos should have the width and height properties,
+        and time-based media should have the duration property. It is recommended that a IIIF Image API 
+        service be available for images to enable manipulations such as resizing.
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.thumbnail):
+            self.thumbnail = []
+        if thumbnailobj is None:
+            thumbnailobj = thumbnail()
+            self.thumbnail.append(thumbnailobj)
+            return thumbnailobj
+        else:
+            if isinstance(thumbnailobj,thumbnail):
+                self.thumbnail.append(thumbnailobj)
+            else:
+                ValueError("Trying to add wrong object to thumbnail in %s" %self.__class__.__name__)
+
+
+    def add_behavior(self,behavior):
+        """
+        A set of user experience features that the publisher of the content would prefer the client to use when presenting the resource. This specification defines the values in the table below. Others may be defined externally as an extension.
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.behavior):
+            self.behavior = []
+        self.behavior.append(behavior)
+        
+    def add_homepage(self,homepageobj=None):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.homepage):
+            self.homepage = []
+        if homepageobj is None:
+            homepageobj = homepage()
+            self.homepage.append(homepageobj)
+            return homepageobj
+        else:
+            if isinstance(homepageobj,homepage):
+                self.homepage.append(homepageobj)
+            else:
+                ValueError("Trying to add wrong object to homepage in %s" %self.__class__.__name__)
+    
+    def add_seeAlso(self,seeAlsoobj=None):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.seeAlso):
+            self.seeAlso = []
+        if seeAlsoobj is None:
+            seeAlsoobj = seeAlso()
+            self.seeAlso.append(seeAlsoobj)
+            return seeAlsoobj
+        else:
+            if isinstance(seeAlsoobj,seeAlso):
+                self.seeAlso.append(seeAlsoobj)
+            else:
+                ValueError("Trying to add wrong object to seeAlso in %s" %self.__class__.__name__)
+
+
+    def add_partOf(self,partOfobj=None):
+        """
+        """
+        #TODO: CHECK IF ALLOWED
+        if unused(self.partOf):
+            self.partOf = []
+        if partOfobj is None:
+            partOfobj = partOf()
+            self.partOf.append(partOfobj)
+            return partOfobj
+        else:
+            if isinstance(partOfobj,seeAlso):
+                self.partOf.append(partOfobj)
+            else:
+                ValueError("Trying to add wrong object to partOf in %s" %self.__class__.__name__)
+    
+    def add_rendering(self,renderingobj=None):
+        """
+        """   
+        #TODO: CHECK IF ALLOWED
+        if unused(self.rendering):
+            self.rendering = []
+        if renderingobj is None:
+            renderingobj = rendering()
+            self.rendering.append(renderingobj)
+            return renderingobj
+        else:
+            if isinstance(renderingobj,rendering):
+                self.rendering.append(renderingobj)
+            else:
+                ValueError("Trying to add wrong object to renderging in %s" %self.__class__.__name__)
+
+        
+class Annotation(CommonAttributes):
+    """
+
+    https://iiif.io/api/presentation/3.0/#56-annotation 
+    Annotations follow the Web Annotation data model. The description provided here is a summary 
+    plus any IIIF specific requirements. The W3C standard is the official documentation.
+
+    Annotations must have their own HTTP(S) URIs, conveyed in the id property. The JSON-LD 
+    description of the Annotation should be returned if the URI is dereferenced, according to 
+    the Web Annotation Protocol.
+
+    When Annotations are used to associate content resources with a Canvas, the content resource
+    is linked in the body of the Annotation. The URI of the Canvas must be repeated in the target
+    property of the Annotation, or the source property of a Specific Resource used in the target 
+    property.
+
+    Note that the Web Annotation data model defines different patterns for the value property, 
+    when used within an Annotation. The value of a Textual Body or a Fragment Selector, for example,
+    are strings rather than JSON objects with languages and values. Care must be taken to use the 
+    correct string form in these cases.
+
+    Additional features of the Web Annotation data model may also be used, such as selecting a 
+    segment of the Canvas or content resource, or embedding the comment or transcription within 
+    the Annotation. The use of these advanced features sometimes results in situations where the 
+    target is not a content resource, but instead a SpecificResource, a Choice, or other 
+    non-content object. Implementations should check the type of the resource and not assume that 
+    it is always content to be rendered.
+    """
+    #https://iiif.io/api/presentation/3.0/#56-annotation 
+    def __init__(self,target):
+        super(CommonAttributes, self).__init__()
+        self.motivation = None
+        self.body = None
+        self.target = target
+        self.metadata = None
+          
+    def set_motivation(self,motivation):
+        """
+        https://iiif.io/api/presentation/3.0/#values-for-motivation
+        Values for motivation
+        This specification defines two values for the Web Annotation property of 
+        motivation, or purpose when used on a Specific Resource or Textual 
+        Body.
+
+        While any resource may be the target of an Annotation, this 
+        specification defines only motivations for Annotations that 
+        target Canvases. These motivations allow clients to determine 
+        how the Annotation should be rendered, by distinguishing between 
+        Annotations that provide the content of the Canvas, from ones with
+        externally defined motivations which are typically comments about
+        the Canvas.
+
+        Additional motivations may be added to the Annotation to further 
+        clarify the intent, drawn from extensions or other sources. 
+        Clients must ignore motivation values that they do not understand.
+        Other motivation values given in the Web Annotation specification 
+        should be used where appropriate, and examples are given in the 
+        Presentation API Cookbook.
+
+        Value	Description
+        painting	Resources associated with a Canvas by an Annotation
+        that has the motivation value painting must be presented to the 
+        user as the representation of the Canvas. The content can be 
+        thought of as being of the Canvas. The use of this motivation 
+        with target resources other than Canvases is undefined. 
+        For example, an Annotation that has the motivation value
+        painting, a body of an Image and the target of the Canvas is
+        an instruction to present that Image as (part of) the visual
+        representation of the Canvas. Similarly, a textual body is 
+        to be presented as (part of) the visual representation of 
+        the Canvas and not positioned in some other part of the 
+        user interface.
+
+        supplementing	Resources associated with a Canvas by an 
+        Annotation that has the motivation value supplementing may 
+        be presented to the user as part of the representation of t
+        he Canvas, or may be presented in a different part of the 
+        user interface. The content can be thought of as being from 
+        the Canvas. The use of this motivation with target resources 
+        other than Canvases is undefined. For example, an Annotation 
+        that has the motivation value supplementing, a body of an 
+        Image and the target of part of the Canvas is an instruction
+        to present that Image to the user either in the Canvas’s 
+        rendering area or somewhere associated with it, and could be
+        used to present an easier to read representation of a diagram.
+        Similarly, a textual body is to be presented either in the
+        targeted region of the Canvas or otherwise associated with it,
+        and might be OCR, a manual transcription or a translation of
+        handwritten text, or captions for what is
+        """
+
+        motivations = ["painting","supplementing"]
+        if motivation not in motivations:
+            pass #TODO:warning
+        if motivation == "painting":
+            self.body =bodypainting()
+        if motivation == "commenting":
+            self.body = bodycommenting()
+        self.motivation = motivation
+
+class AnnotationPage(CommonAttributes):
+    """
+ 
+    """
+    def __init__(self):
+        super(AnnotationPage, self).__init__()
+        self.items = Suggested()
+        self.annotations = None
+
+    def add_item(self,item):
+        if unused(self.items):
+            self.items = []
+        self.items.append(item)
+    
+    def add_annotation_toitems(self,annotation=None,targetid=None):
+        if unused(self.items):
+            self.items = []
+        if annotation is None:
+            annotation = Annotation(target=targetid)
+            self.items.append(annotation)
+            return annotation
+        else:
+            self.items.append(annotation)
+
+class Canvas(CommonAttributes):
+    """
+    https://iiif.io/api/presentation/3.0/#53-canvas
+    The Canvas represents an individual page or view and acts as a central point for assembling the
+    different content resources that make up the display. Canvases must be identified by a URI and it 
+    must be an HTTP(S) URI.
+    """
+    def __init__(self):
+        super(Canvas, self).__init__()
+        self.height = Required()
+        self.width = Required()
+        self.items = Suggested()
+        self.annotations = None
+    
+    def set_width(self,width:int):
+        self.width = width
+    
+    def set_height(self,height:int):
+        self.height = height
+    
+    def set_hightwidth(self,height:int,width:int):
+        self.set_width(width)
+        self.set_height(height)
+
+    def add_item(self,item):
+        if unused(self.items):
+            self.items = []
+        self.items.append(item)
+    
+    def add_annotation(self,annotation=None):
+        if unused(self.annotations):
+            self.annotations = []
+        if annotation is None:
+            annotation = Annotation(target=self.id)
+            self.annotations.append(annotation)
+            return annotation
+        else:
+            self.annotations.append(annotation)
+
+    def add_annotationpage_to_items(self,annotationpageobj=None):
+        return check(self.items,AnnotationPage,annotationpageobj)
+
+class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
+    """
+    The Manifest resource typically represents a single object 
+    and any intellectual work or works embodied within that 
+    object. In particular it includes descriptive, rights and 
+    linking information for the object. The Manifest embeds 
+    the Canvases that should be rendered as views of the object 
+    and contains sufficient information for the client to 
+    initialize itself and begin to display something quickly to
+     the user.
+
+    The identifier in id must be able to be dereferenced to 
+    retrieve the JSON description of the Manifest, and thus 
+    must use the HTTP(S) URI scheme.
+
+    The Manifest must have an items property, which is an array
+    of JSON-LD objects. Each object is a Canvas, with 
+    requirements as described in the next section.
+    The Manifest may also have a structures property listing 
+    one or more Ranges which describe additional structure of 
+    the content, such as might be rendered as a table of
+    contents. The Manifest may have an annotations property, 
+    which includes Annotation Page resources where the 
+    Annotations have the Manifest as their target. 
+    These will typically be comment style Annotations,
+    and must not have painting as their motivation.
+    """
+    def __init__(self):
+        super(Manifest, self).__init__()
+        self.start = None
+        self.viewingDirection = None
+        self.navDate = None
+        self.services = None
+        self.service = None
+        self.items = Required()
+        self.annotations = None
+        self.provider = None
+        self.structures = None
+
+    def add_item(self,item):
+        if unused(self.items):
+            self.items = []
+        self.items.append(item)
+    
+    def set_start(self,start):
+        self.start = start
+    
+    def add_services(self,services=None):
+        if unused(self.services):
+            self.services = []
+        self.services.append(services)
+    
+    def add_annotation(self,annotation=None):
+        if unused(self.annotations):
+            self.annotations = []
+        if annotation is None:
+            annotation = Annotation(target=self.id)
+            self.annotations.append(annotation)
+            return annotation
+        else:
+            self.annotations.append(annotation)
+    
+    def add_service(self,serviceobj=None):
+        if unused(self.service):
+            self.service = []
+        if serviceobj is None: 
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+                self.service.append(serviceobj)
+            else:
+                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+  
+    
+    def add_provider(self,providerobj=None):
+        if unused(self.provider):
+            self.provider = []
+        if providerobj is None:
+            providerobj = provider()
+            self.provider.append(providerobj)
+            return providerobj
+        else:
+            if isinstance(providerobj,service):
+                self.provider.append(providerobj)
+            else:
+                ValueError("Trying to add wrong object to provider in %s" %self.__class__.__name__)
+  
+    def add_canvastoitems(self,canvasobj=None):
+        if unused(self.items):
+            self.items = []
+        if canvasobj is None: 
+            canvasobj = Canvas()
+            self.items.append(canvasobj)
+            return canvasobj
+        else:
+            if isinstance(canvasobj,Canvas):
+                self.items.append(canvasobj)
+            else:
+                ValueError("Trying to add wrong object as canvas to items in %s" %self.__class__.__name__)
+  
+    
+    def add_structure(self,structure):
+        if unused(self.structures):
+            self.structures = []
+        self.structures.append(structure)
+
+    def add_rangetostructures(self,rangeobj):
+        return check(self.structures,Range,rangeobj)
+        
+class Collection(CommonAttributes):
+    def __init__(self):
+        super(Collection, self).__init__()
+        self.services = None
+        self.annotations = None
+        self.items = Required()
+    
+    def add_service(self,serviceobj=None):
+        if unused(self.service):
+            self.service = []
+        if serviceobj is None: 
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+                self.service.append(serviceobj)
+            else:
+                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+  
+    
+    def add_annotation(self,annotation):
+        if unused(self.annotation):
+            self.annotation = []
+        self.annotation.append(annotation)
+    
+    def add_item(self,item):
+        if unused(self.items):
+            self.items = []
+        self.items.append(item)
+
+class Range(CommonAttributes):
+    def __init__(self):
+        super(Range, self).__init__()
+        self.annotations = None
+        self.items = Required()
+        self.supplementary = None 
+    
+    def add_annotation(self,annotation):
+        if unused(self.annotation):
+            self.annotation = []
+        self.annotation.append(annotation)
+    
+    def add_item(self,item):
+        if unused(self.items):
+            self.items = []
+        self.items.append(item)
+    
+    def set_start(self,start):
+        self.start = start
+
+    def set_supplementary(self,objid=None,extendbase_url=None):
+        self.supplementary = supplementary()
+        self.supplementary.set_id(objid,extendbase_url)
+
+    def add_canvas_to_items(self,canvas_id):
+        """Add a canvas to items by id of the canvas
+        """
+        if unused(self.items):
+            self.items = []
+        entry = {"id": canvas_id,
+                "type": "Canvas"}
+        self.items.append(entry)
 
 class SpecificResource(CommonAttributes):
     def __init__(self):
