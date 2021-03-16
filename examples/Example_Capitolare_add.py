@@ -78,7 +78,6 @@ manifest.add_metadata(label="Tipo di rilegatura",value=record["tipo_rilegatura"]
 manifest.add_metadata(label="Materiale rilegatura",value=record["materiale_rilegatura"],language_l="it")
 # more complex entry can be mapped directly to a dictionary and inserted using entry arguments
 manifest.add_summary(f"Il manoscritto {segn} è databile {datazione} secondo le informazioni riportate nell catalogo di don Spagnolo ({pagsp}).  ",language="it")
-thum = manifest.add_thumbnail()
 manifest.set_viewingDirection("left-to-right")
 manifest.add_behavior("paged")
 manifest.set_navDate(f"{record['datazione_i']}-01-01T00:00:00Z")
@@ -145,7 +144,7 @@ for idx,d in enumerate(images):
     annotation.body.set_width(width)
     annotation.body.set_height(height)
     s = annotation.body.add_service()
-    s.set_id(d[3])
+    s.set_id()
     s.set_type("ImageService2")
     s.set_profile("level2")
     

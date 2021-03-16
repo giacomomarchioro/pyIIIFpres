@@ -941,10 +941,10 @@ class Canvas(CommonAttributes):
         self.annotations = None
     
     def set_width(self,width:int):
-        self.width = width
+        self.width = int(width)
     
     def set_height(self,height:int):
-        self.height = height
+        self.height = int(height)
     
     def set_hightwidth(self,height:int,width:int):
         self.set_width(width)
