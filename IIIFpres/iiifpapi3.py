@@ -33,7 +33,7 @@ def unused(attr):
     else:
         return False
 
-def check(selfx,classx,obj):   
+def checkitem(selfx,classx,obj):   
     """
     This function is used to check if the object is added to the right entity. It return
     a reference of the empty object if the object to be added is not specify.
@@ -42,17 +42,39 @@ def check(selfx,classx,obj):
     """
     #import pdb; pdb.set_trace()
 
-    if unused(selfx):
-        selfx = []
+    if unused(selfx.items):
+        selfx.items = []
     if obj is None:
         obj = classx()
-        selfx.append(obj)
+        selfx.items.append(obj)
         return obj
     else:
         if isinstance(obj,classx):
-            selfx.append(obj)
+            selfx.items.append(obj)
         else:
             ValueError("Trying to add wrong object to %s" %selfx.__class__.__name__)
+
+def checkstru(selfx,classx,obj):   
+    """
+    This function is used to check if the object is added to the right entity. It return
+    a reference of the empty object if the object to be added is not specify.
+
+    For instance, I want to add an Annotation object to a Manifest.
+    """
+    #import pdb; pdb.set_trace()
+
+    if unused(selfx.structures):
+        selfx.structures  = []
+    if obj is None:
+        obj = classx()
+        selfx.structures.append(obj)
+        return obj
+    else:
+        if isinstance(obj,classx):
+            selfx.structures.append(obj)
+        else:
+            ValueError("Trying to add wrong object to %s" %selfx.__class__.__name__)
+      
 # Let's group all the common arguments across the differnet types of collection
 
 class CoreAttributes(object):
@@ -125,27 +147,6 @@ class CoreAttributes(object):
     def show_errors(self):
         return print(self.json_dumps(dumps_errors=True))
 
-    def check(self,selfx,classx,obj):   
-        """
-        #TODO: NOT WORKING SEEMS THERE ARE CONFLITS
-        This function is used to check if the object is added to the right entity. It return
-        a reference of the empty object if the object to be added is not specify.
-
-        For instance, I want to add an Annotation object to a Manifest.
-        """
-        #import pdb; pdb.set_trace()
-        if unused(selfx):
-            selfx = []
-        if obj is None:
-            obj = classx()
-            selfx.append(obj)
-            return obj
-        else:
-            if isinstance(obj,classx):
-                selfx.append(obj)
-            else:
-                ValueError("Trying to add wrong object to %s" %selfx.__class__.__name__)
-    
     def __repr__(self) -> str:
         return self.json_dumps()
 
@@ -1085,7 +1086,7 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
         self.structures.append(structure)
 
     def add_rangetostructures(self,rangeobj=None):
-        return check(self.structures,Range,rangeobj)
+        return checkstru(self,Range,rangeobj)
         
 class Collection(CommonAttributes):
     def __init__(self):

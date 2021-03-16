@@ -27,7 +27,7 @@ romconv = {1: 'I',
  18: 'XVIII',
  19: 'XIX'}
 
-tsv_datasetpath = r"/Users/univr/Pictures/TEST IIF/lista manoscritti - Versione_con_aggiunte.tsv"
+tsv_datasetpath = r"list.tsv"
 segnatura = 41
 def search(segnatura):
     with open(tsv_datasetpath,'r') as f:
@@ -40,10 +40,10 @@ def search(segnatura):
             elif records[5]  == str(segnatura):
                 return dict(zip(h,records))
 record = search(segnatura)
-
-iiifpapi3.BASE_URL = "http://lezioni.meneghetti.univr.it//manifests//%s" %segnatura
+segnatura = str(segnatura)
+iiifpapi3.BASE_URL = "http://lezioni.meneghetti.univr.it" 
 manifest = iiifpapi3.Manifest()
-manifest.set_id()
+manifest.set_id(extendbase_url=["manifests" ,segnatura])
 segn = "%s (%s)" %(record["numero_del_codice"],record["numerazione_araba"])
 manifest.add_label("it","Manoscritto: %s" %segn)
 
@@ -103,17 +103,17 @@ fogli = 259
 piatti_e_carte_di_guardia_post = 4
 plabels = ['dorso','piatto anteriore','risguardia anteriore',]
 sidesg1 = cycle(('recto','verso'))
-for i in range(piatti_e_carte_di_guardia_ant):
+for i in range(1,piatti_e_carte_di_guardia_ant+1):
     plabels.append("guardia anteriore %i %s" %(i,next(sidesg1)))
     plabels.append("guardia anteriore %i %s" %(i,next(sidesg1)))
 
-sidesf = cycle(('recto','verso'))
-for i in range(fogli):
+sidesf = cycle(('r','v'))
+for i in range(1,fogli+1):
     plabels.append("%i%s" %(i,next(sidesf)))
     plabels.append("%i%s" %(i,next(sidesf)))
 
-sidesg2 = cycle(('recto','verso'))
-for i in range(piatti_e_carte_di_guardia_post):
+sidesg2 = cycle(('r','v'))
+for i in range(1,piatti_e_carte_di_guardia_post+1):
     plabels.append("guardia posteriore %i %s" %(i,next(sidesg2)))
     plabels.append("guardia posteriore %i %s" %(i,next(sidesg2)))
 
@@ -123,9 +123,10 @@ for i in post_elements:
     
 for idx,d in enumerate(images):
     idx+=1 
-    image = os.path.join(folder,d)
+    manloc = "/manifests/%s" %segnatura
+    image = d
     canvas = manifest.add_canvastoitems()
-    canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
+    canvas.set_id(extendbase_url=["manifests",segnatura,"canvas","p%s"%idx]) # in this case we use the base url
     out = check_output(["exiftool", image])
     Metadata = dict((e[:32].strip(),e[33:].strip()) for e in out.decode('utf8').split('\n'))
     width = Metadata['Image Width']
@@ -134,17 +135,17 @@ for idx,d in enumerate(images):
     canvas.set_width(height)
     canvas.add_label("it",plabels[idx])
     annopage = canvas.add_annotationpage_to_items()
-    annopage.set_id(extendbase_url=["page","p%s"%idx,"1"])
+    annopage.set_id(extendbase_url=["manifests",segnatura,"page","p%s"%idx,"1"])
     annotation = annopage.add_annotation_toitems(targetid=canvas.id)
-    annotation.set_id(extendbase_url=["annotation","p%s-image"%str(idx).zfill(4)])
+    annotation.set_id(extendbase_url=["manifests",segnatura,"annotation","p%s-image"%str(idx).zfill(4)])
     annotation.set_motivation("painting")
-    annotation.body.set_id(image+"/full/max/0/default.jpg")
+    annotation.body.set_id(extendbase_url=[image,"/full/max/0/default.jpg"])
     annotation.body.set_type("Image")
     annotation.body.set_format("image/jp2")
     annotation.body.set_width(width)
     annotation.body.set_height(height)
     s = annotation.body.add_service()
-    s.set_id(image)
+    s.set_id(extendbase_url=[image])
     s.set_type("ImageService2")
     s.set_profile("level2")
     
@@ -175,4 +176,4 @@ annopage3.add_item(anno)
 annopage3.set_id("https://example.org/iiif/book1/page/manifest/1")        
 manifest.add_annotation(annopage3)
 
-manifest.json_save("manifest.json")
+manifest.json_save(os.path.join("presentationapi","manifests","%s.json" %segnatura))
