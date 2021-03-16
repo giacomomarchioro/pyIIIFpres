@@ -115,7 +115,7 @@ for idx,d in enumerate(data):
     annotation.body.set_format("image/jpeg")
     annotation.body.set_width(1500)
     annotation.body.set_height(2000)
-    s = iiifpapi3.service()
+    s = annotation.body.add_service()
     s.set_id(d[3])
     s.set_type("ImageService3")
     s.set_profile("level2")
@@ -125,16 +125,13 @@ for idx,d in enumerate(data):
                 "@type": "AuthCookieService1"
                 }
         s.add_service(subserv)
-    annotation.body.add_service(s)
-    annopage.add_item(annotation)
-    canvas.add_item(annopage)
     # if has annotation
     if d[5]:
         annopage2 = iiifpapi3.AnnotationPage()
         annopage2.set_id("https://example.org/iiif/book1/comments/p%s/1" %idx)
         canvas.add_annotation(annopage2)
     
-rng = iiifpapi3.Range()
+rng = manifest.add_rangetostructures()
 rng.set_id(extendbase_url=["range","r0"])
 rng.add_label("en","Table of Contents")
 rng2 = iiifpapi3.Range()
@@ -149,7 +146,6 @@ fs.set_xywh(0,0,750,300)
 sr.set_selector(fs)
 rng2.add_item(sr)
 rng.add_item(rng2)
-manifest.add_structure(rng)
 annopage3 = iiifpapi3.AnnotationPage()
 annopage3.set_id("https://example.org/iiif/book1/page/manifest/1")
 anno = iiifpapi3.Annotation(manifest.id)

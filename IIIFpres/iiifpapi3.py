@@ -35,7 +35,13 @@ def unused(attr):
 
 def check(selfx,classx,obj):   
     """
+    This function is used to check if the object is added to the right entity. It return
+    a reference of the empty object if the object to be added is not specify.
+
+    For instance, I want to add an Annotation object to a Manifest.
     """
+    #import pdb; pdb.set_trace()
+
     if unused(selfx):
         selfx = []
     if obj is None:
@@ -46,7 +52,7 @@ def check(selfx,classx,obj):
         if isinstance(obj,classx):
             selfx.append(obj)
         else:
-            ValueError("Trying to add wrong object to")
+            ValueError("Trying to add wrong object to %s" %selfx.__class__.__name__)
 # Let's group all the common arguments across the differnet types of collection
 
 class CoreAttributes(object):
@@ -119,6 +125,27 @@ class CoreAttributes(object):
     def show_errors(self):
         return print(self.json_dumps(dumps_errors=True))
 
+    def check(self,selfx,classx,obj):   
+        """
+        #TODO: NOT WORKING SEEMS THERE ARE CONFLITS
+        This function is used to check if the object is added to the right entity. It return
+        a reference of the empty object if the object to be added is not specify.
+
+        For instance, I want to add an Annotation object to a Manifest.
+        """
+        #import pdb; pdb.set_trace()
+        if unused(selfx):
+            selfx = []
+        if obj is None:
+            obj = classx()
+            selfx.append(obj)
+            return obj
+        else:
+            if isinstance(obj,classx):
+                selfx.append(obj)
+            else:
+                ValueError("Trying to add wrong object to %s" %selfx.__class__.__name__)
+    
     def __repr__(self) -> str:
         return self.json_dumps()
 
@@ -266,6 +293,10 @@ class service(CoreAttributes):
 
 
     def set_type(self,mytype):
+        """
+        The type of the service, for instance if the image is served
+        using IIIF Image API 3.0 then use "ImageService3".
+        """
         values = [
             "ImageService",
             "SearchService",
@@ -935,7 +966,15 @@ class Canvas(CommonAttributes):
             self.annotations.append(annotation)
 
     def add_annotationpage_to_items(self,annotationpageobj=None):
-        return check(self.items,AnnotationPage,annotationpageobj)
+        #return self.check(self.items,AnnotationPage,annotationpageobj)
+        if unused(self.items):
+            self.items = []
+        if annotationpageobj is None:
+            annotationp = AnnotationPage()
+            self.items.append(annotationp)
+            return annotationp
+        else:
+            self.items.append(annotationp)
 
 class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
     """
@@ -1045,7 +1084,7 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
             self.structures = []
         self.structures.append(structure)
 
-    def add_rangetostructures(self,rangeobj):
+    def add_rangetostructures(self,rangeobj=None):
         return check(self.structures,Range,rangeobj)
         
 class Collection(CommonAttributes):
