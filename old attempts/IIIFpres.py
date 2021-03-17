@@ -12,7 +12,7 @@ class Required(object):
     def __repr__(self): 
         return 'Required attribute:%s' %self.description
 
-class Suggested(object):
+class Recommended(object):
     """
     This is not an IIIF object but a class used by this sofware to identify required fields.
     This is equivalente to SHOULD setatement in the guideline.
@@ -20,7 +20,7 @@ class Suggested(object):
     def __init__(self,description=None):
         self.description = description
     def __repr__(self): 
-        return 'Suggested attribute:%s' %self.description
+        return 'Recommended attribute:%s' %self.description
 
 
 class commonattributes(object):
@@ -40,8 +40,8 @@ class Provider(object):
         self.type = "Agent"
         self.label = Required("IIIF:A Manifest must have the label property with at least one entry.")
         self.items = []
-        self.metadata = Suggested("A Manifest should have the metadata property with at least one item.")
-        self.summary = Suggested("A Manifest should have the summary property with at least one entry.")
+        self.metadata = Recommended("A Manifest should have the metadata property with at least one item.")
+        self.summary = Recommended("A Manifest should have the summary property with at least one entry.")
         self.requiredStatement = {}
         self.rights = None
     
@@ -95,12 +95,12 @@ class Range(object):
         self.type = "Manifest"
         self.label = Required("IIIF:A Manifest must have the label property with at least one entry.")
         self.items = []
-        self.metadata = Suggested("A Manifest should have the metadata property with at least one item.")
-        self.summary = Suggested("A Manifest should have the summary property with at least one entry.")
+        self.metadata = Recommended("A Manifest should have the metadata property with at least one item.")
+        self.summary = Recommended("A Manifest should have the summary property with at least one entry.")
         self.requiredStatement = {}
         self.rights = None
         # https://iiif.io/api/presentation/3.0/#thumbnail
-        self.thumbnail = Suggested("A Manifest should have the thumbnail property with at least one item.")
+        self.thumbnail = Recommended("A Manifest should have the thumbnail property with at least one item.")
         self.navDate = None
 
     def set_ID(self,manifest_url):
@@ -133,7 +133,7 @@ class Range(object):
         information about the creation of the object, a physical description, 
         ownership information, or other purposes.
         """
-        if isinstance(self.metadata, Suggested):
+        if isinstance(self.metadata, Recommended):
             self.metadata = []
         entry = {"label":{language:[label]},
                  "value":{language:[value]}}
@@ -148,7 +148,7 @@ class Range(object):
         information about the creation of the object, a physical description, 
         ownership information, or other purposes.
         """
-        if isinstance(self.summary, Suggested):
+        if isinstance(self.summary, Recommended):
             self.summary = {}
         self.summary[language] = text
 
@@ -189,12 +189,12 @@ class Canvas(object):
         self.type = "Manifest"
         self.label = Required("IIIF:A Manifest must have the label property with at least one entry.")
         self.items = []
-        self.metadata = Suggested("A Manifest should have the metadata property with at least one item.")
-        self.summary = Suggested("A Manifest should have the summary property with at least one entry.")
+        self.metadata = Recommended("A Manifest should have the metadata property with at least one item.")
+        self.summary = Recommended("A Manifest should have the summary property with at least one entry.")
         self.requiredStatement = {}
         self.rights = None
         # https://iiif.io/api/presentation/3.0/#thumbnail
-        self.thumbnail = Suggested("A Manifest should have the thumbnail property with at least one item.")
+        self.thumbnail = Recommended("A Manifest should have the thumbnail property with at least one item.")
         self.navDate = None
 
     def set_ID(self,manifest_url):
@@ -227,7 +227,7 @@ class Canvas(object):
         information about the creation of the object, a physical description, 
         ownership information, or other purposes.
         """
-        if isinstance(self.metadata, Suggested):
+        if isinstance(self.metadata, Recommended):
             self.metadata = []
         entry = {"label":{language:[label]},
                  "value":{language:[value]}}
@@ -242,7 +242,7 @@ class Canvas(object):
         information about the creation of the object, a physical description, 
         ownership information, or other purposes.
         """
-        if isinstance(self.summary, Suggested):
+        if isinstance(self.summary, Recommended):
             self.summary = {}
         self.summary[language] = text
 
@@ -281,12 +281,12 @@ class Manifest(object):
         self.type = "Manifest"
         self.label = Required("IIIF:A Manifest must have the label property with at least one entry.")
         self.items = []
-        self.metadata = Suggested("A Manifest should have the metadata property with at least one item.")
-        self.summary = Suggested("A Manifest should have the summary property with at least one entry.")
+        self.metadata = Recommended("A Manifest should have the metadata property with at least one item.")
+        self.summary = Recommended("A Manifest should have the summary property with at least one entry.")
         self.requiredStatement = {}
         self.rights = None
         # https://iiif.io/api/presentation/3.0/#thumbnail
-        self.thumbnail = Suggested("A Manifest should have the thumbnail property with at least one item.")
+        self.thumbnail = Recommended("A Manifest should have the thumbnail property with at least one item.")
         self.navDate = None
 
     def set_ID(self,manifest_url):
@@ -319,7 +319,7 @@ class Manifest(object):
         information about the creation of the object, a physical description, 
         ownership information, or other purposes.
         """
-        if isinstance(self.metadata, Suggested):
+        if isinstance(self.metadata, Recommended):
             self.metadata = []
         entry = {"label":{language:[label]},
                  "value":{language:[value]}}
@@ -334,7 +334,7 @@ class Manifest(object):
         information about the creation of the object, a physical description, 
         ownership information, or other purposes.
         """
-        if isinstance(self.summary, Suggested):
+        if isinstance(self.summary, Recommended):
             self.summary = {}
         self.summary[language] = text
 

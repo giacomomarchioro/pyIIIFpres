@@ -3,42 +3,50 @@ from . import plus
 import json
 global BASE_URL
 BASE_URL = "https://"
-
+logs = {"Required":0,"Reccomended":0}
 class Required(object):
     """
     This is not an IIIF object but a class used by this software to identify required fields.
-    This is equivalente to MUST statement in the guideline.
+    This is equivalente to MUST statement in the guideline with the meaning
+    of https://tools.ietf.org/html/rfc2119.
     """
     def __init__(self,description=None):
         self.problem_description = description
-    def __repr__(self): 
+    def __repr__(self):
+        logs["Required"] += 1
         return 'Required attribute:%s' %self.problem_description
 
-class Suggested(object):
+class Recommended(object):
     """
     This is not an IIIF object but a class used by this software to identify required fields.
-    This is equivalente to SHOULD statement in the guideline.
+    This is equivalente to SHOULD statement in the guideline with the meaning
+    of https://tools.ietf.org/html/rfc2119.
     """
     def __init__(self,description=None):
-        self.suggested = description
-    def __repr__(self): 
-        return 'Suggested attribute:%s' %self.suggested
+        self.problem_description = description
+    def __repr__(self):
+        logs["Recommended"] += 1 
+        return 'Recommended attribute:%s' %self.problem_description
+
+
+# Note: we use None for OPTIONAL with the meaning of https://tools.ietf.org/html/rfc2119
 
 def unused(attr):
     """
     This function check if an attribute is not set (has no value in it).
     """
-    if isinstance(attr, Required) or isinstance(attr, Suggested) or attr is None:
+    if isinstance(attr, Required) or isinstance(attr, Recommended) or attr is None:
         return True
     else:
         return False
 
 def checkitem(selfx,classx,obj):   
     """
-    This function is used to check if the object is added to the right entity. It return
-    a reference of the empty object if the object to be added is not specify.
+    This function is used to check if the object is added to the right entity. It returns
+    a reference of the empty object if the object to be added is not specified.
 
-    For instance, I want to add an Annotation object to a Manifest.
+    For instance, I want to add an Annotation object to a Manifest. It checks if
+    items is unused and if so create  list and append an object of the class provided.
     """
     #import pdb; pdb.set_trace()
 
@@ -52,7 +60,9 @@ def checkitem(selfx,classx,obj):
         if isinstance(obj,classx):
             selfx.items.append(obj)
         else:
-            ValueError("Trying to add wrong object to %s" %selfx.__class__.__name__)
+            obj_name = obj.__class__.__name__
+            class_name = selfx.__class__.__name__
+            ValueError("%s object cannot be added to %s." %(obj_name,class_name))
 
 def checkstru(selfx,classx,obj):   
     """
@@ -73,7 +83,9 @@ def checkstru(selfx,classx,obj):
         if isinstance(obj,classx):
             selfx.structures.append(obj)
         else:
-            ValueError("Trying to add wrong object to %s" %selfx.__class__.__name__)
+            obj_name = obj.__class__.__name__
+            class_name = selfx.__class__.__name__
+            ValueError("%s object cannot be added to %s." %(obj_name,class_name))
       
 # Let's group all the common arguments across the differnet types of collection
 
@@ -145,7 +157,12 @@ class CoreAttributes(object):
             f.write(self.json_dumps(dumps_errors=save_errors))
 
     def show_errors(self):
-        return print(self.json_dumps(dumps_errors=True))
+        logs["Required"] = 0
+        logs["Reccomended"] = 0
+        print(self.json_dumps(dumps_errors=True))
+        print("Missing requirements field: %s." %logs["Required"])
+        print("Missing reccomended field: %s." %logs["Reccomended"])
+        return True
 
     def __repr__(self) -> str:
         return self.json_dumps()
@@ -165,8 +182,8 @@ class seeAlso(CoreAttributes):
     """
     def __init__(self):
         super(seeAlso, self).__init__()
-        self.format = Suggested()
-        self.profile = Suggested()
+        self.format = Recommended()
+        self.profile = Recommended()
 
     def set_type(self,datatype):
         #TODO: add check
@@ -240,8 +257,8 @@ class bodypainting(CoreAttributes,plus.HeightWidthDuration):
     def __init__(self):
         super(bodypainting,self).__init__()
         self.type = Required("The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
-        self.format = Suggested("The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
-        self.profile = Suggested("The profile of the resource, if it has one, should also be included.")
+        self.format = Recommended("The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
+        self.profile = Recommended("The profile of the resource, if it has one, should also be included.")
         self.service = None
     
     def set_type(self,mytype):
@@ -289,7 +306,7 @@ class service(CoreAttributes):
     """
     def __init__(self):
         super(service,self).__init__()
-        self.profile = Suggested("Each object should have a profile property.")
+        self.profile = Recommended("Each object should have a profile property.")
         self.service = None
 
 
@@ -400,8 +417,8 @@ class provider(CoreAttributes):
         super(provider, self).__init__()
         self.context = None
         self.type = "Agent"
-        self.homepage = Suggested()
-        self.logo = Suggested()
+        self.homepage = Recommended()
+        self.logo = Recommended()
         self.seeAlso = None 
 
     def set_type(self):
@@ -460,7 +477,7 @@ class homepage(CoreAttributes):
     def __init__(self):
         super(homepage, self).__init__()
         self.language = None
-        self.format = Suggested()
+        self.format = Recommended()
     
     def set_language(self,language):
         if unused(self.language):
@@ -496,8 +513,8 @@ class logo(CoreAttributes,plus.HeightWidthDuration):
     """
     def __init__(self):
         super(logo, self).__init__()
-        self.format = Suggested()
-        self.service = Suggested()
+        self.format = Recommended()
+        self.service = Recommended()
     
     def set_format(self,format):
         self.format = format
@@ -552,7 +569,7 @@ class rendering(CoreAttributes):
     """
     def __init__(self):
         super(rendering, self).__init__()
-        self.format = Suggested()
+        self.format = Recommended()
     
     def set_format(self,format):
         self.format = format
@@ -580,7 +597,7 @@ class services(CoreAttributes):
     """
     def __init__(self):
         super(services, self).__init__()
-        self.profile = Suggested()
+        self.profile = Recommended()
         self.service = Required()
     
     def set_profile(self,profile):
@@ -909,7 +926,7 @@ class AnnotationPage(CommonAttributes):
     """
     def __init__(self):
         super(AnnotationPage, self).__init__()
-        self.items = Suggested()
+        self.items = Recommended()
         self.annotations = None
 
     def add_item(self,item):
@@ -938,7 +955,7 @@ class Canvas(CommonAttributes):
         super(Canvas, self).__init__()
         self.height = Required()
         self.width = Required()
-        self.items = Suggested()
+        self.items = Recommended()
         self.annotations = None
     
     def set_width(self,width:int):
@@ -1167,7 +1184,7 @@ class start(CommonAttributes):
 
     def __init__(self):
         super(start, self).__init__()
-        self.profile = Suggested()
+        self.profile = Recommended()
         self.source = None
         self.selector = None
     

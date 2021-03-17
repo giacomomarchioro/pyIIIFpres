@@ -122,11 +122,12 @@ for i in post_elements:
     plabels.append(i)
     
 for idx,d in enumerate(images):
-    idx+=1 
     manloc = "/manifests/%s" %segnatura
     image = d
     canvas = manifest.add_canvastoitems()
-    canvas.set_id(extendbase_url=["manifests",segnatura,"canvas","p%s"%idx]) # in this case we use the base url
+    if plabels[idx] in ['dorso','piatto anteriore']:
+        canvas.add_behavior("paged")
+    canvas.set_id(extendbase_url=["manifests",segnatura,"canvas","p%s"%(idx+1)]) # in this case we use the base url
     out = check_output(["exiftool", image])
     Metadata = dict((e[:32].strip(),e[33:].strip()) for e in out.decode('utf8').split('\n'))
     width = Metadata['Image Width']
@@ -135,9 +136,9 @@ for idx,d in enumerate(images):
     canvas.set_width(height)
     canvas.add_label("it",plabels[idx])
     annopage = canvas.add_annotationpage_to_items()
-    annopage.set_id(extendbase_url=["manifests",segnatura,"page","p%s"%idx,"1"])
+    annopage.set_id(extendbase_url=["manifests",segnatura,"page","p%s"%(idx+1),"1"])
     annotation = annopage.add_annotation_toitems(targetid=canvas.id)
-    annotation.set_id(extendbase_url=["manifests",segnatura,"annotation","p%s-image"%str(idx).zfill(4)])
+    annotation.set_id(extendbase_url=["manifests",segnatura,"annotation","p%s-image"%str(idx+1).zfill(4)])
     annotation.set_motivation("painting")
     annotation.body.set_id(extendbase_url=[image,"/full/max/0/default.jpg"])
     annotation.body.set_type("Image")
