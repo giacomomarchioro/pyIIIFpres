@@ -938,6 +938,8 @@ class AnnotationPage(CommonAttributes):
         if unused(self.items):
             self.items = []
         if annotation is None:
+            if unused(targetid):
+                raise ValueError("Passing an empty ID!")
             annotation = Annotation(target=targetid)
             self.items.append(annotation)
             return annotation
