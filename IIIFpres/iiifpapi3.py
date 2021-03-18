@@ -157,11 +157,11 @@ class CoreAttributes(object):
             f.write(self.json_dumps(dumps_errors=save_errors))
 
     def show_errors(self):
-        logs["Required"] = 0
-        logs["Reccomended"] = 0
         print(self.json_dumps(dumps_errors=True))
         print("Missing requirements field: %s." %logs["Required"])
         print("Missing reccomended field: %s." %logs["Reccomended"])
+        logs["Required"] = 0
+        logs["Reccomended"] = 0
         return True
 
     def __repr__(self) -> str:
