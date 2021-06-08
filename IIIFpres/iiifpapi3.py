@@ -7,7 +7,7 @@ logs = {"Required":0,"Reccomended":0}
 class Required(object):
     """
     This is not an IIIF object but a class used by this software to identify required fields.
-    This is equivalente to MUST statement in the guideline with the meaning
+    This is equivalent to MUST statement in the guideline with the meaning
     of https://tools.ietf.org/html/rfc2119.
     """
     def __init__(self,description=None):
@@ -19,7 +19,7 @@ class Required(object):
 class Recommended(object):
     """
     This is not an IIIF object but a class used by this software to identify required fields.
-    This is equivalente to SHOULD statement in the guideline with the meaning
+    This is equivalent to SHOULD statement in the guideline with the meaning
     of https://tools.ietf.org/html/rfc2119.
     """
     def __init__(self,description=None):
@@ -41,12 +41,20 @@ def unused(attr):
         return False
 
 def checkitem(selfx,classx,obj):   
-    """
+    """Check if item is added to the right class:
     This function is used to check if the object is added to the right entity. It returns
     a reference of the empty object if the object to be added is not specified.
 
     For instance, I want to add an Annotation object to a Manifest. It checks if
     items is unused and if so create  list and append an object of the class provided.
+   
+    Args:
+        selfx (class): Original class.
+        classx (class): Class that is allowed.
+        obj (class): Object to be added to the class items.
+
+    Returns:
+        class: an instance of the item that is add if obj is None.
     """
     #import pdb; pdb.set_trace()
 
@@ -65,14 +73,21 @@ def checkitem(selfx,classx,obj):
             ValueError("%s object cannot be added to %s." %(obj_name,class_name))
 
 def checkstru(selfx,classx,obj):   
-    """
-    This function is used to check if the object is added to the right entity. It return
-    a reference of the empty object if the object to be added is not specify.
+    """Check if a structure is added to the right entity:
+    This function is used to check if the object is added to the right entity. It returns
+    a reference of the empty object if the object to be added is not specified.
 
-    For instance, I want to add an Annotation object to a Manifest.
-    """
-    #import pdb; pdb.set_trace()
+    For instance, I want to add an Annotation object to a Manifest. It checks if
+    items is unused and if so create  list and append an object of the class provided.
+   
+    Args:
+        selfx (class): Original class.
+        classx (class): Class that is allowed.
+        obj (class): Object to be added to the class items.
 
+    Returns:
+        class: an instance of the item that is add if obj is None.
+    """
     if unused(selfx.structures):
         selfx.structures  = []
     if obj is None:
@@ -105,9 +120,14 @@ class CoreAttributes(object):
         self.label = None
     
     def set_id(self,objid=None,extendbase_url=None):
+        """Set the ID of the object
+
+        Args:
+            objid (str, optional): A string corresponding to the ID of the object. Defaults to None.
+            extendbase_url (str or list, optional): A string or a list of strings 
+            to be joined with the iiifpapi3.BASE_URL . Defaults to None.
         """
-        IIIF : The id property identifies this object with the URL at which it is available online.
-        """
+  
         if extendbase_url:
             if objid:
                 ValueError("Set id using extendbase_url or objid not both.")
@@ -116,22 +136,30 @@ class CoreAttributes(object):
             if isinstance(extendbase_url,list):
                 extendbase_url.insert(0,BASE_URL )
                 self.id = "/".join(extendbase_url)
+        
         elif objid is None:
             self.id = BASE_URL
         else:
+            assert objid.startswith("http"),"ID must start with http"
             self.id = objid
    
     def set_type(self):
         print("The type property must be kept %s." %self.__class__.__name__)
     
     def add_label(self,language,text):
-        """
+        """Add a label to the object
+
+        Args:
+            language (str): The language of the label.
+            text (str): The content of the label.
+        
         IIIF : A human readable label, name or title. The label property is intended to be displayed 
         as a short, textual surrogate for the resource if a human needs to make a distinction 
         between it and similar resources, for example between objects, pages, or options for 
         a choice of images to display. The label property can be fully internationalized, and 
         each language can have multiple values.
         """
+  
         if unused(self.label):
             self.label = {}
         if language is None:
@@ -139,6 +167,15 @@ class CoreAttributes(object):
         self.label[language] = [text]
 
     def json_dumps(self,dumps_errors=False):
+        """Dumps the content of the object in JSON format.
+
+        Args:
+            dumps_errors (bool, optional): If set true it shows any problem found directly on
+            the JSON file with a problem_description tag. Defaults to False.
+
+        Returns:
+            str: The object in JSON format.
+        """
         context = "http://iiif.io/api/presentation/3/context.json"
         def serializerwitherrors(obj):
             return {k: v for k, v in obj.__dict__.items() if v is not None}
@@ -241,7 +278,7 @@ class bodycommenting(object):
         self.value = None
         self.language = None
     
-    def set_type(self,mytype):
+    def set_type(self,mtype):
         print("Commenting body should be TextualBody not %s" %mtype)
     
     def set_format(self,format):
@@ -717,6 +754,10 @@ class CommonAttributes(CoreAttributes):
         Not sure if it is suggested or mandatory.
         """
         #TODO: CHECK IF IT IS A VALID URL
+        licenceurls = ["http://creativecommons.org/licenses/",
+                       "http://creativecommons.org/publicdomain/mark/",
+                       "http://rightsstatements.org/vocab/"]
+        assert any([rights.startswith(i) for i in licenceurls]),"Must start with:%s" %str(licenceurls)[1:-1]
         self.rights =  rights
 
     def add_thumbnail(self,thumbnailobj=None):
@@ -994,7 +1035,7 @@ class Canvas(CommonAttributes):
             self.items.append(annotationp)
             return annotationp
         else:
-            self.items.append(annotationp)
+            self.items.append(annotationpageobj)
 
 class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
     """
