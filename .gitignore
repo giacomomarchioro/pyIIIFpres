@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 .DS_Store
+
+examples/iiif_3_0.json
