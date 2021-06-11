@@ -3,18 +3,23 @@ from . import plus
 import json
 global BASE_URL
 BASE_URL = "https://"
-logs = {"Required":0,"Recommended":0}
+logs = {"Required": 0, "Recommended": 0}
+
+
 class Required(object):
     """
     This is not an IIIF object but a class used by this software to identify required fields.
     This is equivalent to MUST statement in the guideline with the meaning
     of https://tools.ietf.org/html/rfc2119.
     """
-    def __init__(self,description=None):
+
+    def __init__(self, description=None):
         self.problem_description = description
+
     def __repr__(self):
         logs["Required"] += 1
-        return 'Required attribute:%s' %self.problem_description
+        return 'Required attribute:%s' % self.problem_description
+
 
 class Recommended(object):
     """
@@ -22,11 +27,13 @@ class Recommended(object):
     This is equivalent to SHOULD statement in the guideline with the meaning
     of https://tools.ietf.org/html/rfc2119.
     """
-    def __init__(self,description=None):
+
+    def __init__(self, description=None):
         self.problem_description = description
+
     def __repr__(self):
-        logs["Recommended"] += 1 
-        return 'Recommended attribute:%s' %self.problem_description
+        logs["Recommended"] += 1
+        return 'Recommended attribute:%s' % self.problem_description
 
 
 # Note: we use None for OPTIONAL with the meaning of https://tools.ietf.org/html/rfc2119
@@ -39,6 +46,7 @@ def unused(attr):
         return True
     else:
         return False
+
 
 def serializable(attr):
     """Check if attribute is Required and if so rise Value error.
@@ -54,14 +62,14 @@ def serializable(attr):
         return True
 
 
-def checkitem(selfx,classx,obj):   
+def checkitem(selfx, classx, obj):
     """Check if item is added to the right class:
     This function is used to check if the object is added to the right entity. It returns
     a reference of the empty object if the object to be added is not specified.
 
     For instance, I want to add an Annotation object to a Manifest. It checks if
     items is unused and if so create  list and append an object of the class provided.
-   
+
     Args:
         selfx (class): Original class.
         classx (class): Class that is allowed.
@@ -79,21 +87,23 @@ def checkitem(selfx,classx,obj):
         selfx.items.append(obj)
         return obj
     else:
-        if isinstance(obj,classx):
+        if isinstance(obj, classx):
             selfx.items.append(obj)
         else:
             obj_name = obj.__class__.__name__
             class_name = selfx.__class__.__name__
-            raise ValueError("%s object cannot be added to %s." %(obj_name,class_name))
+            raise ValueError("%s object cannot be added to %s." %
+                             (obj_name, class_name))
 
-def checkstru(selfx,classx,obj):   
+
+def checkstru(selfx, classx, obj):
     """Check if a structure is added to the right entity:
     This function is used to check if the object is added to the right entity. It returns
     a reference of the empty object if the object to be added is not specified.
 
     For instance, I want to add an Annotation object to a Manifest. It checks if
     items is unused and if so create  list and append an object of the class provided.
-   
+
     Args:
         selfx (class): Original class.
         classx (class): Class that is allowed.
@@ -103,20 +113,22 @@ def checkstru(selfx,classx,obj):
         class: an instance of the item that is add if obj is None.
     """
     if unused(selfx.structures):
-        selfx.structures  = []
+        selfx.structures = []
     if obj is None:
         obj = classx()
         selfx.structures.append(obj)
         return obj
     else:
-        if isinstance(obj,classx):
+        if isinstance(obj, classx):
             selfx.structures.append(obj)
         else:
             obj_name = obj.__class__.__name__
             class_name = selfx.__class__.__name__
-            raise ValueError("%s object cannot be added to %s." %(obj_name,class_name))
-      
+            raise ValueError("%s object cannot be added to %s." %
+                             (obj_name, class_name))
+
 # Let's group all the common arguments across the differnet types of collection
+
 
 class CoreAttributes(object):
     """
@@ -127,13 +139,15 @@ class CoreAttributes(object):
 
     ID an type attributes are required. The other might vary. 
     """
+
     def __init__(self):
-        self.id = Required("A %s should have the ID property with at least one item." %self.__class__.__name__)
+        self.id = Required(
+            "A %s should have the ID property with at least one item." % self.__class__.__name__)
         self.type = self.__class__.__name__
         # These might be suggested or may be used if needed.
         self.label = None
-    
-    def set_id(self,objid=None,extendbase_url=None):
+
+    def set_id(self, objid=None, extendbase_url=None):
         """Set the ID of the object
 
         Args:
@@ -141,46 +155,47 @@ class CoreAttributes(object):
             extendbase_url (str or list, optional): A string or a list of strings 
             to be joined with the iiifpapi3.BASE_URL . Defaults to None.
         """
-  
+
         if extendbase_url:
             if objid:
-                raise ValueError("Set id using extendbase_url or objid not both.")
-            if isinstance(extendbase_url,str):
-                self.id = "/".join((BASE_URL,extendbase_url))
-            if isinstance(extendbase_url,list):
-                extendbase_url.insert(0,BASE_URL )
+                raise ValueError(
+                    "Set id using extendbase_url or objid not both.")
+            if isinstance(extendbase_url, str):
+                self.id = "/".join((BASE_URL, extendbase_url))
+            if isinstance(extendbase_url, list):
+                extendbase_url.insert(0, BASE_URL)
                 self.id = "/".join(extendbase_url)
-        
+
         elif objid is None:
             self.id = BASE_URL
         else:
-            assert objid.startswith("http"),"ID must start with http"
+            assert objid.startswith("http"), "ID must start with http"
             self.id = objid
-   
+
     def set_type(self):
-        print("The type property must be kept %s." %self.__class__.__name__)
-    
-    def add_label(self,language,text):
+        print("The type property must be kept %s." % self.__class__.__name__)
+
+    def add_label(self, language, text):
         """Add a label to the object
 
         Args:
             language (str): The language of the label.
             text (str): The content of the label.
-        
+
         IIIF : A human readable label, name or title. The label property is intended to be displayed 
         as a short, textual surrogate for the resource if a human needs to make a distinction 
         between it and similar resources, for example between objects, pages, or options for 
         a choice of images to display. The label property can be fully internationalized, and 
         each language can have multiple values.
         """
-  
+
         if unused(self.label):
             self.label = {}
         if language is None:
             language = "none"
         self.label[language] = [text]
 
-    def json_dumps(self,dumps_errors=False,ensure_ascii=False):
+    def json_dumps(self, dumps_errors=False, ensure_ascii=False):
         """Dumps the content of the object in JSON format.
 
         Args:
@@ -191,32 +206,38 @@ class CoreAttributes(object):
             str: The object in JSON format.
         """
         context = "http://iiif.io/api/presentation/3/context.json"
+
         def serializerwitherrors(obj):
             return {k: v for k, v in obj.__dict__.items() if v is not None}
+
         def serializer(obj):
             return {k: v for k, v in obj.__dict__.items() if serializable(v)}
         if dumps_errors:
-            res = json.dumps(self,default = serializerwitherrors,indent=2,ensure_ascii=ensure_ascii)
+            res = json.dumps(self, default=serializerwitherrors,
+                             indent=2, ensure_ascii=ensure_ascii)
         else:
-            res = json.dumps(self,default = serializer,indent=2,ensure_ascii=ensure_ascii)
+            res = json.dumps(self, default=serializer,
+                             indent=2, ensure_ascii=ensure_ascii)
         # little hack for fixing context first 3 chrs "{\n"
-        res = "".join(('{\n  "@context": "%s",\n '%context,res[3:]))
+        res = "".join(('{\n  "@context": "%s",\n ' % context, res[3:]))
         return res
 
-    def json_save(self,filename,save_errors=False,ensure_ascii=False):
-        with open(filename,'w') as f:
-            f.write(self.json_dumps(dumps_errors=save_errors,ensure_ascii=ensure_ascii))
+    def json_save(self, filename, save_errors=False, ensure_ascii=False):
+        with open(filename, 'w') as f:
+            f.write(self.json_dumps(
+                dumps_errors=save_errors, ensure_ascii=ensure_ascii))
 
     def show_errors(self):
         print(self.json_dumps(dumps_errors=True))
-        print("Missing requirements field: %s." %logs["Required"])
-        print("Missing recommended field: %s." %logs["Recommended"])
+        print("Missing requirements field: %s." % logs["Required"])
+        print("Missing recommended field: %s." % logs["Recommended"])
         logs["Required"] = 0
         logs["Recommended"] = 0
         return True
 
     def __repr__(self) -> str:
         return self.json_dumps()
+
 
 class seeAlso(CoreAttributes):
     """
@@ -231,20 +252,21 @@ class seeAlso(CoreAttributes):
     exists in JSON and XML, then separate resources should be added for each representation, 
     with distinct id and format properties.
     """
+
     def __init__(self):
         super(seeAlso, self).__init__()
         self.format = Recommended()
         self.profile = Recommended()
 
-    def set_type(self,datatype):
-        #TODO: add check
+    def set_type(self, datatype):
+        # TODO: add check
         self.type = datatype
-    
-    def set_profile(self,profile):
-        #TODO: add check
+
+    def set_profile(self, profile):
+        # TODO: add check
         self.profile = profile
-    
-    def set_format(self,format):
+
+    def set_format(self, format):
         """Set the format of the IIIF type.
         IIIF: The specific media type (often called a MIME type) for a content resource,
         for example image/jpeg. This is important for distinguishing different formats 
@@ -255,11 +277,12 @@ class seeAlso(CoreAttributes):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha() for i in format.split("/")]) and "/" in format,msg
+        assert all([i.isalpha()
+                    for i in format.split("/")]) and "/" in format, msg
         self.format = format
-    
 
-class partOf(CoreAttributes): 
+
+class partOf(CoreAttributes):
     """
     A containing resource that includes the resource that has the partOf property. 
     When a client encounters the partOf property, it might retrieve the referenced 
@@ -269,15 +292,17 @@ class partOf(CoreAttributes):
     enable the discovery of further relevant information. Similarly, a Manifest can 
     reference a containing Collection using partOf to aid in navigation.
     """
+
     def __init__(self):
-        super(partOf,self).__init__()
-    
-    def set_type(self,type_):
-        assert not type_[0].isdigit(),"First letter should not be a digit"
+        super(partOf, self).__init__()
+
+    def set_type(self, type_):
+        assert not type_[0].isdigit(), "First letter should not be a digit"
         self.type = type_
 
     def set_id(self, objid):
         self.id = objid
+
 
 class supplementary(CoreAttributes):
     """
@@ -291,59 +316,66 @@ class supplementary(CoreAttributes):
     translated, when there are other parts that have yet to be worked on. The Annotation Collection would
     be the Annotations that transcribe or translate, respectively.
     """
+
     def __init__(self):
-        super(supplementary,self).__init__()
+        super(supplementary, self).__init__()
         self.type = "AnnotationCollection"
-    
+
     def set_type(self):
         print("type must be AnnotationCollection")
+
 
 class bodycommenting(object):
     def __init__(self):
         self.type = "TextualBody"
         self.value = None
         self.language = None
-    
-    def set_type(self,mtype):
-        print("Commenting body should be TextualBody not %s" %mtype)
-    
-    def set_format(self,format):
-        #TODO: what format are allowed?
+
+    def set_type(self, mtype):
+        print("Commenting body should be TextualBody not %s" % mtype)
+
+    def set_format(self, format):
+        # TODO: what format are allowed?
         self.format = format
 
-    def set_value(self,value):
+    def set_value(self, value):
         self.value = value
 
-    def set_language(self,language):
+    def set_language(self, language):
         self.language = language
 
-class bodypainting(CoreAttributes,plus.HeightWidthDuration):
+
+class bodypainting(CoreAttributes, plus.HeightWidthDuration):
     def __init__(self):
-        super(bodypainting,self).__init__()
-        self.type = Required("The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
-        self.format = Recommended("The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
-        self.profile = Recommended("The profile of the resource, if it has one, should also be included.")
+        super(bodypainting, self).__init__()
+        self.type = Required(
+            "The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
+        self.format = Recommended(
+            "The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
+        self.profile = Recommended(
+            "The profile of the resource, if it has one, should also be included.")
         self.service = None
-    
-    def set_type(self,mytype):
+
+    def set_type(self, mytype):
         self.type = mytype
-    
-    def set_format(self,format):
+
+    def set_format(self, format):
         self.format = format
-    
-    def add_service(self,serviceobj=None):
+
+    def add_service(self, serviceobj=None):
         if unused(self.service):
             self.service = []
-        if serviceobj is None: 
+        if serviceobj is None:
             serviceobj = service()
             self.service.append(serviceobj)
             return serviceobj
         else:
-            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
                 self.service.append(serviceobj)
             else:
-                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
-    
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" % self.__class__.__name__)
+
 
 class service(CoreAttributes):
     """https://iiif.io/api/presentation/3.0/#service
@@ -368,13 +400,14 @@ class service(CoreAttributes):
     should process the IIIF Image API service.
 
     """
+
     def __init__(self):
-        super(service,self).__init__()
-        self.profile = Recommended("Each object should have a profile property.")
+        super(service, self).__init__()
+        self.profile = Recommended(
+            "Each object should have a profile property.")
         self.service = None
 
-
-    def set_type(self,mytype):
+    def set_type(self, mytype):
         """
         The type of the service, for instance if the image is served
         using IIIF Image API 3.0 then use "ImageService3".
@@ -389,37 +422,39 @@ class service(CoreAttributes):
         if mytype in values:
             self.type = mytype
         else:
-            raise ValueError("mytype not right must be one of these value %s" %",".join(values))
-    
-    def set_type(self,mtype):
+            raise ValueError(
+                "mytype not right must be one of these value %s" % ",".join(values))
+
+    def set_type(self, mtype):
         self.type = mtype
-        
-    def set_profile(self,profile):
+
+    def set_profile(self, profile):
         self.profile = profile
-    
-    def add_service(self,serviceobj=None):
+
+    def add_service(self, serviceobj=None):
         if unused(self.service):
             self.service = []
-        if serviceobj is None: 
+        if serviceobj is None:
             serviceobj = service()
             self.service.append(serviceobj)
             return serviceobj
         else:
-            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
                 self.service.append(serviceobj)
             else:
-                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
-  
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" % self.__class__.__name__)
 
-class thumbnail(CoreAttributes,plus.HeightWidthDuration):
+
+class thumbnail(CoreAttributes, plus.HeightWidthDuration):
     def __init__(self):
         super(thumbnail, self).__init__()
         self.service = None
 
-    def set_type(self,mtype):
+    def set_type(self, mtype):
         self.type = mtype
 
-    def set_format(self,format):
+    def set_format(self, format):
         """Set the format of the IIIF type.
         IIIF: The specific media type (often called a MIME type) for a content resource,
         for example image/jpeg. This is important for distinguishing different formats 
@@ -430,23 +465,24 @@ class thumbnail(CoreAttributes,plus.HeightWidthDuration):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha() for i in format.split("/")]) and "/" in format,msg
+        assert all([i.isalpha()
+                    for i in format.split("/")]) and "/" in format, msg
         self.format = format
-    
-    
-    def add_service(self,serviceobj=None):
+
+    def add_service(self, serviceobj=None):
         if unused(self.service):
             self.service = []
-        if serviceobj is None: 
+        if serviceobj is None:
             serviceobj = service()
             self.service.append(serviceobj)
             return serviceobj
         else:
-            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
                 self.service.append(serviceobj)
             else:
-                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
-  
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" % self.__class__.__name__)
+
 
 class provider(CoreAttributes):
     """
@@ -489,37 +525,40 @@ class provider(CoreAttributes):
     }
     ]
     """
+
     def __init__(self):
         super(provider, self).__init__()
         self.context = None
         self.type = "Agent"
-        self.homepage = Recommended("Agents should have the homepage property, and its value must be an array of JSON objects as described in the homepage section.")
-        self.logo = Recommended("Agents should have the logo property, and its value must be an array of JSON objects as described in the logo section.")
-        self.seeAlso = None 
+        self.homepage = Recommended(
+            "Agents should have the homepage property, and its value must be an array of JSON objects as described in the homepage section.")
+        self.logo = Recommended(
+            "Agents should have the logo property, and its value must be an array of JSON objects as described in the logo section.")
+        self.seeAlso = None
 
     def set_type(self):
         """The type property must be the string “Agent”.
         """
         print("The type property must be the default string “Agent”.")
-    
-    def add_logo(self,logoobj=None):
+
+    def add_logo(self, logoobj=None):
         if unused(self.logo):
             self.logo = []
-        if logoobj is None: 
+        if logoobj is None:
             logoobj = logo()
             self.logo.append(logoobj)
             return logoobj
         else:
-            if isinstance(logoobj,logo):
+            if isinstance(logoobj, logo):
                 self.logo.append(logoobj)
             else:
-                raise ValueError("Trying to add wrong object to logo in %s" %self.__class__.__name__)
-    
+                raise ValueError(
+                    "Trying to add wrong object to logo in %s" % self.__class__.__name__)
 
-    def add_homepage(self,homepageobj=None):
+    def add_homepage(self, homepageobj=None):
         """
         """
-        #TODO: CHECK IF ALLOWED
+        # TODO: CHECK IF ALLOWED
         if unused(self.homepage):
             self.homepage = []
         if homepageobj is None:
@@ -527,16 +566,16 @@ class provider(CoreAttributes):
             self.homepage.append(homepageobj)
             return homepageobj
         else:
-            if isinstance(homepageobj,homepage):
+            if isinstance(homepageobj, homepage):
                 self.homepage.append(homepageobj)
             else:
-                raise ValueError("Trying to add wrong object to homepage in %s" %self.__class__.__name__)
-    
-    
-    def add_seeAlso(self,seeAlsoobj=None):
+                raise ValueError(
+                    "Trying to add wrong object to homepage in %s" % self.__class__.__name__)
+
+    def add_seeAlso(self, seeAlsoobj=None):
         """
         """
-        #TODO: CHECK IF ALLOWED
+        # TODO: CHECK IF ALLOWED
         if unused(self.seeAlso):
             self.seeAlso = []
         if seeAlsoobj is None:
@@ -544,10 +583,12 @@ class provider(CoreAttributes):
             self.seeAlso.append(seeAlsoobj)
             return seeAlsoobj
         else:
-            if isinstance(seeAlsoobj,seeAlso):
+            if isinstance(seeAlsoobj, seeAlso):
                 self.seeAlso.append(seeAlsoobj)
             else:
-                raise ValueError("Trying to add wrong object to seeAlso in %s" %self.__class__.__name__)
+                raise ValueError(
+                    "Trying to add wrong object to seeAlso in %s" % self.__class__.__name__)
+
 
 class homepage(CoreAttributes):
     """https://iiif.io/api/presentation/3.0/#homepage
@@ -558,17 +599,19 @@ class homepage(CoreAttributes):
     Resources that are related, but not home pages, must instead be added into the 
     metadata property, with an appropriate label or value to describe the relationship.
     """
+
     def __init__(self):
         super(homepage, self).__init__()
         self.language = None
-        self.format = Recommended("Hompage should have a format property e.g. Text.")
-    
-    def set_language(self,language):
+        self.format = Recommended(
+            "Hompage should have a format property e.g. Text.")
+
+    def set_language(self, language):
         if unused(self.language):
             self.language = []
         self.language.append(language)
 
-    def set_format(self,format):
+    def set_format(self, format):
         """Set the format of the IIIF type.
         IIIF: The specific media type (often called a MIME type) for a content resource,
         for example image/jpeg. This is important for distinguishing different formats 
@@ -579,13 +622,15 @@ class homepage(CoreAttributes):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha() for i in format.split("/")]) and "/" in format,msg
+        assert all([i.isalpha()
+                    for i in format.split("/")]) and "/" in format, msg
         self.format = format
-    
-    def set_type(self,mtype):
+
+    def set_type(self, mtype):
         self.type = mtype
-        
-class logo(CoreAttributes,plus.HeightWidthDuration):
+
+
+class logo(CoreAttributes, plus.HeightWidthDuration):
     """
     A small image resource that represents the Agent resource it is associated with.
     The logo must be clearly rendered when the resource is displayed or used, 
@@ -594,7 +639,7 @@ class logo(CoreAttributes,plus.HeightWidthDuration):
     such as resizing.
 
     When more than one logo is present, the client should pick only one of them, based on the information in the logo properties. For example, the client could select a logo of appropriate aspect ratio based on the height and width properties of the available logos. The client may decide on the logo by inspecting properties defined as extensions.
-    
+
     "logo": [
     {
       "id": "https://example.org/img/logo.jpg",
@@ -606,12 +651,15 @@ class logo(CoreAttributes,plus.HeightWidthDuration):
     ]
     #TODO Duration should not be included
     """
+
     def __init__(self):
         super(logo, self).__init__()
-        self.format = Recommended("Logo should have a format attribute e.g. image/png")
-        self.service = Recommended("Logo should have service attribute, you can add using srv = mylogo.add_service()")
-    
-    def set_format(self,format):
+        self.format = Recommended(
+            "Logo should have a format attribute e.g. image/png")
+        self.service = Recommended(
+            "Logo should have service attribute, you can add using srv = mylogo.add_service()")
+
+    def set_format(self, format):
         """Set the format of the IIIF type.
         IIIF: The specific media type (often called a MIME type) for a content resource,
         for example image/jpeg. This is important for distinguishing different formats 
@@ -622,29 +670,30 @@ class logo(CoreAttributes,plus.HeightWidthDuration):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha() for i in format.split("/")]) and "/" in format,msg
+        assert all([i.isalpha()
+                    for i in format.split("/")]) and "/" in format, msg
         self.format = format
-    
-    
-    def set_type(self,mtype):
+
+    def set_type(self, mtype):
         self.type = mtype
 
-    def set_label(self,label):
+    def set_label(self, label):
         raise ValueError("Label not permitted in logo.")
-    
-    def add_service(self,serviceobj=None):
+
+    def add_service(self, serviceobj=None):
         if unused(self.service):
             self.service = []
-        if serviceobj is None: 
+        if serviceobj is None:
             serviceobj = service()
             self.service.append(serviceobj)
             return serviceobj
         else:
-            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
                 self.service.append(serviceobj)
             else:
-                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
-  
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" % self.__class__.__name__)
+
 
 class rendering(CoreAttributes):
     """
@@ -674,11 +723,13 @@ class rendering(CoreAttributes):
     }
     ]
     """
+
     def __init__(self):
         super(rendering, self).__init__()
-        self.format = Recommended("Rendering should have a format property e.g. application/pdf.")
-    
-    def set_format(self,format):
+        self.format = Recommended(
+            "Rendering should have a format property e.g. application/pdf.")
+
+    def set_format(self, format):
         """Set the format of the IIIF type.
         IIIF: The specific media type (often called a MIME type) for a content resource,
         for example image/jpeg. This is important for distinguishing different formats 
@@ -689,12 +740,13 @@ class rendering(CoreAttributes):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha() for i in format.split("/")]) and "/" in format,msg
+        assert all([i.isalpha()
+                    for i in format.split("/")]) and "/" in format, msg
         self.format = format
-    
-    
-    def set_type(self,type):
-        self.type = type 
+
+    def set_type(self, type):
+        self.type = type
+
 
 class services(CoreAttributes):
     """
@@ -714,38 +766,42 @@ class services(CoreAttributes):
     Usage of the services property is at the discretion of 
     the publishing system.
     """
+
     def __init__(self):
         super(services, self).__init__()
-        self.profile = Recommended("services should have a profile property e.g. https://example.org/docs/service.")
-        self.service = Required("Services must have at least one service, use add_service() method to add one.")
-    
-    def set_profile(self,profile):
+        self.profile = Recommended(
+            "services should have a profile property e.g. https://example.org/docs/service.")
+        self.service = Required(
+            "Services must have at least one service, use add_service() method to add one.")
+
+    def set_profile(self, profile):
         self.profile = profile
 
-    def add_service(self,serviceobj=None):
+    def add_service(self, serviceobj=None):
         if unused(self.service):
             self.service = []
-        if serviceobj is None: 
+        if serviceobj is None:
             serviceobj = service()
             self.service.append(serviceobj)
             return serviceobj
         else:
-            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
                 self.service.append(serviceobj)
             else:
-                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
-  
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" % self.__class__.__name__)
 
 
 class metadata(object):
     """This is not a IIIF type but is used for easing the construction of multilingual
     metadata.
     """
+
     def __init__(self):
         self.value = Required("The metadata must have at least a value")
         self.label = Required("The metadata must have at least a label")
-    
-    def add_value(self,value,language=None):
+
+    def add_value(self, value, language=None):
         if unused(self.value):
             self.value = {}
         if language == None:
@@ -753,8 +809,8 @@ class metadata(object):
         if not isinstance(value, list):
             value = [value]
         self.value[language] = value
-    
-    def add_label(self,label,language=None):
+
+    def add_label(self, label, language=None):
         if unused(self.label):
             self.value = {}
         if language == None:
@@ -762,12 +818,10 @@ class metadata(object):
         if not isinstance(label, list):
             label = [label]
         self.label[language] = label
-    
-
 
 
 ##
-#COMMON ATTRIBUTES TO MAJOR CONTAINERS
+# COMMON ATTRIBUTES TO MAJOR CONTAINERS
 ##
 
 class CommonAttributes(CoreAttributes):
@@ -778,6 +832,7 @@ class CommonAttributes(CoreAttributes):
 
     ID an type attributes are required. The other might vary. 
     """
+
     def __init__(self):
         super(CommonAttributes, self).__init__()
         self.metadata = None
@@ -792,9 +847,9 @@ class CommonAttributes(CoreAttributes):
         self.homepage = None
         self.rendering = None
         self.partOf = None
-    
-    def add_metadata(self,label=None,value=None,language_l="none",
-                     language_v="none",entry=None):
+
+    def add_metadata(self, label=None, value=None, language_l="none",
+                     language_v="none", entry=None):
         """
         An ordered list of descriptions to be displayed to the user when they interact
         with the resource, given as pairs of human readable label and value entries. 
@@ -805,19 +860,20 @@ class CommonAttributes(CoreAttributes):
         """
         if unused(self.metadata):
             self.metadata = []
-        arggr = [label,value,language_l,language_v]
-        if any(elem is not None for elem in arggr ) and entry is not None:
-            raise ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
-        
+        arggr = [label, value, language_l, language_v]
+        if any(elem is not None for elem in arggr) and entry is not None:
+            raise ValueError(
+                "Either use entry arguments or a combination of other arguments, NOT both.")
+
         if not isinstance(value, list):
             value = [value]
 
         if entry is None:
-            entry = {"label":{language_l:[label]},
-                    "value":{language_v:value}}
+            entry = {"label": {language_l: [label]},
+                     "value": {language_v: value}}
         self.metadata.append(entry)
 
-    def add_summary(self,text,language):
+    def add_summary(self, text, language):
         """
         An ordered list of descriptions to be displayed to the user when they interact
         with the resource, given as pairs of human readable label and value entries. 
@@ -829,9 +885,9 @@ class CommonAttributes(CoreAttributes):
         if unused(self.summary):
             self.summary = {}
         self.summary[language] = [text]
-    
-    def add_requiredStatement(self,label=None,value=None,language_l=None,
-                     language_v=None,entry=None):
+
+    def add_requiredStatement(self, label=None, value=None, language_l=None,
+                              language_v=None, entry=None):
         """
         IIIF: Text that must be displayed when the resource is displayed or used. 
         For example, the requiredStatement property could be used to present 
@@ -844,15 +900,16 @@ class CommonAttributes(CoreAttributes):
         """
         if unused(self.requiredStatement):
             self.requiredStatement = {}
-        arggr = [label,value,language_l,language_v]
-        if any(elem is not None for elem in arggr ) and entry is not None:
-            raise ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
+        arggr = [label, value, language_l, language_v]
+        if any(elem is not None for elem in arggr) and entry is not None:
+            raise ValueError(
+                "Either use entry arguments or a combination of other arguments, NOT both.")
         if entry is None:
-            entry = {"label":{language_l:[label]},
-                    "value":{language_l:[value]}}
+            entry = {"label": {language_l: [label]},
+                     "value": {language_l: [value]}}
         self.requiredStatement = entry
 
-    def set_rights(self,rights):
+    def set_rights(self, rights):
         """
         A string that identifies a license or rights statement that applies to the 
         content of the resource, such as the JSON of a Manifest or the pixels of an
@@ -860,17 +917,18 @@ class CommonAttributes(CoreAttributes):
         the RightsStatements.org rights statement URIs, or those added via the 
         extension mechanism. The inclusion of this property is informative, and for
         example could be used to display an icon representing the rights assertions.
-        
+
         Not sure if it is suggested or mandatory.
         """
-        #TODO: CHECK IF IT IS A VALID URL
+        # TODO: CHECK IF IT IS A VALID URL
         licenceurls = ["http://creativecommons.org/licenses/",
                        "http://creativecommons.org/publicdomain/mark/",
                        "http://rightsstatements.org/vocab/"]
-        assert any([rights.startswith(i) for i in licenceurls]),"Must start with:%s" %str(licenceurls)[1:-1]
-        self.rights =  rights
+        assert any([rights.startswith(i) for i in licenceurls]
+                   ), "Must start with:%s" % str(licenceurls)[1:-1]
+        self.rights = rights
 
-    def add_thumbnail(self,thumbnailobj=None):
+    def add_thumbnail(self, thumbnailobj=None):
         """
         https://iiif.io/api/presentation/3.0/#thumbnail
         A content resource, such as a small image or short audio clip, that represents the 
@@ -882,7 +940,7 @@ class CommonAttributes(CoreAttributes):
         and time-based media should have the duration property. It is recommended that a IIIF Image API 
         service be available for images to enable manipulations such as resizing.
         """
-        #TODO: CHECK IF ALLOWED
+        # TODO: CHECK IF ALLOWED
         if unused(self.thumbnail):
             self.thumbnail = []
         if thumbnailobj is None:
@@ -890,25 +948,25 @@ class CommonAttributes(CoreAttributes):
             self.thumbnail.append(thumbnailobj)
             return thumbnailobj
         else:
-            if isinstance(thumbnailobj,thumbnail):
+            if isinstance(thumbnailobj, thumbnail):
                 self.thumbnail.append(thumbnailobj)
             else:
-                raise ValueError("Trying to add wrong object to thumbnail in %s" %self.__class__.__name__)
+                raise ValueError(
+                    "Trying to add wrong object to thumbnail in %s" % self.__class__.__name__)
 
-
-    def add_behavior(self,behavior):
+    def add_behavior(self, behavior):
         """
         A set of user experience features that the publisher of the content would prefer the client to use when presenting the resource. This specification defines the values in the table below. Others may be defined externally as an extension.
         """
-        #TODO: CHECK IF ALLOWED
+        # TODO: CHECK IF ALLOWED
         if unused(self.behavior):
             self.behavior = []
         self.behavior.append(behavior)
-        
-    def add_homepage(self,homepageobj=None):
+
+    def add_homepage(self, homepageobj=None):
         """
         """
-        #TODO: CHECK IF ALLOWED
+        # TODO: CHECK IF ALLOWED
         if unused(self.homepage):
             self.homepage = []
         if homepageobj is None:
@@ -916,15 +974,16 @@ class CommonAttributes(CoreAttributes):
             self.homepage.append(homepageobj)
             return homepageobj
         else:
-            if isinstance(homepageobj,homepage):
+            if isinstance(homepageobj, homepage):
                 self.homepage.append(homepageobj)
             else:
-                raise ValueError("Trying to add wrong object to homepage in %s" %self.__class__.__name__)
-    
-    def add_seeAlso(self,seeAlsoobj=None):
+                raise ValueError(
+                    "Trying to add wrong object to homepage in %s" % self.__class__.__name__)
+
+    def add_seeAlso(self, seeAlsoobj=None):
         """
         """
-        #TODO: CHECK IF ALLOWED
+        # TODO: CHECK IF ALLOWED
         if unused(self.seeAlso):
             self.seeAlso = []
         if seeAlsoobj is None:
@@ -932,16 +991,16 @@ class CommonAttributes(CoreAttributes):
             self.seeAlso.append(seeAlsoobj)
             return seeAlsoobj
         else:
-            if isinstance(seeAlsoobj,seeAlso):
+            if isinstance(seeAlsoobj, seeAlso):
                 self.seeAlso.append(seeAlsoobj)
             else:
-                raise ValueError("Trying to add wrong object to seeAlso in %s" %self.__class__.__name__)
+                raise ValueError(
+                    "Trying to add wrong object to seeAlso in %s" % self.__class__.__name__)
 
-
-    def add_partOf(self,partOfobj=None):
+    def add_partOf(self, partOfobj=None):
         """
         """
-        #TODO: CHECK IF ALLOWED
+        # TODO: CHECK IF ALLOWED
         if unused(self.partOf):
             self.partOf = []
         if partOfobj is None:
@@ -949,15 +1008,16 @@ class CommonAttributes(CoreAttributes):
             self.partOf.append(partOfobj)
             return partOfobj
         else:
-            if isinstance(partOfobj,seeAlso):
+            if isinstance(partOfobj, seeAlso):
                 self.partOf.append(partOfobj)
             else:
-                raise ValueError("Trying to add wrong object to partOf in %s" %self.__class__.__name__)
-    
-    def add_rendering(self,renderingobj=None):
+                raise ValueError(
+                    "Trying to add wrong object to partOf in %s" % self.__class__.__name__)
+
+    def add_rendering(self, renderingobj=None):
         """
-        """   
-        #TODO: CHECK IF ALLOWED
+        """
+        # TODO: CHECK IF ALLOWED
         if unused(self.rendering):
             self.rendering = []
         if renderingobj is None:
@@ -965,12 +1025,13 @@ class CommonAttributes(CoreAttributes):
             self.rendering.append(renderingobj)
             return renderingobj
         else:
-            if isinstance(renderingobj,rendering):
+            if isinstance(renderingobj, rendering):
                 self.rendering.append(renderingobj)
             else:
-                raise ValueError("Trying to add wrong object to renderging in %s" %self.__class__.__name__)
+                raise ValueError(
+                    "Trying to add wrong object to renderging in %s" % self.__class__.__name__)
 
-        
+
 class Annotation(CommonAttributes):
     """
 
@@ -999,15 +1060,16 @@ class Annotation(CommonAttributes):
     non-content object. Implementations should check the type of the resource and not assume that 
     it is always content to be rendered.
     """
-    #https://iiif.io/api/presentation/3.0/#56-annotation 
-    def __init__(self,target):
+    # https://iiif.io/api/presentation/3.0/#56-annotation
+
+    def __init__(self, target):
         super(CommonAttributes, self).__init__()
         self.motivation = None
         self.body = None
         self.target = target
         self.metadata = None
-          
-    def set_motivation(self,motivation):
+
+    def set_motivation(self, motivation):
         """
         https://iiif.io/api/presentation/3.0/#values-for-motivation
         Values for motivation
@@ -1062,30 +1124,33 @@ class Annotation(CommonAttributes):
         handwritten text, or captions for what is
         """
 
-        motivations = ["painting","supplementing"]
+        motivations = ["painting", "supplementing"]
         if motivation not in motivations:
-            pass #TODO:warning
+            pass  # TODO:warning
         if motivation == "painting":
-            self.body =bodypainting()
+            self.body = bodypainting()
         if motivation == "commenting":
             self.body = bodycommenting()
         self.motivation = motivation
 
+
 class AnnotationPage(CommonAttributes):
     """
- 
+
     """
+
     def __init__(self):
         super(AnnotationPage, self).__init__()
-        self.items = Recommended("The annotation page must incude at least one item.")
+        self.items = Recommended(
+            "The annotation page must incude at least one item.")
         self.annotations = None
 
-    def add_item(self,item):
+    def add_item(self, item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
-    
-    def add_annotation_toitems(self,annotation=None,targetid=None):
+
+    def add_annotation_toitems(self, annotation=None, targetid=None):
         if unused(self.items):
             self.items = []
         if annotation is None:
@@ -1097,6 +1162,7 @@ class AnnotationPage(CommonAttributes):
         else:
             self.items.append(annotation)
 
+
 class Canvas(CommonAttributes):
     """
     https://iiif.io/api/presentation/3.0/#53-canvas
@@ -1104,29 +1170,33 @@ class Canvas(CommonAttributes):
     different content resources that make up the display. Canvases must be identified by a URI and it 
     must be an HTTP(S) URI.
     """
+
     def __init__(self):
         super(Canvas, self).__init__()
-        self.height = Required("The canvas height is required use set_height method.")
-        self.width = Required("The canvas width is required use set_width method.")
-        self.items = Recommended("The canvas should contain at least one item.")
+        self.height = Required(
+            "The canvas height is required use set_height method.")
+        self.width = Required(
+            "The canvas width is required use set_width method.")
+        self.items = Recommended(
+            "The canvas should contain at least one item.")
         self.annotations = None
-    
-    def set_width(self,width:int):
+
+    def set_width(self, width: int):
         self.width = int(width)
-    
-    def set_height(self,height:int):
+
+    def set_height(self, height: int):
         self.height = int(height)
-    
-    def set_hightwidth(self,height:int,width:int):
+
+    def set_hightwidth(self, height: int, width: int):
         self.set_width(width)
         self.set_height(height)
 
-    def add_item(self,item):
+    def add_item(self, item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
-    
-    def add_annotation(self,annotation=None):
+
+    def add_annotation(self, annotation=None):
         if unused(self.annotations):
             self.annotations = []
         if annotation is None:
@@ -1136,8 +1206,8 @@ class Canvas(CommonAttributes):
         else:
             self.annotations.append(annotation)
 
-    def add_annotationpage_to_items(self,annotationpageobj=None):
-        #return self.check(self.items,AnnotationPage,annotationpageobj)
+    def add_annotationpage_to_items(self, annotationpageobj=None):
+        # return self.check(self.items,AnnotationPage,annotationpageobj)
         if unused(self.items):
             self.items = []
         if annotationpageobj is None:
@@ -1147,7 +1217,8 @@ class Canvas(CommonAttributes):
         else:
             self.items.append(annotationpageobj)
 
-class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
+
+class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
     """
     The Manifest resource typically represents a single object 
     and any intellectual work or works embodied within that 
@@ -1174,6 +1245,7 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
     These will typically be comment style Annotations,
     and must not have painting as their motivation.
     """
+
     def __init__(self):
         super(Manifest, self).__init__()
         self.start = None
@@ -1189,20 +1261,20 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
         self.provider = None
         self.structures = None
 
-    def add_item(self,item):
+    def add_item(self, item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
-    
-    def set_start(self,start):
+
+    def set_start(self, start):
         self.start = start
-    
-    def add_services(self,services=None):
+
+    def add_services(self, services=None):
         if unused(self.services):
             self.services = []
         self.services.append(services)
-    
-    def add_annotation(self,annotation=None):
+
+    def add_annotation(self, annotation=None):
         if unused(self.annotations):
             self.annotations = []
         if annotation is None:
@@ -1211,22 +1283,22 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
             return annotation
         else:
             self.annotations.append(annotation)
-    
-    def add_service(self,serviceobj=None):
+
+    def add_service(self, serviceobj=None):
         if unused(self.service):
             self.service = []
-        if serviceobj is None: 
+        if serviceobj is None:
             serviceobj = service()
             self.service.append(serviceobj)
             return serviceobj
         else:
-            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
                 self.service.append(serviceobj)
             else:
-                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
-  
-    
-    def add_provider(self,providerobj=None):
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" % self.__class__.__name__)
+
+    def add_provider(self, providerobj=None):
         if unused(self.provider):
             self.provider = []
         if providerobj is None:
@@ -1234,107 +1306,113 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
             self.provider.append(providerobj)
             return providerobj
         else:
-            if isinstance(providerobj,service):
+            if isinstance(providerobj, service):
                 self.provider.append(providerobj)
             else:
-                raise ValueError("Trying to add wrong object to provider in %s" %self.__class__.__name__)
-  
-    def add_canvastoitems(self,canvasobj=None):
+                raise ValueError(
+                    "Trying to add wrong object to provider in %s" % self.__class__.__name__)
+
+    def add_canvastoitems(self, canvasobj=None):
         if unused(self.items):
             self.items = []
-        if canvasobj is None: 
+        if canvasobj is None:
             canvasobj = Canvas()
             self.items.append(canvasobj)
             return canvasobj
         else:
-            if isinstance(canvasobj,Canvas):
+            if isinstance(canvasobj, Canvas):
                 self.items.append(canvasobj)
             else:
-                raise ValueError("Trying to add wrong object as canvas to items in %s" %self.__class__.__name__)
-  
-    
-    def add_structure(self,structure):
+                raise ValueError(
+                    "Trying to add wrong object as canvas to items in %s" % self.__class__.__name__)
+
+    def add_structure(self, structure):
         if unused(self.structures):
             self.structures = []
         self.structures.append(structure)
 
-    def add_rangetostructures(self,rangeobj=None):
-        return checkstru(self,Range,rangeobj)
-        
+    def add_rangetostructures(self, rangeobj=None):
+        return checkstru(self, Range, rangeobj)
+
+
 class Collection(CommonAttributes):
     def __init__(self):
         super(Collection, self).__init__()
         self.services = None
         self.annotations = None
-        self.items = Required("A collection object must have at least one item!")
-    
-    def add_service(self,serviceobj=None):
+        self.items = Required(
+            "A collection object must have at least one item!")
+
+    def add_service(self, serviceobj=None):
         if unused(self.service):
             self.service = []
-        if serviceobj is None: 
+        if serviceobj is None:
             serviceobj = service()
             self.service.append(serviceobj)
             return serviceobj
         else:
-            if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
                 self.service.append(serviceobj)
             else:
-                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
-  
-    
-    def add_annotation(self,annotation):
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" % self.__class__.__name__)
+
+    def add_annotation(self, annotation):
         if unused(self.annotation):
             self.annotation = []
         self.annotation.append(annotation)
-    
-    def add_item(self,item):
+
+    def add_item(self, item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
+
 
 class Range(CommonAttributes):
     def __init__(self):
         super(Range, self).__init__()
         self.annotations = None
         self.items = Required("A range object must have at least one item!")
-        self.supplementary = None 
-    
-    def add_annotation(self,annotation):
+        self.supplementary = None
+
+    def add_annotation(self, annotation):
         if unused(self.annotation):
             self.annotation = []
         self.annotation.append(annotation)
-    
-    def add_item(self,item):
+
+    def add_item(self, item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
-    
-    def set_start(self,start):
+
+    def set_start(self, start):
         self.start = start
 
-    def set_supplementary(self,objid=None,extendbase_url=None):
+    def set_supplementary(self, objid=None, extendbase_url=None):
         self.supplementary = supplementary()
-        self.supplementary.set_id(objid,extendbase_url)
+        self.supplementary.set_id(objid, extendbase_url)
 
-    def add_canvas_to_items(self,canvas_id):
+    def add_canvas_to_items(self, canvas_id):
         """Add a canvas to items by id of the canvas
         """
         if unused(self.items):
             self.items = []
         entry = {"id": canvas_id,
-                "type": "Canvas"}
+                 "type": "Canvas"}
         self.items.append(entry)
+
 
 class SpecificResource(CommonAttributes):
     def __init__(self):
         super(SpecificResource, self).__init__()
         self.source = None
-    
-    def set_source(self,source):
+
+    def set_source(self, source):
         self.source = source
 
-    def set_selector(self,selector):
+    def set_selector(self, selector):
         self.selector = selector
+
 
 class start(CommonAttributes):
 
@@ -1343,41 +1421,44 @@ class start(CommonAttributes):
         self.profile = Recommended("Start object should have a profile.")
         self.source = None
         self.selector = None
-    
-    def set_type(self,mtype):
+
+    def set_type(self, mtype):
         if mtype != "Canvas":
-            self.source = Required("If you are not pointing to a Canvas please specify a source.")
-            self.selector = Required("If you are not pointing to a Canvas please specify a selector")
+            self.source = Required(
+                "If you are not pointing to a Canvas please specify a source.")
+            self.selector = Required(
+                "If you are not pointing to a Canvas please specify a selector")
         self.type = mtype
-    
-    def set_source(self,source):
+
+    def set_source(self, source):
         self.source = source
-    
-    def set_selector(self,selector):
+
+    def set_selector(self, selector):
         self.selector = selector
+
 
 class ImageApiSelector(object):
     def __init__(self) -> None:
         self.type = None
         self.region = None
-        self.size = None 
-        self.rotation = None 
+        self.size = None
+        self.rotation = None
         self.quality = None
         self.fromat = None
 
-    def set_type(self,type):
+    def set_type(self, type):
         self.type = type
 
-    def set_region(self,region):
+    def set_region(self, region):
         self.region = region
 
-    def set_rotation(self,rotation):
+    def set_rotation(self, rotation):
         self.rotation = rotation
 
-    def set_quality(self,quality):
+    def set_quality(self, quality):
         self.quality = quality
 
-    def set_format(self,format):
+    def set_format(self, format):
         """Set the format of the IIIF type.
         IIIF: The specific media type (often called a MIME type) for a content resource,
         for example image/jpeg. This is important for distinguishing different formats 
@@ -1388,9 +1469,10 @@ class ImageApiSelector(object):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha() for i in format.split("/")]) and "/" in format,msg
+        assert all([i.isalpha()
+                    for i in format.split("/")]) and "/" in format, msg
         self.format = format
-    
+
 
 class PointSelector(object):
     """
@@ -1404,36 +1486,38 @@ class PointSelector(object):
     y	Optional. An integer giving the y coordinate of the point, relative to the dimensions of the target resource.
     t	Optional. A floating point number giving the time of the point in seconds, relative to the duration of the target resource
     """
+
     def __init__(self) -> None:
         self.type = None
         self.x = None
-        self.y = None 
-        self.t = None 
+        self.y = None
+        self.t = None
 
-    def set_type(self,type):
+    def set_type(self, type):
         self.type = type
 
-    def set_x(self,x):
+    def set_x(self, x):
         self.x = x
 
-    def set_y(self,y):
+    def set_y(self, y):
         self.y = y
 
-    def set_t(self,t):
-        self.t = t  
+    def set_t(self, t):
+        self.t = t
+
 
 class FragmentSelector(object):
     def __init__(self) -> None:
         self.type = "FragmentSelector"
         self.value = Required("A fragment selector must have a value!")
 
-    def set_type(self,type):
+    def set_type(self, type):
         print("Type should be kept FragmentSelector")
 
-    def set_value(self,value):
+    def set_value(self, value):
         self.value = value
 
-    def set_xywh(self,x,y,w,h):
-        self.value = "xywh=%i,%i,%i,%i" %(x,y,w,h)
+    def set_xywh(self, x, y, w, h):
+        self.value = "xywh=%i,%i,%i,%i" % (x, y, w, h)
 
  #json.dumps(g, default=lambda x:x.__dict__)
