@@ -1,6 +1,6 @@
 # implementation of Image and Canvas with Differing Dimensions https://iiif.io/api/cookbook/recipe/0004-canvas-size/
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0004-canvas-size"
+iiifpapi3.BASE_URL = r"xttps://iiif.io/api/cookbook/recipe/0004-canvas-size"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Still image from an opera performance at Indiana University")
@@ -15,4 +15,6 @@ annotation.set_motivation("painting")
 annotation.set_id(extendbase_url=["annotation","p0001-image"])
 annotation.body.set_width(640)
 annotation.body.set_height(360)
-annotation.body.set_id("https://fixtures.iiif.io/video/indiana/donizetti-elixir/act1-thumbnail.png")
+annotation.body.set_id("xttps://fixtures.iiif.io/video/indiana/donizetti-elixir/act1-thumbnail.png")
+annotation.body.set_format("Image")
+annotation.body.set_type("Image")
