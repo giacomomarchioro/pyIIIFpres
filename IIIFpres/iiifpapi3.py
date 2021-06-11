@@ -792,29 +792,25 @@ class services(CoreAttributes):
                     "Trying to add wrong object to service in %s" % self.__class__.__name__)
 
 
-class metadata(object):
+class labelvalue(object):
     """This is not a IIIF type but is used for easing the construction of multilingual
-    metadata.
+    metadata and requiredstatements.
     """
 
     def __init__(self):
-        self.value = Required("The metadata must have at least a value")
-        self.label = Required("The metadata must have at least a label")
+        self.value = Required("The metadata/requiredstatements must have at least a value")
+        self.label = Required("The metadata/requiredstatements must have at least a label")
 
-    def add_value(self, value, language=None):
+    def add_value(self, value, language="none"):
         if unused(self.value):
             self.value = {}
-        if language == None:
-            language = "none"
         if not isinstance(value, list):
             value = [value]
         self.value[language] = value
 
-    def add_label(self, label, language=None):
+    def add_label(self, label, language="none"):
         if unused(self.label):
             self.value = {}
-        if language == None:
-            language = "none"
         if not isinstance(label, list):
             label = [label]
         self.label[language] = label
@@ -860,8 +856,13 @@ class CommonAttributes(CoreAttributes):
         """
         if unused(self.metadata):
             self.metadata = []
-        arggr = [label, value, language_l, language_v]
-        if any(elem is not None for elem in arggr) and entry is not None:
+        
+        if label is None and value is None and entry is None:
+            labelvalueobj = labelvalue()
+            self.metadata.append(labelvalueobj)
+            return labelvalueobj
+
+        if (label is not None or value is not None) and entry is not None:
             raise ValueError(
                 "Either use entry arguments or a combination of other arguments, NOT both.")
 
@@ -900,8 +901,13 @@ class CommonAttributes(CoreAttributes):
         """
         if unused(self.requiredStatement):
             self.requiredStatement = {}
-        arggr = [label, value, language_l, language_v]
-        if any(elem is not None for elem in arggr) and entry is not None:
+
+        if label is None and value is None and entry is None:
+            labelvalueobj = labelvalue()
+            self.requiredStatement.append(labelvalueobj)
+            return labelvalueobj
+
+        if (label is not None or value is not None) and entry is not None:
             raise ValueError(
                 "Either use entry arguments or a combination of other arguments, NOT both.")
         if entry is None:
