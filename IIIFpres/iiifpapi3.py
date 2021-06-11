@@ -35,10 +35,24 @@ def unused(attr):
     """
     This function check if an attribute is not set (has no value in it).
     """
-    if isinstance(attr, Required) or isinstance(attr, Recommended) or attr is None:
+    if isinstance(attr, (Required, Recommended)) or attr is None:
         return True
     else:
         return False
+
+def serializable(attr):
+    """Check if attribute is Required and if so rise Value error.
+
+    Args:
+        attr : the value of the dictionary representing the attribute of the instance.
+    """
+    if isinstance(attr, Required):
+        raise ValueError("Required attribute missing")
+    if isinstance(attr, Recommended) or attr is None:
+        return False
+    else:
+        return True
+
 
 def checkitem(selfx,classx,obj):   
     """Check if item is added to the right class:
@@ -70,7 +84,7 @@ def checkitem(selfx,classx,obj):
         else:
             obj_name = obj.__class__.__name__
             class_name = selfx.__class__.__name__
-            ValueError("%s object cannot be added to %s." %(obj_name,class_name))
+            raise ValueError("%s object cannot be added to %s." %(obj_name,class_name))
 
 def checkstru(selfx,classx,obj):   
     """Check if a structure is added to the right entity:
@@ -100,7 +114,7 @@ def checkstru(selfx,classx,obj):
         else:
             obj_name = obj.__class__.__name__
             class_name = selfx.__class__.__name__
-            ValueError("%s object cannot be added to %s." %(obj_name,class_name))
+            raise ValueError("%s object cannot be added to %s." %(obj_name,class_name))
       
 # Let's group all the common arguments across the differnet types of collection
 
@@ -130,7 +144,7 @@ class CoreAttributes(object):
   
         if extendbase_url:
             if objid:
-                ValueError("Set id using extendbase_url or objid not both.")
+                raise ValueError("Set id using extendbase_url or objid not both.")
             if isinstance(extendbase_url,str):
                 self.id = "/".join((BASE_URL,extendbase_url))
             if isinstance(extendbase_url,list):
@@ -166,7 +180,7 @@ class CoreAttributes(object):
             language = "none"
         self.label[language] = [text]
 
-    def json_dumps(self,dumps_errors=False):
+    def json_dumps(self,dumps_errors=False,ensure_ascii=False):
         """Dumps the content of the object in JSON format.
 
         Args:
@@ -180,25 +194,25 @@ class CoreAttributes(object):
         def serializerwitherrors(obj):
             return {k: v for k, v in obj.__dict__.items() if v is not None}
         def serializer(obj):
-            return {k: v for k, v in obj.__dict__.items() if not unused(v)}
+            return {k: v for k, v in obj.__dict__.items() if serializable(v)}
         if dumps_errors:
-            res = json.dumps(self,default = serializerwitherrors,indent=2)
+            res = json.dumps(self,default = serializerwitherrors,indent=2,ensure_ascii=ensure_ascii)
         else:
-            res = json.dumps(self,default = serializer,indent=2)
+            res = json.dumps(self,default = serializer,indent=2,ensure_ascii=ensure_ascii)
         # little hack for fixing context first 3 chrs "{\n"
         res = "".join(('{\n  "@context": "%s",\n '%context,res[3:]))
         return res
 
-    def json_save(self,filename,save_errors=False):
+    def json_save(self,filename,save_errors=False,ensure_ascii=False):
         with open(filename,'w') as f:
-            f.write(self.json_dumps(dumps_errors=save_errors))
+            f.write(self.json_dumps(dumps_errors=save_errors,ensure_ascii=ensure_ascii))
 
     def show_errors(self):
         print(self.json_dumps(dumps_errors=True))
         print("Missing requirements field: %s." %logs["Required"])
-        print("Missing reccomended field: %s." %logs["Reccomended"])
+        print("Missing recommended field: %s." %logs["Recommended"])
         logs["Required"] = 0
-        logs["Reccomended"] = 0
+        logs["Recommended"] = 0
         return True
 
     def __repr__(self) -> str:
@@ -328,7 +342,7 @@ class bodypainting(CoreAttributes,plus.HeightWidthDuration):
             if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
                 self.service.append(serviceobj)
             else:
-                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
     
 
 class service(CoreAttributes):
@@ -375,7 +389,7 @@ class service(CoreAttributes):
         if mytype in values:
             self.type = mytype
         else:
-            ValueError("mytype not right must be one of these value %s" %",".join(values))
+            raise ValueError("mytype not right must be one of these value %s" %",".join(values))
     
     def set_type(self,mtype):
         self.type = mtype
@@ -394,7 +408,7 @@ class service(CoreAttributes):
             if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
                 self.service.append(serviceobj)
             else:
-                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
   
 
 class thumbnail(CoreAttributes,plus.HeightWidthDuration):
@@ -431,7 +445,7 @@ class thumbnail(CoreAttributes,plus.HeightWidthDuration):
             if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
                 self.service.append(serviceobj)
             else:
-                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
   
 
 class provider(CoreAttributes):
@@ -499,7 +513,7 @@ class provider(CoreAttributes):
             if isinstance(logoobj,logo):
                 self.logo.append(logoobj)
             else:
-                ValueError("Trying to add wrong object to logo in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to logo in %s" %self.__class__.__name__)
     
 
     def add_homepage(self,homepageobj=None):
@@ -516,7 +530,7 @@ class provider(CoreAttributes):
             if isinstance(homepageobj,homepage):
                 self.homepage.append(homepageobj)
             else:
-                ValueError("Trying to add wrong object to homepage in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to homepage in %s" %self.__class__.__name__)
     
     
     def add_seeAlso(self,seeAlsoobj=None):
@@ -533,7 +547,7 @@ class provider(CoreAttributes):
             if isinstance(seeAlsoobj,seeAlso):
                 self.seeAlso.append(seeAlsoobj)
             else:
-                ValueError("Trying to add wrong object to seeAlso in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to seeAlso in %s" %self.__class__.__name__)
 
 class homepage(CoreAttributes):
     """https://iiif.io/api/presentation/3.0/#homepage
@@ -616,7 +630,7 @@ class logo(CoreAttributes,plus.HeightWidthDuration):
         self.type = mtype
 
     def set_label(self,label):
-        ValueError("Label not permitted in logo.")
+        raise ValueError("Label not permitted in logo.")
     
     def add_service(self,serviceobj=None):
         if unused(self.service):
@@ -629,7 +643,7 @@ class logo(CoreAttributes,plus.HeightWidthDuration):
             if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
                 self.service.append(serviceobj)
             else:
-                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
   
 
 class rendering(CoreAttributes):
@@ -719,8 +733,36 @@ class services(CoreAttributes):
             if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
                 self.service.append(serviceobj)
             else:
-                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
   
+
+
+class metadata(object):
+    """This is not a IIIF type but is used for easing the construction of multilingual
+    metadata.
+    """
+    def __init__(self):
+        self.value = Required("The metadata must have at least a value")
+        self.label = Required("The metadata must have at least a label")
+    
+    def add_value(self,value,language=None):
+        if unused(self.value):
+            self.value = {}
+        if language == None:
+            language = "none"
+        if not isinstance(value, list):
+            value = [value]
+        self.value[language] = value
+    
+    def add_label(self,label,language=None):
+        if unused(self.label):
+            self.value = {}
+        if language == None:
+            language = "none"
+        if not isinstance(label, list):
+            label = [label]
+        self.label[language] = label
+    
 
 
 
@@ -765,7 +807,7 @@ class CommonAttributes(CoreAttributes):
             self.metadata = []
         arggr = [label,value,language_l,language_v]
         if any(elem is not None for elem in arggr ) and entry is not None:
-            ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
+            raise ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
         
         if not isinstance(value, list):
             value = [value]
@@ -804,7 +846,7 @@ class CommonAttributes(CoreAttributes):
             self.requiredStatement = {}
         arggr = [label,value,language_l,language_v]
         if any(elem is not None for elem in arggr ) and entry is not None:
-            ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
+            raise ValueError("Either use entry arguments or a combination of other arguments, NOT both.")
         if entry is None:
             entry = {"label":{language_l:[label]},
                     "value":{language_l:[value]}}
@@ -851,7 +893,7 @@ class CommonAttributes(CoreAttributes):
             if isinstance(thumbnailobj,thumbnail):
                 self.thumbnail.append(thumbnailobj)
             else:
-                ValueError("Trying to add wrong object to thumbnail in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to thumbnail in %s" %self.__class__.__name__)
 
 
     def add_behavior(self,behavior):
@@ -877,7 +919,7 @@ class CommonAttributes(CoreAttributes):
             if isinstance(homepageobj,homepage):
                 self.homepage.append(homepageobj)
             else:
-                ValueError("Trying to add wrong object to homepage in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to homepage in %s" %self.__class__.__name__)
     
     def add_seeAlso(self,seeAlsoobj=None):
         """
@@ -893,7 +935,7 @@ class CommonAttributes(CoreAttributes):
             if isinstance(seeAlsoobj,seeAlso):
                 self.seeAlso.append(seeAlsoobj)
             else:
-                ValueError("Trying to add wrong object to seeAlso in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to seeAlso in %s" %self.__class__.__name__)
 
 
     def add_partOf(self,partOfobj=None):
@@ -910,7 +952,7 @@ class CommonAttributes(CoreAttributes):
             if isinstance(partOfobj,seeAlso):
                 self.partOf.append(partOfobj)
             else:
-                ValueError("Trying to add wrong object to partOf in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to partOf in %s" %self.__class__.__name__)
     
     def add_rendering(self,renderingobj=None):
         """
@@ -926,7 +968,7 @@ class CommonAttributes(CoreAttributes):
             if isinstance(renderingobj,rendering):
                 self.rendering.append(renderingobj)
             else:
-                ValueError("Trying to add wrong object to renderging in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to renderging in %s" %self.__class__.__name__)
 
         
 class Annotation(CommonAttributes):
@@ -1181,7 +1223,7 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
             if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
                 self.service.append(serviceobj)
             else:
-                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
   
     
     def add_provider(self,providerobj=None):
@@ -1195,7 +1237,7 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
             if isinstance(providerobj,service):
                 self.provider.append(providerobj)
             else:
-                ValueError("Trying to add wrong object to provider in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to provider in %s" %self.__class__.__name__)
   
     def add_canvastoitems(self,canvasobj=None):
         if unused(self.items):
@@ -1208,7 +1250,7 @@ class Manifest(CommonAttributes,plus.ViewingDirection,plus.navDate):
             if isinstance(canvasobj,Canvas):
                 self.items.append(canvasobj)
             else:
-                ValueError("Trying to add wrong object as canvas to items in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object as canvas to items in %s" %self.__class__.__name__)
   
     
     def add_structure(self,structure):
@@ -1237,7 +1279,7 @@ class Collection(CommonAttributes):
             if isinstance(serviceobj,service) or isinstance(serviceobj,dict):
                 self.service.append(serviceobj)
             else:
-                ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
+                raise ValueError("Trying to add wrong object to service in %s" %self.__class__.__name__)
   
     
     def add_annotation(self,annotation):
