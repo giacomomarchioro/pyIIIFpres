@@ -186,7 +186,7 @@ class CoreAttributes(object):
         else:
             res = json.dumps(self,default = serializer,indent=2)
         # little hack for fixing context first 3 chrs "{\n"
-        res = "".join(('{\n  "@context": "%s", \n '%context,res[3:]))
+        res = "".join(('{\n  "@context": "%s",\n '%context,res[3:]))
         return res
 
     def json_save(self,filename,save_errors=False):
