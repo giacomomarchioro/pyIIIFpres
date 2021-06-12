@@ -792,7 +792,7 @@ class services(CoreAttributes):
                     "Trying to add wrong object to service in %s" % self.__class__.__name__)
 
 
-class labelvalue(object):
+class languagemap(object):
     """This is not a IIIF type but is used for easing the construction of multilingual
     metadata and requiredstatements.
     """
@@ -810,7 +810,7 @@ class labelvalue(object):
 
     def add_label(self, label, language="none"):
         if unused(self.label):
-            self.value = {}
+            self.label = {}
         if not isinstance(label, list):
             label = [label]
         self.label[language] = label
@@ -858,9 +858,9 @@ class CommonAttributes(CoreAttributes):
             self.metadata = []
         
         if label is None and value is None and entry is None:
-            labelvalueobj = labelvalue()
-            self.metadata.append(labelvalueobj)
-            return labelvalueobj
+            languagemapobj = languagemap()
+            self.metadata.append(languagemapobj)
+            return languagemapobj
 
         if (label is not None or value is not None) and entry is not None:
             raise ValueError(
@@ -903,9 +903,9 @@ class CommonAttributes(CoreAttributes):
             self.requiredStatement = {}
 
         if label is None and value is None and entry is None:
-            labelvalueobj = labelvalue()
-            self.requiredStatement.append(labelvalueobj)
-            return labelvalueobj
+            languagemapobj = languagemap()
+            self.requiredStatement.append(languagemapobj)
+            return languagemapobj
 
         if (label is not None or value is not None) and entry is not None:
             raise ValueError(
@@ -929,7 +929,10 @@ class CommonAttributes(CoreAttributes):
         # TODO: CHECK IF IT IS A VALID URL
         licenceurls = ["http://creativecommons.org/licenses/",
                        "http://creativecommons.org/publicdomain/mark/",
-                       "http://rightsstatements.org/vocab/"]
+                       "http://rightsstatements.org/vocab/",
+                       "https://creativecommons.org/licenses/",
+                       "https://creativecommons.org/publicdomain/mark/",
+                       "https://rightsstatements.org/vocab/"]
         assert any([rights.startswith(i) for i in licenceurls]
                    ), "Must start with:%s" % str(licenceurls)[1:-1]
         self.rights = rights
