@@ -798,14 +798,17 @@ class languagemap(object):
     """
 
     def __init__(self):
-        self.value = Required("The metadata/requiredstatements must have at least a value")
         self.label = Required("The metadata/requiredstatements must have at least a label")
+        self.value = Required("The metadata/requiredstatements must have at least a value")
+        
 
     def add_value(self, value, language="none"):
         if unused(self.value):
             self.value = {}
         if not isinstance(value, list):
             value = [value]
+        # TODO: if html must begin with < and ends with > 
+        # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
         self.value[language] = value
 
     def add_label(self, label, language="none"):
@@ -813,6 +816,8 @@ class languagemap(object):
             self.label = {}
         if not isinstance(label, list):
             label = [label]
+        # TODO: check that is not html
+        # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
         self.label[language] = label
 
 
@@ -899,20 +904,20 @@ class CommonAttributes(CoreAttributes):
         statement to the user in the client’s initial state. If initially hidden, 
         clients must make the method of revealing it as obvious as possible.
         """
-        if unused(self.requiredStatement):
-            self.requiredStatement = {}
-
         if label is None and value is None and entry is None:
             languagemapobj = languagemap()
-            self.requiredStatement.append(languagemapobj)
+            self.requiredStatement = languagemapobj
             return languagemapobj
+
+        if unused(self.requiredStatement):
+            self.requiredStatement = {}
 
         if (label is not None or value is not None) and entry is not None:
             raise ValueError(
                 "Either use entry arguments or a combination of other arguments, NOT both.")
         if entry is None:
             entry = {"label": {language_l: [label]},
-                     "value": {language_l: [value]}}
+                     "value": {language_v: [value]}}
         self.requiredStatement = entry
 
     def set_rights(self, rights):
