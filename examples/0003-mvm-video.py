@@ -16,10 +16,10 @@ annotation = annopage.add_annotation_toitems(targetid=canvas.id)
 annotation.set_motivation("painting")
 annotation.set_id(extendbase_url=["canvas","page","annotation"])
 annotation.body.set_height(360)
-annotation.body.set_width(640)
+annotation.body.set_width(480)
 annotation.body.set_id("https://fixtures.iiif.io/video/indiana/lunchroom_manners/high/lunchroom_manners_1024kb.mp4")
 annotation.body.set_format("video/mp4")
 annotation.body.set_type("Video")
-annotation.body.duration = 572.034
+annotation.body.set_duration(572.034)
 if __name__ == "__main__":
     manifest.json_save("0003-mvm-video_manifest.json")

@@ -10,6 +10,9 @@ class HeightWidthDuration(object):
         self.set_height = height
 
 
+
+
+
 class ViewingDirection(object):
     def set_viewingDirection(self,viewingDirection):
         """
@@ -22,8 +25,8 @@ class ViewingDirection(object):
         "right-to-left",
         "bottom-to-top",
         "top-to-bottom"]
-        if viewingDirection not in viewingDirections:
-            ValueError("viewingDirection mu must be one of these values %s" %viewingDirections)
+        msg = "viewingDirection mu must be one of these values %s" %viewingDirections
+        assert viewingDirection in viewingDirections, msg
         self.viewingDirection = viewingDirection
 
 class navDate(object):

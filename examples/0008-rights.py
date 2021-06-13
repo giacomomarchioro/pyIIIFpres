@@ -1,9 +1,10 @@
-# implementation of Image and Canvas with Differing Dimensions https://iiif.io/api/cookbook/recipe/0005-image-service/
+# https://iiif.io/api/cookbook/recipe/0008-rights/
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0005-image-service" # do not place final /
+iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0008-rights" # do not place final /
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Picture of Göttingen taken during the 2019 IIIF Conference")
+manifest.add_summary("en","<p>Picture taken by the <a href=\"https://github.com/glenrobson\">IIIF Technical Coordinator</a></p>")
 canvas = manifest.add_canvastoitems()
 canvas.set_id(extendbase_url=["canvas","p1"])
 canvas.add_label("en","Canvas with a single IIIF image")

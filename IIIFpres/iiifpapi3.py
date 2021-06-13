@@ -255,8 +255,8 @@ class seeAlso(CoreAttributes):
 
     def __init__(self):
         super(seeAlso, self).__init__()
-        self.format = Recommended()
-        self.profile = Recommended()
+        self.format = Recommended("Its should have a format")
+        self.profile = Recommended("It should have a profile")
 
     def set_type(self, datatype):
         # TODO: add check
@@ -345,7 +345,7 @@ class bodycommenting(object):
         self.language = language
 
 
-class bodypainting(CoreAttributes, plus.HeightWidthDuration):
+class bodypainting(CoreAttributes):
     def __init__(self):
         super(bodypainting, self).__init__()
         self.type = Required(
@@ -354,6 +354,9 @@ class bodypainting(CoreAttributes, plus.HeightWidthDuration):
             "The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
         self.profile = Recommended(
             "The profile of the resource, if it has one, should also be included.")
+        self.height = Required("Must have an height or a duration.")
+        self.width = Required("Must have an width or a duration.")
+        self.duration = None
         self.service = None
 
     def set_type(self, mytype):
@@ -361,6 +364,23 @@ class bodypainting(CoreAttributes, plus.HeightWidthDuration):
 
     def set_format(self, format):
         self.format = format
+
+    def set_width(self, width: int):
+        self.width = int(width)
+
+    def set_height(self, height: int):
+        self.height = int(height)
+
+    def set_hightwidth(self, height: int, width: int):
+        self.set_width(width)
+        self.set_height(height)
+
+    def set_duration(self,duration: float):
+        if unused(self.height):
+            self.height = None
+        if unused(self.width):
+            self.width = None
+        self.duration = float(duration)
 
     def add_service(self, serviceobj=None):
         if unused(self.service):
@@ -669,7 +689,7 @@ class logo(CoreAttributes, plus.HeightWidthDuration):
         Args:
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
-        msg = "Format should be in the form type/format e.g. image/jpg"
+        msg = "Format should be in the form type/format e.g. image/jpeg"
         assert all([i.isalpha()
                     for i in format.split("/")]) and "/" in format, msg
         self.format = format
@@ -1187,10 +1207,8 @@ class Canvas(CommonAttributes):
 
     def __init__(self):
         super(Canvas, self).__init__()
-        self.height = Required(
-            "The canvas height is required use set_height method.")
-        self.width = Required(
-            "The canvas width is required use set_width method.")
+        self.height = Required("Must have an height or a duration.")
+        self.width = Required("Must have an width or a duration.")
         self.duration = None
         self.items = Recommended(
             "The canvas should contain at least one item.")
@@ -1205,6 +1223,13 @@ class Canvas(CommonAttributes):
     def set_hightwidth(self, height: int, width: int):
         self.set_width(width)
         self.set_height(height)
+    
+    def set_duration(self,duration: float):
+        if unused(self.height):
+            self.height = None
+        if unused(self.width):
+            self.width = None
+        self.duration = float(duration)
 
     def add_item(self, item):
         if unused(self.items):
