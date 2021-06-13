@@ -24,4 +24,5 @@ annotation.set_id(extendbase_url=["canvas1","page1","annotation1"])
 annotation.body.set_id("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Whistlers_Mother_high_res.jpg/1114px-Whistlers_Mother_high_res.jpg")
 annotation.body.set_format("image/jpg")
 annotation.body.set_type("Image")
-manifest.json_save("0118_multivalue.json")
+if __name__ == "__main__":
+    manifest.json_save("0118_multivalue.json")

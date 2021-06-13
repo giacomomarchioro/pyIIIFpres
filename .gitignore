@@ -133,3 +133,4 @@ dmypy.json
 examples/iiif_3_0.json
 
 *.json
+!tests/integration/fixtures/*.json

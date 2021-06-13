@@ -2,7 +2,7 @@
 from IIIFpres import iiifpapi3
 iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0007-string-formats" # do not place final /
 manifest = iiifpapi3.Manifest()
-manifest.set_id(extendbase_url="manifest")
+manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Picture of Göttingen taken during the 2019 IIIF Conference")
 manifest.add_summary(text="<p>Picture taken by the <a href=\"https://github.com/glenrobson\">IIIF Technical Coordinator</a></p>",
                     language="en")
@@ -31,4 +31,5 @@ srv = annotation.body.add_service()
 srv.set_id("https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen")
 srv.set_profile("level1")
 srv.set_type("ImageService3")
-manifest.json_save("0007-string-formats-manifest.json")
+if __name__ == "__main__":
+    manifest.json_save("0007-string-formats-manifest.json")

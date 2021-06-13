@@ -18,4 +18,5 @@ annotation.body.set_width(640)
 annotation.body.set_id("https://fixtures.iiif.io/video/indiana/donizetti-elixir/act1-thumbnail.png")
 annotation.body.set_format("image/jpg")
 annotation.body.set_type("Image")
-manifest.json_save("0004-canvas-size_manifest.json")
+if __name__ == "__main__":
+    manifest.json_save("0004-canvas-size_manifest.json")

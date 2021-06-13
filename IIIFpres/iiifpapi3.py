@@ -195,7 +195,7 @@ class CoreAttributes(object):
             language = "none"
         self.label[language] = [text]
 
-    def json_dumps(self, dumps_errors=False, ensure_ascii=False):
+    def json_dumps(self, dumps_errors=False, ensure_ascii=False,sort_keys=False):
         """Dumps the content of the object in JSON format.
 
         Args:
@@ -214,10 +214,10 @@ class CoreAttributes(object):
             return {k: v for k, v in obj.__dict__.items() if serializable(v)}
         if dumps_errors:
             res = json.dumps(self, default=serializerwitherrors,
-                             indent=2, ensure_ascii=ensure_ascii)
+                             indent=2, ensure_ascii=ensure_ascii, sort_keys=sort_keys)
         else:
             res = json.dumps(self, default=serializer,
-                             indent=2, ensure_ascii=ensure_ascii)
+                             indent=2, ensure_ascii=ensure_ascii, sort_keys=sort_keys)
         # little hack for fixing context first 3 chrs "{\n"
         res = "".join(('{\n  "@context": "%s",\n ' % context, res[3:]))
         return res
@@ -1191,6 +1191,7 @@ class Canvas(CommonAttributes):
             "The canvas height is required use set_height method.")
         self.width = Required(
             "The canvas width is required use set_width method.")
+        self.duration = None
         self.items = Recommended(
             "The canvas should contain at least one item.")
         self.annotations = None
@@ -1267,10 +1268,7 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
         self.navDate = None
         self.services = None
         self.service = None
-        self.items = Required("""The Manifest must have an items property,
-                                which is an array of JSON-LD objects.
-                                Each object is a Canvas, with requirements as
-                                described in the next section.""")
+        self.items = Required("The Manifest must have an items property")
         self.annotations = None
         self.provider = None
         self.structures = None
