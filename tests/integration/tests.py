@@ -36,6 +36,8 @@ class TestWithReferenceManifest(unittest.TestCase):
         Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
         """ 
         ref,json_manifest = get_files("Example_Manifest_Response")
+        with open('original.json','w') as f, open('produced.json','w') as g:
+            json.dump(ordered(ref),f,indent=2),json.dump(ordered(json_manifest),g,indent=2)
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 

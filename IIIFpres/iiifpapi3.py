@@ -1257,6 +1257,17 @@ class Canvas(CommonAttributes):
         else:
             self.items.append(annotationpageobj)
 
+    def add_annotationpage_to_annotations(self, annotationpageobj=None):
+        # return self.check(self.items,AnnotationPage,annotationpageobj)
+        if unused(self.annotations):
+            self.annotations = []
+        if annotationpageobj is None:
+            annotationp = AnnotationPage()
+            self.annotations.append(annotationp)
+            return annotationp
+        else:
+            self.annotations.append(annotationpageobj)
+
 
 class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
     """
@@ -1443,6 +1454,7 @@ class Range(CommonAttributes):
 class SpecificResource(CommonAttributes):
     def __init__(self):
         super(SpecificResource, self).__init__()
+        self.id = Recommended("An ID is recommended.")
         self.source = None
 
     def set_source(self, source):

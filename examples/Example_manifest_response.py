@@ -51,7 +51,6 @@ seeAl.set_id("https://data.example.org/about/us.jsonld")
 seeAl.set_type("Dataset")
 seeAl.set_format("application/ld+json")
 seeAl.set_profile("https://schema.org/")
-manifest.add_provider(prov)
 homp2 = manifest.add_homepage()
 homp2.set_id("https://example.org/info/book1/")
 homp2.set_type("Text")
@@ -127,9 +126,8 @@ for idx,d in enumerate(data):
         s.add_service(subserv)
     # if has annotation
     if d[5]:
-        annopage2 = canvas.add_annotationpage_to_items()
+        annopage2 = canvas.add_annotationpage_to_annotations()
         annopage2.set_id("https://example.org/iiif/book1/comments/p%s/1" %idx)
-        canvas.add_annotation(annopage2)
     
 rng = manifest.add_rangetostructures()
 rng.set_id(extendbase_url=["range","r0"])
