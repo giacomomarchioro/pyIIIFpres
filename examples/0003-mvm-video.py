@@ -12,7 +12,7 @@ canvas.set_width(640)
 canvas.duration = 572.034
 annopage = canvas.add_annotationpage_to_items()
 annopage.set_id(extendbase_url=["canvas","page"])
-annotation = annopage.add_annotation_toitems(targetid=canvas.id) 
+annotation = annopage.add_annotation_toitems(target=canvas.id) 
 annotation.set_motivation("painting")
 annotation.set_id(extendbase_url=["canvas","page","annotation"])
 annotation.body.set_height(360)

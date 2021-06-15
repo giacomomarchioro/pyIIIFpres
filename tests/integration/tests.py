@@ -31,6 +31,14 @@ def get_files(examplename):
 
 class TestWithReferenceManifest(unittest.TestCase):
     
+    def test_Example_Manifest_Response(self):
+        """
+        Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
+        """ 
+        ref,json_manifest = get_files("Example_Manifest_Response")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+
     def test_0001_mvm_image(self):
         """
         Test 0001-mvm-image
@@ -78,6 +86,20 @@ class TestWithReferenceManifest(unittest.TestCase):
         Test 0007-string-formats
         """ 
         ref,json_manifest = get_files("0007-string-formats")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0008_rights(self):
+        """
+        Test 0008-rights
+        """ 
+        ref,json_manifest = get_files("0008-rights")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0009_book_1(self):
+        """
+        Test 0009-book-1
+        """ 
+        ref,json_manifest = get_files("0009-book-1")
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 

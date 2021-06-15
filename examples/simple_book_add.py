@@ -20,7 +20,7 @@ for idx,d in enumerate(data):
     canvas.add_label("en",d[0])
     annopage = canvas.add_annotationpage_to_items()
     annopage.set_id(extendbase_url=["page","p%s"%idx,"1"])
-    annotation = annopage.add_annotation_toitems(targetid=canvas.id)
+    annotation = annopage.add_annotation_toitems(target=canvas.id)
     annotation.set_id(extendbase_url=["annotation","p%s-image"%str(idx).zfill(4)])
     annotation.set_motivation("painting")
     annotation.body.set_id("".join(d[3:]))

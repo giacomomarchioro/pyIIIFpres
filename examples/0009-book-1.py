@@ -1,19 +1,4 @@
-# pyIIIFpres
-This is a Python module built for easing the construction of JSON manifests complaint with IIIF [API 3.0](https://iiif.io/api/presentation/3.0/) in production environment, similarly to [iiif-prezi](https://github.com/iiif-prezi/iiif-prezi) for earlier versions of the protocol.
-
-**NOTE: this is NOT a a reference implementation, and is currently under development, any pull request and issues are welcome!**
-
-## Installation
-The library uses only standard libraries and can be installed using `pip`:
-
-
-    pip install git+https://github.com/giacomomarchioro/pyIIIFpres
-
-## Basic usage
-The module maps the api structure to Python classes. The user `set_` objects that can have only one value (e.g. `id`) and `add_` objects that can have multiple entity (e.g. `lablels`).
-As an example we will execute the [Simple Manifest - Book recipe](https://iiif.io/api/cookbook/recipe/0009-book-1/) from the IIIF cookbook. More examples in the homonymous folder.
-
-```python
+# https://iiif.io/api/cookbook/recipe/0009-book-1/
 from IIIFpres import iiifpapi3
 iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0009-book-1"
 manifest = iiifpapi3.Manifest()
@@ -48,6 +33,5 @@ for idx,d in enumerate(data):
     s.set_id(d[3])
     s.set_type("ImageService3")
     s.set_profile("level1")
-
-manifest.json_save("manifest.json")
-```
+if __name__ == "__main__":
+    manifest.json_save("manifest.json")

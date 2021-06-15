@@ -137,7 +137,7 @@ for idx,d in enumerate(images):
     canvas.add_label("it",plabels[idx])
     annopage = canvas.add_annotationpage_to_items()
     annopage.set_id(extendbase_url=["manifests",segnatura,"page","p%s"%(idx+1),"1"])
-    annotation = annopage.add_annotation_toitems(targetid=canvas.id)
+    annotation = annopage.add_annotation_toitems(target=canvas.id)
     annotation.set_id(extendbase_url=["manifests",segnatura,"annotation","p%s-image"%str(idx+1).zfill(4)])
     annotation.set_motivation("painting")
     annotation.body.set_id(extendbase_url=[image,"/full/max/0/default.jpg"])

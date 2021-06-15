@@ -14,11 +14,11 @@ class Required(object):
     """
 
     def __init__(self, description=None):
-        self.problem_description = description
+        self.Required = description
 
     def __repr__(self):
         logs["Required"] += 1
-        return 'Required attribute:%s' % self.problem_description
+        return 'Required attribute:%s' % self.Required
 
 
 class Recommended(object):
@@ -29,11 +29,11 @@ class Recommended(object):
     """
 
     def __init__(self, description=None):
-        self.problem_description = description
+        self.Recommended = description
 
     def __repr__(self):
         logs["Recommended"] += 1
-        return 'Recommended attribute:%s' % self.problem_description
+        return 'Recommended attribute:%s' % self.Recommended
 
 
 # Note: we use None for OPTIONAL with the meaning of https://tools.ietf.org/html/rfc2119
@@ -200,7 +200,7 @@ class CoreAttributes(object):
 
         Args:
             dumps_errors (bool, optional): If set true it shows any problem found directly on
-            the JSON file with a problem_description tag. Defaults to False.
+            the JSON file with a Required or Recommended tag. Defaults to False.
 
         Returns:
             str: The object in JSON format.
@@ -277,8 +277,8 @@ class seeAlso(CoreAttributes):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha()
-                    for i in format.split("/")]) and "/" in format, msg
+        assert "/" in format, msg
+        assert format.split("/")[0].isalpha(),msg
         self.format = format
 
 
@@ -485,8 +485,8 @@ class thumbnail(CoreAttributes, plus.HeightWidthDuration):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha()
-                    for i in format.split("/")]) and "/" in format, msg
+        assert "/" in format, msg
+        assert format.split("/")[0].isalpha(),msg
         self.format = format
 
     def add_service(self, serviceobj=None):
@@ -642,8 +642,8 @@ class homepage(CoreAttributes):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha()
-                    for i in format.split("/")]) and "/" in format, msg
+        assert "/" in format, msg
+        assert format.split("/")[0].isalpha(),msg
         self.format = format
 
     def set_type(self, mtype):
@@ -690,8 +690,8 @@ class logo(CoreAttributes, plus.HeightWidthDuration):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpeg"
-        assert all([i.isalpha()
-                    for i in format.split("/")]) and "/" in format, msg
+        assert "/" in format, msg
+        assert format.split("/")[0].isalpha(),msg
         self.format = format
 
     def set_type(self, mtype):
@@ -760,8 +760,8 @@ class rendering(CoreAttributes):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha()
-                    for i in format.split("/")]) and "/" in format, msg
+        assert "/" in format, msg
+        assert format.split("/")[0].isalpha(),msg
         self.format = format
 
     def set_type(self, type):
@@ -899,7 +899,7 @@ class CommonAttributes(CoreAttributes):
                      "value": {language_v: value}}
         self.metadata.append(entry)
 
-    def add_summary(self, text, language):
+    def add_summary(self,language,text):
         """
         An ordered list of descriptions to be displayed to the user when they interact
         with the resource, given as pairs of human readable label and value entries. 
@@ -1184,13 +1184,13 @@ class AnnotationPage(CommonAttributes):
             self.items = []
         self.items.append(item)
 
-    def add_annotation_toitems(self, annotation=None, targetid=None):
+    def add_annotation_toitems(self, annotation=None, target=None):
         if unused(self.items):
             self.items = []
         if annotation is None:
-            if unused(targetid):
+            if unused(target):
                 raise ValueError("Passing an empty ID!")
-            annotation = Annotation(target=targetid)
+            annotation = Annotation(target=target)
             self.items.append(annotation)
             return annotation
         else:
@@ -1343,7 +1343,7 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
             self.provider.append(providerobj)
             return providerobj
         else:
-            if isinstance(providerobj, service):
+            if isinstance(providerobj, provider):
                 self.provider.append(providerobj)
             else:
                 raise ValueError(
@@ -1423,6 +1423,7 @@ class Range(CommonAttributes):
         self.items.append(item)
 
     def set_start(self, start):
+        #TODO: use addmethod
         self.start = start
 
     def set_supplementary(self, objid=None, extendbase_url=None):
@@ -1506,8 +1507,8 @@ class ImageApiSelector(object):
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
         msg = "Format should be in the form type/format e.g. image/jpg"
-        assert all([i.isalpha()
-                    for i in format.split("/")]) and "/" in format, msg
+        assert "/" in format, msg
+        assert format.split("/")[0].isalpha(),msg
         self.format = format
 
 
