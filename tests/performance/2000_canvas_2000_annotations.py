@@ -1,4 +1,5 @@
-#https://iiif.io/api/presentation/3.0/#b-example-manifest-response
+# a revised version of https://iiif.io/api/presentation/3.0/#b-example-manifest-response
+# it creates 2000 canvas each with annotation and subservices.
 from IIIFpres import iiifpapi3
 iiifpapi3.BASE_URL = "https://example.org/iiif/book1"
 manifest = iiifpapi3.Manifest()
@@ -94,10 +95,9 @@ manifest.add_services(mycomplexserv)
 
 
 #        label,width,height,id,
-data = (("p. 1",750,1000, "https://example.org/iiif/book1/page1","/full/max/0/default.jpg","annotation",True),
-        ("p. 2",750,1000, "https://example.org/iiif/book1/page2","/full/max/0/default.jpg",False,False),
-        )
-for idx,d in enumerate(data):
+d = ("p. 1",750,1000, "https://example.org/iiif/book1/page1","/full/max/0/default.jpg","annotation",True)
+
+for idx in range(2000):
     idx+=1 
     canvas = manifest.add_canvastoitems()
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
@@ -155,4 +155,4 @@ annopage3.add_item(anno)
 annopage3.set_id("https://example.org/iiif/book1/page/manifest/1")        
 manifest.add_annotation(annopage3)
 if __name__ == "__main__":
-        manifest.json_save("manifest.json")
+        manifest.json_dumps("manifest.json")

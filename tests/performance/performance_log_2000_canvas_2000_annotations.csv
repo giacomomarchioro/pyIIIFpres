@@ -1,0 +1,10 @@
+'real_time_sec','user_time_sec','sys_time_sec','version','date','python_version','arch_string_raw','vendor_id_raw','brand_raw','hz_advertised_friendly'
+0.43,0.40,0.03,0.0.63,2021-06-16 11:42:53.228155,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz
+0.42,0.39,0.03,0.0.63,2021-06-16 11:45:34.166455,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz
+0.43,0.40,0.03,0.0.63,2021-06-16 11:46:29.570631,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz
+0.48,0.43,0.04,0.0.63,2021-06-16 11:52:50.637419,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz
+0.45,0.41,0.03,0.0.63,2021-06-16 11:53:11.781272,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz
+0.66,0.55,0.04,0.0.63,2021-06-16 11:56:09.817992,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz
+0.42,0.39,0.03,0.0.63,2021-06-16 11:56:58.152234,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz
+0.42,0.38,0.02,0.0.63,2021-06-16 11:57:24.675379,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz
+0.42,0.39,0.03,0.0.63,2021-06-16 11:57:59.046074,3.8.3.final.0 (64 bit),x86_64,GenuineIntel,Intel(R) Core(TM) i7-4770HQ CPU @ 2.20GHz,2.2000 GHz

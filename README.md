@@ -21,6 +21,8 @@ manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Simple Manifest - Book")
 manifest.add_behavior("paged")
 
+#        Data from a database
+#        label      ,width,height id,                                  service  
 data = (("Blank page",3204,4613,"https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f18","/full/max/0/default.jpg"),
         ("Frontispiece",3186,4612,"https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f19","/full/max/0/default.jpg"),
         ("Title page",3204,4613,"https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f20","/full/max/0/default.jpg"),
@@ -50,4 +52,24 @@ for idx,d in enumerate(data):
     s.set_profile("level1")
 
 manifest.json_save("manifest.json")
+```
+
+## Debug the manifest
+When you are populating a new IIIF type from scratch some helpful function can be
+used for spotting errors.
+
+`.inspect()` method returns a json representation of the object were the 
+recomended and required fields are shown:
+
+```python
+from IIIFpres import iiifpapi3
+manifest = iiifpapi3.Manifest()
+manifest.inspect()
+```
+
+`.show_errors_in_browser()` method open a new browser tab highlighting the 
+required and reccomended fields.
+
+```python
+manifest.show_errors_in_browser()
 ```
