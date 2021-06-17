@@ -1,4 +1,5 @@
 
+# -*- coding: UTF-8 -*-.
 from . import plus
 from . import visualization_html
 import json
@@ -401,17 +402,17 @@ class bodypainting(CoreAttributes):
     def set_format(self, format):
         self.format = format
 
-    def set_width(self, width: int):
+    def set_width(self, width):
         self.width = int(width)
 
-    def set_height(self, height: int):
+    def set_height(self, height ):
         self.height = int(height)
 
-    def set_hightwidth(self, height: int, width: int):
+    def set_hightwidth(self, height, width):
         self.set_width(width)
         self.set_height(height)
 
-    def set_duration(self, duration: float):
+    def set_duration(self, duration):
         if unused(self.height):
             self.height = None
         if unused(self.width):
@@ -1260,17 +1261,17 @@ class Canvas(CommonAttributes):
             "The canvas should contain at least one item.")
         self.annotations = None
 
-    def set_width(self, width: int):
+    def set_width(self, width ):
         self.width = int(width)
 
-    def set_height(self, height: int):
+    def set_height(self, height ):
         self.height = int(height)
 
-    def set_hightwidth(self, height: int, width: int):
+    def set_hightwidth(self, height , width ):
         self.set_width(width)
         self.set_height(height)
 
-    def set_duration(self, duration: float):
+    def set_duration(self, duration):
         if unused(self.height):
             self.height = None
         if unused(self.width):

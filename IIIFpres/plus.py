@@ -1,11 +1,12 @@
+# -*- coding: UTF-8 -*-.
 class HeightWidthDuration(object):
-    def set_width(self,width:int):
+    def set_width(self,width):
         self.width = width
     
-    def set_height(self,height:int):
+    def set_height(self,height):
         self.height = height
     
-    def set_hightwidth(self,height:int,width:int):
+    def set_hightwidth(self,height, width):
         self.set_width = width
         self.set_height = height
 

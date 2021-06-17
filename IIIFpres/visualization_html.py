@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-.
 import tempfile 
 import webbrowser 
 import time

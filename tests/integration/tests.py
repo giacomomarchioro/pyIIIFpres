@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-.
 from IIIFpres.iiifpapi3 import Manifest
 import unittest
 import json
