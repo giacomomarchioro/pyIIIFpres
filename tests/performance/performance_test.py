@@ -4,7 +4,7 @@ import datetime
 import pkg_resources  # part of setuptools 
 import cpuinfo
 import csv
-
+# python -m cProfile -o program.prof 4000_canvas_40000_annotations.py
 # we keep track of the following parameters
 #'real_time_sec','user_time_sec','sys_time_sec','version','date','python_version','arch_string_raw','vendor_id_raw','brand_raw','hz_advertised_friendly'
 

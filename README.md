@@ -21,8 +21,7 @@ manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Simple Manifest - Book")
 manifest.add_behavior("paged")
 
-#        Data from a database
-#        label      ,width,height id,                                  service  
+#        label       width height id                                                                            service  
 data = (("Blank page",3204,4613,"https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f18","/full/max/0/default.jpg"),
         ("Frontispiece",3186,4612,"https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f19","/full/max/0/default.jpg"),
         ("Title page",3204,4613,"https://iiif.io/api/image/3.0/example/reference/59d09e6773341f28ea166e9f3c1e674f-gallica_ark_12148_bpt6k1526005v_f20","/full/max/0/default.jpg"),

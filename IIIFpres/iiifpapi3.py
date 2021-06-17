@@ -1477,6 +1477,18 @@ class Range(CommonAttributes):
             self.items = []
         self.items.append(item)
 
+    def add_range_to_items(self):
+        if unused(self.items):self.items = []
+        newrange = Range()
+        self.items.append(newrange)
+        return newrange
+    
+    def add_SpecificResource_to_items(self):
+        if unused(self.items):self.items = []
+        sr = SpecificResource()
+        self.items.append(sr )
+        return sr 
+
     def set_start(self, start):
         # TODO: use addmethod
         self.start = start
@@ -1506,6 +1518,11 @@ class SpecificResource(CommonAttributes):
 
     def set_selector(self, selector):
         self.selector = selector
+
+    def set_selector_as_PointSelector(self):
+        ps = PointSelector()
+        self.selector = ps
+        return ps
 
 
 class start(CommonAttributes):

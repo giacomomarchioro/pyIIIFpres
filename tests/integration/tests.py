@@ -7,7 +7,8 @@ import runpy
 #unittest.util._MAX_LENGTH=2000
 # python -m unittest tests.py -v
 
-prj_dir = dirname(dirname(os.getcwd()))
+prj_dir = os.getcwd()
+fixture_dir = os.path.join(prj_dir,'tests','integration','fixtures')
 
 def ordered(obj):
     if isinstance(obj, dict):
@@ -22,7 +23,7 @@ def get_files(examplename):
     Return the dictionary of the reference example and the one produced by the script.
     Use the name of the example without extension.
     """
-    with open(os.path.join('fixtures','%s.json' %examplename)) as f: 
+    with open(os.path.join(fixture_dir,'%s.json' %examplename)) as f: 
         ref = json.load(f) 
     example = runpy.run_path(os.path.join(prj_dir,'examples','%s.py'%examplename))
     json_manifest = json.loads(example['manifest'].json_dumps())
