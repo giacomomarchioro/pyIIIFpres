@@ -992,23 +992,20 @@ class CommonAttributes(CoreAttributes):
 
         Not sure if it is suggested or mandatory.
         """
-        # TODO: CHECK IF IT IS A VALID URL
         licenceurls = ["http://creativecommons.org/licenses/",
                        "http://creativecommons.org/publicdomain/mark/",
-                       "http://rightsstatements.org/vocab/",
-                       "https://creativecommons.org/licenses/",
-                       "https://creativecommons.org/publicdomain/mark/",
-                       "https://rightsstatements.org/vocab/"]
+                       "http://rightsstatements.org/vocab/",]
         assert any([rights.startswith(i) for i in licenceurls]
                    ), "Must start with:%s" % str(licenceurls)[1:-1]
         self.rights = rights
 
     def add_thumbnail(self, thumbnailobj=None):
         """
-        https://iiif.io/api/presentation/3.0/#thumbnail A content resource,
-        such as a small image or short audio clip, that represents the resource
-        that has the thumbnail property. A resource may have multiple thumbnail
-        resources that have the same or different type and format.
+        https://iiif.io/api/presentation/3.0/#thumbnail
+        IIF: A content resource, such as a small image or short audio clip, that
+        represents the resource that has the thumbnail property. A resource may
+        have multiple thumbnail resources that have the same or different type
+        and format.
 
         The value must be an array of JSON objects, each of which must have the
         id and type properties, and should have the format property. Images and
@@ -1120,10 +1117,10 @@ class CommonAttributes(CoreAttributes):
 class Annotation(CommonAttributes):
     """
 
-    https://iiif.io/api/presentation/3.0/#56-annotation Annotations follow the
-    Web Annotation data model. The description provided here is a summary plus
-    any IIIF specific requirements. The W3C standard is the official
-    documentation.
+    https://iiif.io/api/presentation/3.0/#56-annotation 
+    Annotations follow the Web Annotation data model. The description provided
+    here is a summary plus any IIIF specific requirements. The W3C standard is
+    the official documentation.
 
     Annotations must have their own HTTP(S) URIs, conveyed in the id property.
     The JSON-LD description of the Annotation should be returned if the URI is
@@ -1150,7 +1147,7 @@ class Annotation(CommonAttributes):
     """
     # https://iiif.io/api/presentation/3.0/#56-annotation
 
-    def __init__(self, target):
+    def __init__(self, target=Required()):
         super(CommonAttributes, self).__init__()
         self.motivation = None
         self.body = None
@@ -1159,10 +1156,10 @@ class Annotation(CommonAttributes):
 
     def set_motivation(self, motivation):
         """
-        https://iiif.io/api/presentation/3.0/#values-for-motivation Values for
-        motivation This specification defines two values for the Web Annotation
-        property of motivation, or purpose when used on a Specific Resource or
-        Textual Body.
+        https://iiif.io/api/presentation/3.0/#values-for-motivation
+        Values for motivation This specification defines two values for the Web
+        Annotation property of motivation, or purpose when used on a Specific
+        Resource or Textual Body.
 
         While any resource may be the target of an Annotation, this
         specification defines only motivations for Annotations that target
@@ -1178,7 +1175,7 @@ class Annotation(CommonAttributes):
         used where appropriate, and examples are given in the Presentation API
         Cookbook.
 
-        Value   Description painting    Resources associated with a Canvas by
+        painting    Resources associated with a Canvas by
         an Annotation that has the motivation value painting must be presented
         to the user as the representation of the Canvas. The content can be
         thought of as being of the Canvas. The use of this motivation with

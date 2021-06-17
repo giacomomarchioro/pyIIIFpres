@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-.
 from IIIFpres.iiifpapi3 import Manifest
+from IIIFpres.utilities import read_API3_json
 import unittest
 import json
 import os
@@ -21,8 +22,8 @@ def ordered(obj):
 
 def get_files(examplename):
     """
-    Return the dictionary of the reference example and the one produced by the script.
-    Use the name of the example without extension.
+    Return the dictionary of the reference example and the one produced 
+    read it from json and writing it back.
     """
     with open(os.path.join(fixture_dir,'%s.json' %examplename)) as f: 
         ref = json.load(f) 
@@ -30,6 +31,17 @@ def get_files(examplename):
     json_manifest = json.loads(example['manifest'].json_dumps())
     return ref,json_manifest
 
+def get_files2(examplename):
+    """
+    Return the dictionary of the reference example and the one produced by the script.
+    Use the name of the example without extension.
+    """
+    example_path = os.path.join(fixture_dir,'%s.json' %examplename)
+    with open(example_path) as f: 
+        ref = json.load(f)
+    mymanifest = read_API3_json(example_path)
+    json_manifest = json.loads(mymanifest.json_dumps())
+    return ref,json_manifest
 
 class TestWithReferenceManifest(unittest.TestCase):
     
@@ -102,6 +114,79 @@ class TestWithReferenceManifest(unittest.TestCase):
         Test 0009-book-1
         """ 
         ref,json_manifest = get_files("0009-book-1")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+class Test_ReadAndWriteBack(unittest.TestCase):
+    
+    # def test_Example_Manifest_Response(self):
+    #     """
+    #     Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
+    #     """ 
+    #     ref,json_manifest = get_files("Example_Manifest_Response")
+    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+
+
+    def test_0001_mvm_image(self):
+        """
+        Test 0001-mvm-image
+        """ 
+        ref,json_manifest = get_files2("0001-mvm-image")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0002_mvm_audio(self):
+        """
+        Test 0002-mvm-audio
+        """ 
+        ref,json_manifest = get_files2("0002-mvm-audio")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0003_mvm_video(self):
+        """
+        Test 0003-mvm-video
+        """ 
+        ref,json_manifest = get_files2("0003-mvm-video")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0004_canvas_size(self):
+        """
+        Test 0004-canvas-size
+        """ 
+        ref,json_manifest = get_files2("0004-canvas-size")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0005_image_service(self):
+        """
+        Test 0005-image-service
+        """ 
+        ref,json_manifest = get_files2("0005-image-service")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0006_text_language(self):
+        """
+        Test 0006-text-language
+        """ 
+        ref,json_manifest = get_files2("0006-text-language")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0007_text_language(self):
+        """
+        Test 0007-string-formats
+        """ 
+        ref,json_manifest = get_files2("0007-string-formats")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0008_rights(self):
+        """
+        Test 0008-rights
+        """ 
+        ref,json_manifest = get_files2("0008-rights")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0009_book_1(self):
+        """
+        Test 0009-book-1
+        """ 
+        ref,json_manifest = get_files2("0009-book-1")
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 

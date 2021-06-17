@@ -1,4 +1,5 @@
 # pyIIIFpres
+[![Build Status](https://travis-ci.com/giacomomarchioro/pyIIIFpres.svg?branch=main)](https://travis-ci.com/giacomomarchioro/pyIIIFpres)
 This is a Python module built for easing the construction of JSON manifests complaint with IIIF [API 3.0](https://iiif.io/api/presentation/3.0/) in production environment, similarly to [iiif-prezi](https://github.com/iiif-prezi/iiif-prezi) for earlier versions of the protocol.
 
 **NOTE: this is NOT a a reference implementation, and is currently under development, any pull request and issues are welcome!**
@@ -72,3 +73,12 @@ required and reccomended fields.
 ```python
 manifest.show_errors_in_browser()
 ```
+
+## Reading the manifest (experimental)
+A json file compaltin with presentation API3 can be read as follow:
+```python
+from IIIFpres.utilites import read_API3_json
+mymanifest = read_API3_json('manifest.json')
+```
+This map Canvas, Annotation and the major IIIF type to iiifpapi3 clases.
+Loading the rests as dicts.
