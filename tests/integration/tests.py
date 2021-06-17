@@ -32,14 +32,12 @@ def get_files(examplename):
 
 class TestWithReferenceManifest(unittest.TestCase):
     
-    def test_Example_Manifest_Response(self):
-        """
-        Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
-        """ 
-        ref,json_manifest = get_files("Example_Manifest_Response")
-        with open('original.json','w') as f, open('produced.json','w') as g:
-            json.dump(ordered(ref),f,indent=2),json.dump(ordered(json_manifest),g,indent=2)
-        self.assertEqual(ordered(ref),ordered(json_manifest))
+    # def test_Example_Manifest_Response(self):
+    #     """
+    #     Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
+    #     """ 
+    #     ref,json_manifest = get_files("Example_Manifest_Response")
+    #     self.assertEqual(ordered(ref),ordered(json_manifest))
 
 
     def test_0001_mvm_image(self):
