@@ -262,7 +262,7 @@ class CoreAttributes(object):
     def show_errors_in_browser(self):
         visualization_html.show_error_in_browser(self.json_dumps(dumps_errors=True))
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         if unused(self.id):
             id_ = "Missing"
         else:
@@ -1549,7 +1549,7 @@ class start(CommonAttributes):
 
 
 class ImageApiSelector(object):
-    def __init__(self) -> None:
+    def __init__(self):
         self.type = None
         self.region = None
         self.size = None
@@ -1611,7 +1611,7 @@ class PointSelector(object):
         relative to the duration of the target resource
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         self.type = None
         self.x = None
         self.y = None
@@ -1631,7 +1631,7 @@ class PointSelector(object):
 
 
 class FragmentSelector(object):
-    def __init__(self) -> None:
+    def __init__(self):
         self.type = "FragmentSelector"
         self.value = Required("A fragment selector must have a value!")
 
