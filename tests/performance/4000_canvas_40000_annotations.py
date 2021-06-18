@@ -99,14 +99,14 @@ d = ("p. 1",750,1000, "https://example.org/iiif/book1/page1","/full/max/0/defaul
 
 for idx in range(4000):
     idx+=1 
-    canvas = manifest.add_canvastoitems()
+    canvas = manifest.add_annotation_to_items()
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
     canvas.set_height(d[2])
     canvas.set_width(d[1])
     canvas.add_label("none",d[0])
     annopage = canvas.add_annotationpage_to_items()
     annopage.set_id(extendbase_url=["page","p%s"%idx,"1"])
-    annotation = annopage.add_annotation_toitems(target=canvas.id)
+    annotation = annopage.add_annotation_to_items(target=canvas.id)
     annotation.set_id(extendbase_url=["annotation","p%s-image"%str(idx).zfill(4)])
     annotation.set_motivation("painting")
     annotation.body.set_id("".join(d[3:-2]))
@@ -130,7 +130,7 @@ for idx in range(4000):
             annopage2 = canvas.add_annotationpage_to_annotations()
             annopage2.set_id("https://example.org/iiif/book1/comments/p%s/%s" %(idx,i))
     
-rng = manifest.add_rangetostructures()
+rng = manifest.add_range_to_structures()
 rng.set_id(extendbase_url=["range","r0"])
 rng.add_label("en","Table of Contents")
 rng2 = iiifpapi3.Range()

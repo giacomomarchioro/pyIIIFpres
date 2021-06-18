@@ -124,7 +124,7 @@ for i in post_elements:
 for idx,d in enumerate(images):
     idx+=1 
     image = os.path.join(folder,d)
-    canvas = manifest.add_canvastoitems()
+    canvas = manifest.add_annotation_to_items()
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
     out = check_output(["exiftool", image])
     Metadata = dict((e[:32].strip(),e[33:].strip()) for e in out.decode('utf8').split('\n'))
@@ -135,7 +135,7 @@ for idx,d in enumerate(images):
     canvas.add_label("it",plabels[idx])
     annopage = canvas.add_annotationpage_to_items()
     annopage.set_id(extendbase_url=["page","p%s"%idx,"1"])
-    annotation = annopage.add_annotation_toitems(target=canvas.id)
+    annotation = annopage.add_annotation_to_items(target=canvas.id)
     annotation.set_id(extendbase_url=["annotation","p%s-image"%str(idx).zfill(4)])
     annotation.set_motivation("painting")
     annotation.body.set_id(image+"/full/max/0/default.jpg")
@@ -149,7 +149,7 @@ for idx,d in enumerate(images):
     s.set_profile("level2")
     
     
-rng = manifest.add_rangetostructures()
+rng = manifest.add_range_to_structures()
 rng.set_id(extendbase_url=["range","r0"])
 rng.add_label("en","Table of Contents")
 rng2 = iiifpapi3.Range()

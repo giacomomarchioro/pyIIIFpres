@@ -124,7 +124,7 @@ for i in post_elements:
 for idx,d in enumerate(images):
     manloc = "/manifests/%s" %segnatura
     image = d
-    canvas = manifest.add_canvastoitems()
+    canvas = manifest.add_annotation_to_items()
     if plabels[idx] in ['dorso','piatto anteriore']:
         canvas.add_behavior("paged")
     canvas.set_id(extendbase_url=["manifests",segnatura,"canvas","p%s"%(idx+1)]) # in this case we use the base url
@@ -137,7 +137,7 @@ for idx,d in enumerate(images):
     canvas.add_label("it",plabels[idx])
     annopage = canvas.add_annotationpage_to_items()
     annopage.set_id(extendbase_url=["manifests",segnatura,"page","p%s"%(idx+1),"1"])
-    annotation = annopage.add_annotation_toitems(target=canvas.id)
+    annotation = annopage.add_annotation_to_items(target=canvas.id)
     annotation.set_id(extendbase_url=["manifests",segnatura,"annotation","p%s-image"%str(idx+1).zfill(4)])
     annotation.set_motivation("painting")
     annotation.body.set_id(extendbase_url=[image,"/full/max/0/default.jpg"])
@@ -151,7 +151,7 @@ for idx,d in enumerate(images):
     s.set_profile("level2")
     
     
-rng = manifest.add_rangetostructures()
+rng = manifest.add_range_to_structures()
 rng.set_id(extendbase_url=["range","r0"])
 rng.add_label("en","Table of Contents")
 rng2 = iiifpapi3.Range()

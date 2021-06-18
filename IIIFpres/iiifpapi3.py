@@ -1228,7 +1228,7 @@ class AnnotationPage(CommonAttributes):
             self.items = []
         self.items.append(item)
 
-    def add_annotation_toitems(self, annotation=None, target=None):
+    def add_annotation_to_items(self, annotation=None, target=None):
         if unused(self.items):
             self.items = []
         if annotation is None:
@@ -1400,7 +1400,7 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
                     "Trying to add wrong object to provider in %s" %
                     self.__class__.__name__)
 
-    def add_canvastoitems(self, canvasobj=None):
+    def add_annotation_to_items(self, canvasobj=None):
         if unused(self.items):
             self.items = []
         if canvasobj is None:
@@ -1420,7 +1420,7 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
             self.structures = []
         self.structures.append(structure)
 
-    def add_rangetostructures(self, rangeobj=None):
+    def add_range_to_structures(self, rangeobj=None):
         return checkstru(self, Range, rangeobj)
 
 

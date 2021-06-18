@@ -1,9 +1,9 @@
 # pyIIIFpres
 [![Build Status](https://travis-ci.com/giacomomarchioro/pyIIIFpres.svg?branch=main)](https://travis-ci.com/giacomomarchioro/pyIIIFpres)
 ----------------
-This is a Python module built for easing the construction of JSON manifests complaint with IIIF [API 3.0](https://iiif.io/api/presentation/3.0/) in production environment, similarly to [iiif-prezi](https://github.com/iiif-prezi/iiif-prezi) for earlier versions of the protocol.
+This is a Python module built for easing the construction of JSON manifests complaint with IIIF [API 3.0](https://iiif.io/api/presentation/3.0/) in a production environment, similarly to [iiif-prezi](https://github.com/iiif-prezi/iiif-prezi) for earlier versions of the protocol.
 
-**NOTE: this is NOT a a reference implementation, and is currently under development, any pull request and issues are welcome!**
+**NOTE: This is NOT a reference implementation and is currently under development, any pull request and issues are welcome!**
 
 ## Installation
 The library uses only standard libraries and can be installed using `pip`:
@@ -12,8 +12,8 @@ The library uses only standard libraries and can be installed using `pip`:
     pip install git+https://github.com/giacomomarchioro/pyIIIFpres
 
 ## Basic usage
-The module maps the api structure to Python classes. The user `set_` objects that can have only one value (e.g. `id`) and `add_` objects that can have multiple entity (e.g. `lablels`).
-As an example we will execute the [Simple Manifest - Book recipe](https://iiif.io/api/cookbook/recipe/0009-book-1/) from the IIIF cookbook. More examples in the homonymous folder.
+The module maps the API structure to Python classes. The user `set_` objects that can have only one value (e.g. `id`) and `add_` objects that can have multiple entities (e.g. `labels`).
+As an example, we will execute the [Simple Manifest - Book recipe](https://iiif.io/api/cookbook/recipe/0009-book-1/) from the IIIF cookbook. More examples in the homonymous folder.
 
 ```python
 from IIIFpres import iiifpapi3
@@ -32,14 +32,14 @@ data = (("Blank page",3204,4613,"https://iiif.io/api/image/3.0/example/reference
 
 for idx,d in enumerate(data):
     idx+=1 
-    canvas = manifest.add_canvastoitems()
+    canvas = manifest.add_annotation_to_items()
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
     canvas.set_height(d[2])
     canvas.set_width(d[1])
     canvas.add_label("en",d[0])
     annopage = canvas.add_annotationpage_to_items()
     annopage.set_id(extendbase_url=["page","p%s"%idx,"1"])
-    annotation = annopage.add_annotation_toitems(target=canvas.id)
+    annotation = annopage.add_annotation_to_items(target=canvas.id)
     annotation.set_id(extendbase_url=["annotation","p%s-image"%str(idx).zfill(4)])
     annotation.set_motivation("painting")
     annotation.body.set_id("".join(d[3:]))
@@ -59,8 +59,8 @@ manifest.json_save("manifest.json")
 When you are populating a new IIIF type from scratch some helpful function can be
 used for spotting errors.
 
-`.inspect()` method returns a json representation of the object were the 
-recomended and required fields are shown:
+`.inspect()` method returns a JSON representation of the object where the 
+recommended and required fields are shown:
 
 ```python
 from IIIFpres import iiifpapi3
@@ -69,7 +69,7 @@ manifest.inspect()
 ```
 
 `.show_errors_in_browser()` method open a new browser tab highlighting the 
-required and reccomended fields.
+required and recommended fields.
 
 ```python
 manifest.show_errors_in_browser()
@@ -81,4 +81,4 @@ A json file compaltin with presentation API3 can be read as follow:
 from IIIFpres.utilites import read_API3_json
 mymanifest = read_API3_json('manifest.json')
 ```
-This map Canvas, Annotation and the major IIIF types to iiifpapi3 clases, loading the rests as dicts.
+This map Canvas, Annotation and the major IIIF types to iiifpapi3 classes, loading the rests as dicts.
