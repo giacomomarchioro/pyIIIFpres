@@ -4,7 +4,7 @@ iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0005-image-service" #
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Picture of Göttingen taken during the 2019 IIIF Conference")
-canvas = manifest.add_annotation_to_items()
+canvas = manifest.add_canvas_to_items()
 canvas.set_id(extendbase_url=["canvas","p1"])
 canvas.add_label("en","Canvas with a single IIIF image")
 canvas.set_height(3024)

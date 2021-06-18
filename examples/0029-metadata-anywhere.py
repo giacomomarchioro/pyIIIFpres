@@ -15,7 +15,7 @@ manifest.add_metadata(label="Reference",value="Wellcome Library no. 47369i",lang
 reqst = manifest.add_requiredStatement()
 reqst.add_label(language="en",label="Attribution")
 reqst.add_value(language="en",value="Wellcome Collection. Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)")
-canvas = manifest.add_annotation_to_items()
+canvas = manifest.add_canvas_to_items()
 canvas.set_id(extendbase_url=["canvas","p1"])
 canvas.add_label("en","Painting under natural light")
 canvas.set_height(1271)
@@ -39,7 +39,7 @@ srv.set_profile("level1")
 srv.set_type("ImageService3")
 
 # X-ray
-canvas = manifest.add_annotation_to_items()
+canvas = manifest.add_canvas_to_items()
 canvas.set_id(extendbase_url=["canvas","p2"])
 canvas.add_label("en","X-ray view of painting")
 canvas.set_height(1271)

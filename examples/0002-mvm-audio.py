@@ -4,7 +4,7 @@ iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0002-mvm-audio"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Simplest Audio Example 1")
-canvas = manifest.add_annotation_to_items()
+canvas = manifest.add_canvas_to_items()
 canvas.set_id(extendbase_url=["canvas"])
 # this should be fixed using a set
 canvas.set_duration(1985.024)

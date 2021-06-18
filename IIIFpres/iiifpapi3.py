@@ -1400,7 +1400,7 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
                     "Trying to add wrong object to provider in %s" %
                     self.__class__.__name__)
 
-    def add_annotation_to_items(self, canvasobj=None):
+    def add_canvas_to_items(self, canvasobj=None):
         if unused(self.items):
             self.items = []
         if canvasobj is None:

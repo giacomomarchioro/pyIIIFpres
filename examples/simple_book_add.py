@@ -13,7 +13,7 @@ data = (("Blank page",3204,4613,"https://iiif.io/api/image/3.0/example/reference
 
 for idx,d in enumerate(data):
     idx+=1 
-    canvas = manifest.add_annotation_to_items()
+    canvas = manifest.add_canvas_to_items()
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
     canvas.set_height(d[2])
     canvas.set_width(d[1])

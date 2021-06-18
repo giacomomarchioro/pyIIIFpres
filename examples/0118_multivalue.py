@@ -12,7 +12,7 @@ manifest.add_summary(text="A painting in oil on canvas created by the American-b
                     language="en")
 manifest.add_summary(text="Arrangement en gris et noir n°1, also called Portrait de la mère de l'artiste.",
                     language="fr")
-canvas = manifest.add_annotation_to_items()
+canvas = manifest.add_canvas_to_items()
 canvas.set_id(extendbase_url=["canvas1"])
 canvas.set_height(991)
 canvas.set_width(1114)

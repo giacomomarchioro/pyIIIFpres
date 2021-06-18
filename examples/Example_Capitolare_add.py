@@ -124,7 +124,7 @@ for i in post_elements:
 for idx,d in enumerate(images):
     idx+=1 
     image = os.path.join(folder,d)
-    canvas = manifest.add_annotation_to_items()
+    canvas = manifest.add_canvas_to_items()
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
     out = check_output(["exiftool", image])
     Metadata = dict((e[:32].strip(),e[33:].strip()) for e in out.decode('utf8').split('\n'))

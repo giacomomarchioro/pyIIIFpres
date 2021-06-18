@@ -99,7 +99,7 @@ d = ("p. 1",750,1000, "https://example.org/iiif/book1/page1","/full/max/0/defaul
 
 for idx in range(4000):
     idx+=1 
-    canvas = manifest.add_annotation_to_items()
+    canvas = manifest.add_canvas_to_items()
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
     canvas.set_height(d[2])
     canvas.set_width(d[1])

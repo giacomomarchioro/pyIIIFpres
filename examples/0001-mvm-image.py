@@ -4,7 +4,7 @@ iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0001-mvm-image"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Image 1")
-canvas = manifest.add_annotation_to_items()
+canvas = manifest.add_canvas_to_items()
 canvas.set_id(extendbase_url=["canvas","p1"])
 canvas.set_height(1800)
 canvas.set_width(1200)

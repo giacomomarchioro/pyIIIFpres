@@ -124,7 +124,7 @@ for i in post_elements:
 for idx,d in enumerate(images):
     manloc = "/manifests/%s" %segnatura
     image = d
-    canvas = manifest.add_annotation_to_items()
+    canvas = manifest.add_canvas_to_items()
     if plabels[idx] in ['dorso','piatto anteriore']:
         canvas.add_behavior("paged")
     canvas.set_id(extendbase_url=["manifests",segnatura,"canvas","p%s"%(idx+1)]) # in this case we use the base url

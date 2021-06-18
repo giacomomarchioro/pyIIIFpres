@@ -32,7 +32,7 @@ data = (("Blank page",3204,4613,"https://iiif.io/api/image/3.0/example/reference
 
 for idx,d in enumerate(data):
     idx+=1 
-    canvas = manifest.add_annotation_to_items()
+    canvas = manifest.add_canvas_to_items()
     canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
     canvas.set_height(d[2])
     canvas.set_width(d[1])
@@ -78,7 +78,7 @@ manifest.show_errors_in_browser()
 ## Reading the manifest (experimental)
 A json file compliant with presentation API3 can be read as follow:
 ```python
-from IIIFpres.utilites import read_API3_json
+from IIIFpres.utilities import read_API3_json
 mymanifest = read_API3_json('manifest.json')
 ```
 This map Canvas, Annotation and the major IIIF types to iiifpapi3 classes, loading the rests as dicts.
