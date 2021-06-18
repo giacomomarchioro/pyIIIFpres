@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.63",
     author="Giacomo Marchioro",
     author_email="giacomomarchioro@outlook.com",
-    description="A tool creating JSON manifests complaint with IIIF presentation API 3.0",
+    description="A tool creating JSON manifests compliant with IIIF presentation API 3.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/giacomomarchioro/pyIIIFpres",
