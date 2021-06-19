@@ -17,6 +17,9 @@ class Required(object):
 
     def __init__(self, description=None):
         self.Required = description
+    
+    def __eq__(self,o):
+        return True if isinstance(o,self.__class__) else False
 
     def __repr__(self):
         return 'Required attribute:%s' % self.Required
@@ -32,6 +35,9 @@ class Recommended(object):
 
     def __init__(self, description=None):
         self.Recommended = description
+
+    def __eq__(self,o):
+        return True if isinstance(o,self.__class__) else False
 
     def __repr__(self):
         return 'Recommended attribute:%s' % self.Recommended
@@ -353,6 +359,7 @@ class supplementary(CoreAttributes):
     def __init__(self):
         super(supplementary, self).__init__()
         self.type = "AnnotationCollection"
+        self.label = Recommended("An Annotation Collection should have the label property with at least one entry.")
 
     def set_type(self):
         print("type must be AnnotationCollection")
@@ -581,6 +588,8 @@ class provider(CoreAttributes):
         super(provider, self).__init__()
         self.context = None
         self.type = "Agent"
+        self.label= Required(
+            "Agents must have the label property, and its value must be a JSON object as described in the languages section.")
         self.homepage = Recommended(
             "Agents should have the homepage property, and its value must be an array of JSON objects as described in the homepage section.")
         self.logo = Recommended(
@@ -901,6 +910,7 @@ class CommonAttributes(CoreAttributes):
         self.homepage = None
         self.rendering = None
         self.partOf = None
+        self.provider = None
 
     def add_metadata(self, label=None, value=None, language_l="none",
                      language_v="none", entry=None):
@@ -1109,6 +1119,20 @@ class CommonAttributes(CoreAttributes):
                     "Trying to add wrong object to renderging in %s" %
                     self.__class__.__name__)
 
+    def add_provider(self, providerobj=None):
+        if unused(self.provider):
+            self.provider = []
+        if providerobj is None:
+            providerobj = provider()
+            self.provider.append(providerobj)
+            return providerobj
+        else:
+            if isinstance(providerobj, provider):
+                self.provider.append(providerobj)
+            else:
+                raise ValueError(
+                    "Trying to add wrong object to provider in %s" %
+                    self.__class__.__name__)
 
 class Annotation(CommonAttributes):
     """
@@ -1144,7 +1168,7 @@ class Annotation(CommonAttributes):
     # https://iiif.io/api/presentation/3.0/#56-annotation
 
     def __init__(self, target=Required()):
-        super(CommonAttributes, self).__init__()
+        super(Annotation, self).__init__()
         self.motivation = None
         self.body = None
         self.target = target
@@ -1236,25 +1260,37 @@ class AnnotationPage(CommonAttributes):
         else:
             self.items.append(annotation)
 
+class AnnotationCollection(CommonAttributes):
+    """https://iiif.io/api/presentation/3.0/#58-annotation-collection
+    Annotation Collections represent groupings of Annotation Pages that should
+    be managed as a single whole, regardless of which Canvas or resource they
+    target. This allows, for example, all of the Annotations that make up a
+    particular translation of the text of a book to be collected together. A
+    client might then present a user interface that allows all of the
+    Annotations in an Annotation Collection to be displayed or hidden according
+    to the user’s preference.
 
-class Canvas(CommonAttributes):
-    """https://iiif.io/api/presentation/3.0/#53-canvas 
-    The Canvas represents an individual page or view and acts as a central
-    point for assembling the different content resources that make up the
-    display. Canvases must be identified by a URI and it must be an HTTP(S)
-    URI.
     """
-
     def __init__(self):
-        super(Canvas, self).__init__()
-        self.height = Required("Must have an height or a duration.")
-        self.width = Required("Must have an width or a duration.")
-        self.duration = None
-        self.items = Recommended(
-            "The canvas should contain at least one item.")
-        self.annotations = None
+        super(AnnotationCollection, self).__init__()
+        self.label = Recommended("An Annotation Collection should have the label property with at least one entry.")
+
+
+
+class CMRCattributes(CommonAttributes):
+    """
+    This is another class for grouping the attributes in common with
+    Canvas, Manifest, Range and Collection.
+
+    Namely: placeholderCanvas,accompanyingCanvas,NavDate
+
+    All these values are optional.
+    """
+    def __init__(self):
+        super(CMRCattributes, self).__init__()
         self.placeholderCanvas = None
         self.accompanyingCanvas = None
+        self.navDate = None
     
     def set_placeholderCanvas(self):
         if hasattr(self,'placeholderCanvas'):
@@ -1278,6 +1314,30 @@ class Canvas(CommonAttributes):
         else:
             raise AttributeError("A placeholder/accompanying Canvas can not have a accompanyingCanvas")
 
+    def set_navDate(self,navDate):
+        #TODO: check
+        self.navDate = navDate
+
+class Canvas(CMRCattributes):
+    """https://iiif.io/api/presentation/3.0/#53-canvas 
+    The Canvas represents an individual page or view and acts as a central
+    point for assembling the different content resources that make up the
+    display. Canvases must be identified by a URI and it must be an HTTP(S)
+    URI.
+    """
+
+    def __init__(self):
+        super(Canvas, self).__init__()
+        self.label = Recommended("A Canvas should have the label property with at least one entry.")
+        self.height = Required("Must have an height or a duration.")
+        self.width = Required("Must have an width or a duration.")
+        self.duration = None
+        self.items = Recommended(
+            "The canvas should contain at least one item.")
+        self.annotations = None
+        self.placeholderCanvas = None
+        self.accompanyingCanvas = None
+    
     def set_width(self, width ):
         self.width = int(width)
 
@@ -1333,7 +1393,7 @@ class Canvas(CommonAttributes):
             self.annotations.append(annotationpageobj)
 
 
-class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
+class Manifest(CMRCattributes, plus.ViewingDirection):
     """
     The Manifest resource typically represents a single object and any
     intellectual work or works embodied within that object. In particular it
@@ -1358,13 +1418,15 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
     def __init__(self):
         super(Manifest, self).__init__()
         self.start = None
+        self.label = Required("A Manifest must have the label property with at least one entry.")
         self.viewingDirection = None
-        self.navDate = None
         self.services = None
         self.service = None
+        self.summary = Recommended("A Manifest should have the summary property with at least one entry.")
+        self.metadata = Recommended("A Manifest should have the metadata property with at least one item.")
         self.items = Required("The Manifest must have an items property")
         self.annotations = None
-        self.provider = None
+        self.provider = Recommended("A Manifest should have the provider property with at least one item.")
         self.structures = None
         self.placeholderCanvas = None
 
@@ -1375,10 +1437,6 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
 
     def set_start(self, start):
         self.start = start
-
-    def set_placeholderCanvas(self):
-        self.placeholderCanvas = Canvas()
-        return self.placeholderCanvas
 
     def add_services(self, services=None):
         if unused(self.services):
@@ -1410,20 +1468,6 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
                     "Trying to add wrong object to service in %s" %
                     self.__class__.__name__)
 
-    def add_provider(self, providerobj=None):
-        if unused(self.provider):
-            self.provider = []
-        if providerobj is None:
-            providerobj = provider()
-            self.provider.append(providerobj)
-            return providerobj
-        else:
-            if isinstance(providerobj, provider):
-                self.provider.append(providerobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to provider in %s" %
-                    self.__class__.__name__)
 
     def add_canvas_to_items(self, canvasobj=None):
         if unused(self.items):
@@ -1451,18 +1495,18 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
 
 
 
-class Collection(CommonAttributes):
+class Collection(CMRCattributes):
     def __init__(self):
         super(Collection, self).__init__()
         self.services = None
         self.annotations = None
+        self.summary = Recommended("A Collection should have the summary property with at least one entry.Clients should render summary on a Collection.")
+        self.provider = Recommended("A Collection should have the provider property with at least one item.")
+        self.label = Required("A Collection must have the label property with at least one entry.")
         self.items = Required(
             "A collection object must have at least one item!")
-        self.placeholderCanvas = None
-    
-    def set_placeholderCanvas(self):
-        self.placeholderCanvas = Canvas()
-        return self.placeholderCanvas
+        self.metadata = Recommended("A Collection should have the metadata property with at least one item.")
+
 
     def add_service(self, serviceobj=None):
         if unused(self.service):
@@ -1490,18 +1534,14 @@ class Collection(CommonAttributes):
         self.items.append(item)
 
 
-class Range(CommonAttributes):
+class Range(CMRCattributes):
     def __init__(self):
         super(Range, self).__init__()
         self.annotations = None
         self.items = Required("A range object must have at least one item!")
         self.supplementary = None
-        self.placeholderCanvas = None
-    
-    def set_placeholderCanvas(self):
-        self.placeholderCanvas = Canvas()
-        return self.placeholderCanvas
-
+        self.label = Recommended("A Range should have the label property with at least one entry")
+ 
     def add_annotation(self, annotation):
         if unused(self.annotation):
             self.annotation = []
@@ -1560,7 +1600,7 @@ class SpecificResource(CommonAttributes):
         return ps
 
 
-class start(CommonAttributes):
+class start(CoreAttributes):
 
     def __init__(self):
         super(start, self).__init__()

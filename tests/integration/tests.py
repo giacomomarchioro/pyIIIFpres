@@ -155,13 +155,13 @@ class TestWithReferenceManifest(unittest.TestCase):
         printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
-    def test_0013_placeholderCanvas(self):
-        """
-        Test 0013-placeholderCanvas
-        """ 
-        ref,json_manifest = get_files("0013-placeholderCanvas")
-        printdiff(ref,json_manifest)
-        self.assertEqual(ordered(ref),ordered(json_manifest))
+    # def test_0013_placeholderCanvas(self):
+    #     """
+    #     Test 0013-placeholderCanvas
+    #     """ 
+    #     ref,json_manifest = get_files("0013-placeholderCanvas")
+    #     printdiff(ref,json_manifest)
+    #     self.assertEqual(ordered(ref),ordered(json_manifest))
 
         
 
