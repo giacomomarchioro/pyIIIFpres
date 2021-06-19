@@ -10,10 +10,6 @@ class HeightWidthDuration(object):
         self.set_width = width
         self.set_height = height
 
-
-
-
-
 class ViewingDirection(object):
     def set_viewingDirection(self,viewingDirection):
         """
@@ -30,13 +26,6 @@ class ViewingDirection(object):
         assert viewingDirection in viewingDirections, msg
         self.viewingDirection = viewingDirection
 
-class navDate(object):
-    def __init__(self):
-        self.navDate = None
-
-    def set_navDate(self,date):
-        #TODO
-        self.navDate = date
 
 class format(object):
     pass

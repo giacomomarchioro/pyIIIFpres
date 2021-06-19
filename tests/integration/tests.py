@@ -155,6 +155,7 @@ class TestWithReferenceManifest(unittest.TestCase):
         printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
+    # seems not a valid manifest https://github.com/IIIF/cookbook-recipes/issues/251
     # def test_0013_placeholderCanvas(self):
     #     """
     #     Test 0013-placeholderCanvas

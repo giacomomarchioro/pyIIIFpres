@@ -291,8 +291,8 @@ class seeAlso(CoreAttributes):
 
     def __init__(self):
         super(seeAlso, self).__init__()
-        self.format = Recommended("Its should have a format")
-        self.profile = Recommended("It should have a profile")
+        self.format = Recommended("It should have a format")
+        self.profile = Recommended("Resources referenced by the seeAlso or service properties should have the profile property.")
 
     def set_type(self, datatype):
         # TODO: add check
@@ -462,6 +462,9 @@ class service(CoreAttributes):
         super(service, self).__init__()
         self.profile = Recommended(
             "Each object should have a profile property.")
+        self.type = Recommended(
+            "Each object must have a type property."
+        )
         self.service = None
 
     def set_type(self, mytype):
@@ -667,6 +670,8 @@ class homepage(CoreAttributes):
     def __init__(self):
         super(homepage, self).__init__()
         self.language = None
+        self.label = Required("Hompage must have a label")
+        self.type = Required("Homepage must have an type.")
         self.format = Recommended(
             "Hompage should have a format property e.g. Text.")
 
@@ -722,6 +727,7 @@ class logo(CoreAttributes, plus.HeightWidthDuration):
 
     def __init__(self):
         super(logo, self).__init__()
+        self.type = "Image"
         self.format = Recommended(
             "Logo should have a format attribute e.g. image/png")
         self.service = Recommended(
@@ -743,7 +749,7 @@ class logo(CoreAttributes, plus.HeightWidthDuration):
         self.format = format
 
     def set_type(self, mtype):
-        self.type = mtype
+        raise AttributeError("Logo type must be Image")
 
     def set_label(self, label):
         raise ValueError("Label not permitted in logo.")
@@ -792,6 +798,8 @@ class rendering(CoreAttributes):
         super(rendering, self).__init__()
         self.format = Recommended(
             "Rendering should have a format property e.g. application/pdf.")
+        self.label  = Required("Rendering object must have a label.")
+        self.type = Required("Rendering should have a type")
 
     def set_format(self, format):
         """Set the format of the IIIF type.
@@ -1422,6 +1430,7 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
         self.viewingDirection = None
         self.services = None
         self.service = None
+        self.thumbnail = Recommended("A Manifest should have the thumbnail property with at least one item.")
         self.summary = Recommended("A Manifest should have the summary property with at least one entry.")
         self.metadata = Recommended("A Manifest should have the metadata property with at least one item.")
         self.items = Required("The Manifest must have an items property")
@@ -1495,18 +1504,19 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
 
 
 
-class Collection(CMRCattributes):
+class Collection(CMRCattributes,plus.ViewingDirection):
     def __init__(self):
         super(Collection, self).__init__()
         self.services = None
         self.annotations = None
+        self.thumbnail = Recommended("A Collection should have the thumbnail property with at least one item.")
         self.summary = Recommended("A Collection should have the summary property with at least one entry.Clients should render summary on a Collection.")
         self.provider = Recommended("A Collection should have the provider property with at least one item.")
         self.label = Required("A Collection must have the label property with at least one entry.")
         self.items = Required(
             "A collection object must have at least one item!")
         self.metadata = Recommended("A Collection should have the metadata property with at least one item.")
-
+        self.viewingDirection = None
 
     def add_service(self, serviceobj=None):
         if unused(self.service):
@@ -1534,13 +1544,14 @@ class Collection(CMRCattributes):
         self.items.append(item)
 
 
-class Range(CMRCattributes):
+class Range(CMRCattributes,plus.ViewingDirection):
     def __init__(self):
         super(Range, self).__init__()
         self.annotations = None
         self.items = Required("A range object must have at least one item!")
         self.supplementary = None
         self.label = Recommended("A Range should have the label property with at least one entry")
+        self.viewingDirection = None
  
     def add_annotation(self, annotation):
         if unused(self.annotation):
