@@ -8,8 +8,7 @@ canvas = manifest.add_canvas_to_items()
 canvas.set_id(extendbase_url=["canvas"])
 canvas.set_height(360)
 canvas.set_width(640)
-# this should be fixed using a set
-canvas.duration = 572.034
+canvas.set_duration(572.034)
 annopage = canvas.add_annotationpage_to_items()
 annopage.set_id(extendbase_url=["canvas","page"])
 annotation = annopage.add_annotation_to_items(target=canvas.id) 

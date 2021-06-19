@@ -6,7 +6,15 @@ import json
 import os
 from os.path import dirname 
 import runpy
-#unittest.util._MAX_LENGTH=2000
+try:
+    import dictdiffer
+    def printdiff(dict_1,dict_2):
+        for diff in list(dictdiffer.diff(dict_1, dict_2)):         
+            print(diff)                                          
+except ImportError:
+    # pip install dictdiffer
+    pass
+#unittest.util._MAX_LENGTH=500000
 # python -m unittest tests.py -v
 
 prj_dir = os.getcwd()
@@ -115,6 +123,47 @@ class TestWithReferenceManifest(unittest.TestCase):
         """ 
         ref,json_manifest = get_files("0009-book-1")
         self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0011_book_3_behaviour_manifest_continuous(self):
+        """
+        Test 0011-book-3-behaviour-manifest-continuous
+        """ 
+        ref,json_manifest = get_files("0011-book-3-behaviour-manifest-continuous")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0011_book_3_behavior_manifest_individuals(self):
+        """
+        Test 0011-book-3-behavior-manifest-individuals
+        """ 
+        ref,json_manifest = get_files("0011-book-3-behavior-manifest-individuals")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0010_book_2_viewing_direction_manifest_rtl(self):
+        """
+        Test 0010-book-2-viewing-direction-manifest-rtl
+        """ 
+        ref,json_manifest = get_files("0010-book-2-viewing-direction-manifest-rtl")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    
+    def test_0117_add_image_thumbnail(self):
+        """
+        Test 0117-add-image-thumbnail
+        """ 
+        ref,json_manifest = get_files("0117-add-image-thumbnail")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0013_placeholderCanvas(self):
+        """
+        Test 0013-placeholderCanvas
+        """ 
+        ref,json_manifest = get_files("0013-placeholderCanvas")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+        
 
 class Test_ReadAndWriteBack(unittest.TestCase):
     
@@ -190,6 +239,9 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 
+# with open('org.json','w') as o, open('final.json','w') as f:
+#     json.dump(ordered(ref),o,indent=2)
+#     json.dump(ordered(json_manifest),f,indent=2)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1257,6 +1257,30 @@ class Canvas(CommonAttributes):
         self.items = Recommended(
             "The canvas should contain at least one item.")
         self.annotations = None
+        self.placeholderCanvas = None
+        self.accompanyingCanvas = None
+    
+    def set_placeholderCanvas(self):
+        if hasattr(self,'placeholderCanvas'):
+            phcnv = Canvas()
+            delattr(phcnv, 'placeholderCanvas')
+            delattr(phcnv,'accompanyingCanvas')
+            self.placeholderCanvas = phcnv
+            return phcnv
+        else:
+            raise AttributeError("A placeholder/accompanying Canvas can not have a placeholderCanvas")
+    
+    def set_accompanyingCanvas(self):
+        """https://iiif.io/api/presentation/3.0/#accompanyingcanvas
+        """
+        if hasattr(self,'accompanyingCanvas'):
+            phcnv = Canvas()
+            delattr(phcnv, 'placeholderCanvas')
+            delattr(phcnv,'accompanyingCanvas')
+            self.accompanyingCanvas = phcnv
+            return phcnv
+        else:
+            raise AttributeError("A placeholder/accompanying Canvas can not have a accompanyingCanvas")
 
     def set_width(self, width ):
         self.width = int(width)
@@ -1346,6 +1370,7 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
         self.annotations = None
         self.provider = None
         self.structures = None
+        self.placeholderCanvas = None
 
     def add_item(self, item):
         if unused(self.items):
@@ -1354,6 +1379,10 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
 
     def set_start(self, start):
         self.start = start
+
+    def set_placeholderCanvas(self):
+        self.placeholderCanvas = Canvas()
+        return self.placeholderCanvas
 
     def add_services(self, services=None):
         if unused(self.services):
@@ -1424,6 +1453,8 @@ class Manifest(CommonAttributes, plus.ViewingDirection, plus.navDate):
         return checkstru(self, Range, rangeobj)
 
 
+
+
 class Collection(CommonAttributes):
     def __init__(self):
         super(Collection, self).__init__()
@@ -1431,6 +1462,11 @@ class Collection(CommonAttributes):
         self.annotations = None
         self.items = Required(
             "A collection object must have at least one item!")
+        self.placeholderCanvas = None
+    
+    def set_placeholderCanvas(self):
+        self.placeholderCanvas = Canvas()
+        return self.placeholderCanvas
 
     def add_service(self, serviceobj=None):
         if unused(self.service):
@@ -1464,6 +1500,11 @@ class Range(CommonAttributes):
         self.annotations = None
         self.items = Required("A range object must have at least one item!")
         self.supplementary = None
+        self.placeholderCanvas = None
+    
+    def set_placeholderCanvas(self):
+        self.placeholderCanvas = Canvas()
+        return self.placeholderCanvas
 
     def add_annotation(self, annotation):
         if unused(self.annotation):
