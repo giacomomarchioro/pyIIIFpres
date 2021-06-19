@@ -5,7 +5,6 @@ from . import visualization_html
 import json
 global BASE_URL
 BASE_URL = "https://"
-logs = {"Required": 0, "Recommended": 0}
 
 
 class Required(object):
@@ -20,7 +19,6 @@ class Required(object):
         self.Required = description
 
     def __repr__(self):
-        logs["Required"] += 1
         return 'Required attribute:%s' % self.Required
 
 
@@ -36,7 +34,6 @@ class Recommended(object):
         self.Recommended = description
 
     def __repr__(self):
-        logs["Recommended"] += 1
         return 'Recommended attribute:%s' % self.Recommended
 
 
@@ -253,11 +250,10 @@ class CoreAttributes(object):
                 dumps_errors=save_errors, ensure_ascii=ensure_ascii))
 
     def inspect(self):
-        print(self.json_dumps(dumps_errors=True))
-        print("Missing requirements field: %s." % logs["Required"])
-        print("Missing recommended field: %s." % logs["Recommended"])
-        logs["Required"] = 0
-        logs["Recommended"] = 0
+        jdump = self.json_dumps(dumps_errors=True)
+        print(jdump)
+        print("Missing required field: %s." %jdump.count('"Required":') )
+        print("Missing recommended field: %s." %jdump.count('"Recommended":') )
         return True
     
     def show_errors_in_browser(self):
