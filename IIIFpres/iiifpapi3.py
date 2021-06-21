@@ -80,6 +80,8 @@ def checkitem(selfx, classx, obj):
     if items is unused and if so create  list and append an object of the class
     provided.
 
+    e.g. checkitem(self, Manifest, obj)
+
     Args:
         selfx (class): Original class.
         classx (class): Class that is allowed.
@@ -184,6 +186,8 @@ class CoreAttributes(object):
             self.id = BASE_URL
         else:
             assert objid.startswith("http"), "ID must start with http"
+            if self.type == 'Canvas':
+                assert "#" not in (objid), "URI of the canvas must not contain a fragment: \# followed"
             self.id = objid
 
     def set_type(self):
@@ -291,7 +295,9 @@ class seeAlso(CoreAttributes):
 
     def __init__(self):
         super(seeAlso, self).__init__()
-        self.format = Recommended("It should have a format")
+        self.type = Required("SeeAlso type is required, e.g. dataset, Image")
+        self.label = Recommended("SeeAlso label is recommended.")
+        self.format = Recommended("SeeAlso type is recommended e.g. text/xml")
         self.profile = Recommended("Resources referenced by the seeAlso or service properties should have the profile property.")
 
     def set_type(self, datatype):
@@ -331,6 +337,8 @@ class partOf(CoreAttributes):
 
     def __init__(self):
         super(partOf, self).__init__()
+        self.type = Required("Each partOf item must have a type")
+        self.label = Recommended("Each partOf item should have the label property.")
 
     def set_type(self, type_):
         assert not type_[0].isdigit(), "First letter should not be a digit"
@@ -403,6 +411,10 @@ class bodypainting(CoreAttributes):
         self.type = mytype
 
     def set_format(self, format):
+        msg = "Format should be a string in the form type/format e.g. image/jpg"
+        assert isinstance(format,str),msg
+        assert "/" in format, msg
+        assert format.split("/")[0].isalpha(), msg
         self.format = format
 
     def set_width(self, width):
@@ -462,7 +474,7 @@ class service(CoreAttributes):
         super(service, self).__init__()
         self.profile = Recommended(
             "Each object should have a profile property.")
-        self.type = Recommended(
+        self.type = Required(
             "Each object must have a type property."
         )
         self.service = None
@@ -522,7 +534,8 @@ class thumbnail(CoreAttributes, plus.HeightWidthDuration):
             format (str): the format of the IIIF type, usually is the MIME 
             e.g. image/jpg
         """
-        msg = "Format should be in the form type/format e.g. image/jpg"
+        msg = "Format should be a string in the form type/format e.g. image/jpg"
+        assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
         self.format = format
@@ -690,7 +703,8 @@ class homepage(CoreAttributes):
         Args:
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
-        msg = "Format should be in the form type/format e.g. image/jpg"
+        msg = "Format should be a string in the form type/format e.g. image/jpg"
+        assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
         self.format = format
@@ -743,7 +757,8 @@ class logo(CoreAttributes, plus.HeightWidthDuration):
         Args:
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
-        msg = "Format should be in the form type/format e.g. image/jpeg"
+        msg = "Format should be a string in the form type/format e.g. image/jpg"
+        assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
         self.format = format
@@ -811,7 +826,8 @@ class rendering(CoreAttributes):
         Args:
             format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
         """
-        msg = "Format should be in the form type/format e.g. image/jpg"
+        msg = "Format should be a string in the form type/format e.g. image/jpg"
+        assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
         self.format = format
@@ -1142,6 +1158,21 @@ class CommonAttributes(CoreAttributes):
                     "Trying to add wrong object to provider in %s" %
                     self.__class__.__name__)
 
+    def add_service(self, serviceobj=None):
+        if unused(self.service):
+            self.service = []
+        if serviceobj is None:
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
+                self.service.append(serviceobj)
+            else:
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" %
+                    self.__class__.__name__)
+
 class Annotation(CommonAttributes):
     """
 
@@ -1239,7 +1270,6 @@ class Annotation(CommonAttributes):
             self.body = bodycommenting()
         self.motivation = motivation
 
-
 class AnnotationPage(CommonAttributes):
     """
 
@@ -1249,7 +1279,6 @@ class AnnotationPage(CommonAttributes):
         super(AnnotationPage, self).__init__()
         self.items = Recommended(
             "The annotation page must incude at least one item.")
-        self.annotations = None
 
     def add_item(self, item):
         if unused(self.items):
@@ -1260,8 +1289,6 @@ class AnnotationPage(CommonAttributes):
         if unused(self.items):
             self.items = []
         if annotation is None:
-            if unused(target):
-                raise ValueError("Passing an empty ID!")
             annotation = Annotation(target=target)
             self.items.append(annotation)
             return annotation
@@ -1282,8 +1309,6 @@ class AnnotationCollection(CommonAttributes):
     def __init__(self):
         super(AnnotationCollection, self).__init__()
         self.label = Recommended("An Annotation Collection should have the label property with at least one entry.")
-
-
 
 class CMRCattributes(CommonAttributes):
     """
@@ -1399,8 +1424,7 @@ class Canvas(CMRCattributes):
             return annotationp
         else:
             self.annotations.append(annotationpageobj)
-
-
+    
 class Manifest(CMRCattributes, plus.ViewingDirection):
     """
     The Manifest resource typically represents a single object and any
@@ -1462,22 +1486,6 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
         else:
             self.annotations.append(annotation)
 
-    def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
-
-
     def add_canvas_to_items(self, canvasobj=None):
         if unused(self.items):
             self.items = []
@@ -1502,6 +1510,41 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
         return checkstru(self, Range, rangeobj)
 
 
+class refManifest(CoreAttributes):
+    def __init__(self):
+        super(refManifest,self).__init__()
+        self.thumbnail = Recommended("A Manifest reference should have the thumbnail property with at least one item.")
+        self.type = "Manifest"
+
+    def add_thumbnail(self, thumbnailobj=None):
+        """
+        https://iiif.io/api/presentation/3.0/#thumbnail
+        IIF: A content resource, such as a small image or short audio clip, that
+        represents the resource that has the thumbnail property. A resource may
+        have multiple thumbnail resources that have the same or different type
+        and format.
+
+        The value must be an array of JSON objects, each of which must have the
+        id and type properties, and should have the format property. Images and
+        videos should have the width and height properties, and time-based
+        media should have the duration property. It is recommended that a IIIF
+        Image API service be available for images to enable manipulations such
+        as resizing.
+        """
+        # TODO: CHECK IF ALLOWED
+        if unused(self.thumbnail):
+            self.thumbnail = []
+        if thumbnailobj is None:
+            thumbnailobj = thumbnail()
+            self.thumbnail.append(thumbnailobj)
+            return thumbnailobj
+        else:
+            if isinstance(thumbnailobj, thumbnail):
+                self.thumbnail.append(thumbnailobj)
+            else:
+                raise ValueError(
+                    "Trying to add wrong object to thumbnail in %s" %
+                    self.__class__.__name__)
 
 
 class Collection(CMRCattributes,plus.ViewingDirection):
@@ -1543,6 +1586,29 @@ class Collection(CMRCattributes,plus.ViewingDirection):
             self.items = []
         self.items.append(item)
 
+    def add_collection_to_items(self,obj=None):
+        return checkitem(self, Collection, obj)
+    
+    def add_manifest_to_items(self,obj=None):
+        if unused(self.items):
+            self.items = []
+        if obj is None:
+            obj = refManifest()
+            self.items.append(obj)
+            return obj
+        else:
+            if isinstance(obj, Manifest):
+                # Adding a Manifest only the references and thumbnail are passed
+                newobj = refManifest()
+                newobj.id = obj.id
+                newobj.label = obj.label
+                newobj.thumbnail = obj.thumbnail
+                self.items.append(obj)
+            else:
+                raise ValueError(
+                    "Trying to add wrong object as canvas to items in %s" %
+                    self.__class__.__name__)
+        return checkitem(self, (dict,Manifest), obj)
 
 class Range(CMRCattributes,plus.ViewingDirection):
     def __init__(self):
@@ -1552,6 +1618,7 @@ class Range(CMRCattributes,plus.ViewingDirection):
         self.supplementary = None
         self.label = Recommended("A Range should have the label property with at least one entry")
         self.viewingDirection = None
+        self.start = None
  
     def add_annotation(self, annotation):
         if unused(self.annotation):
@@ -1569,7 +1636,7 @@ class Range(CMRCattributes,plus.ViewingDirection):
         self.items.append(newrange)
         return newrange
     
-    def add_SpecificResource_to_items(self):
+    def add_specificresource_to_items(self):
         if unused(self.items):self.items = []
         sr = SpecificResource()
         self.items.append(sr )
@@ -1615,6 +1682,7 @@ class start(CoreAttributes):
 
     def __init__(self):
         super(start, self).__init__()
+        self.type = Required("Start object must have a type.")
         self.profile = Recommended("Start object should have a profile.")
         self.source = None
         self.selector = None
@@ -1665,7 +1733,8 @@ class ImageApiSelector(object):
         Args: format (str): the format of the IIIF type, usually is the MIME
             e.g. image/jpg
         """
-        msg = "Format should be in the form type/format e.g. image/jpg"
+        msg = "Format should be a string in the form type/format e.g. image/jpg"
+        assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
         self.format = format
