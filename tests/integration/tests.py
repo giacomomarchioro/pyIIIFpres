@@ -136,7 +136,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         Test 0011-book-3-behavior-manifest-individuals
         """ 
         ref,json_manifest = get_files("0011-book-3-behavior-manifest-individuals")
-        printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
     def test_0010_book_2_viewing_direction_manifest_rtl(self):
