@@ -9,6 +9,10 @@ import runpy
 try:
     import dictdiffer
     def printdiff(dict_1,dict_2):
+        '''
+        This is an utility for showing the difference line by line of two 
+        dictionaries.
+        '''
         for diff in list(dictdiffer.diff(dict_1, dict_2)):         
             print(diff)                                          
 except ImportError:
@@ -151,7 +155,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         Test 0117-add-image-thumbnail
         """ 
         ref,json_manifest = get_files("0117-add-image-thumbnail")
-        printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
     # seems not a valid manifest https://github.com/IIIF/cookbook-recipes/issues/251
