@@ -32,15 +32,17 @@ def ordered(obj):
     else:
         return obj
 
-def get_files(examplename):
+def get_files(examplename,resourcetype='manifest'):
     """
     Return the dictionary of the reference example and the one produced 
     read it from json and writing it back.
+
+    The object inside the example must be named as the resourcetype arg.
     """
     with open(os.path.join(fixture_dir,'%s.json' %examplename)) as f: 
         ref = json.load(f) 
     example = runpy.run_path(os.path.join(prj_dir,'examples','%s.py'%examplename))
-    json_manifest = json.loads(example['manifest'].json_dumps())
+    json_manifest = json.loads(example[resourcetype].json_dumps())
     return ref,json_manifest
 
 def get_files2(examplename):
@@ -165,6 +167,29 @@ class TestWithReferenceManifest(unittest.TestCase):
     #     ref,json_manifest = get_files("0013-placeholderCanvas")
     #     printdiff(ref,json_manifest)
     #     self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0230_navdate_navdate_map_2(self):
+        """
+        test_0230_navdate_navdate_map_
+        """ 
+        ref,json_manifest = get_files("0230-navdate-navdate_map_2-manifest")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0230_navdate_navdate_map_1(self):
+        """
+        test_0230_navdate_navdate_map_1
+        """ 
+        ref,json_manifest = get_files("0230-navdate-navdate_map_1-manifest")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0230_navdate_navdate_collection(self):
+        """
+        test_0230_navdate_navdate_collection
+        """ 
+        ref,json_manifest = get_files("0230-navdate-navdate_collection",'collection')
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
 
         
 

@@ -406,6 +406,7 @@ class bodypainting(CoreAttributes):
         self.width = Required("Must have an width or a duration.")
         self.duration = None
         self.service = None
+        self.language = None
 
     def set_type(self, mytype):
         self.type = mytype
@@ -449,6 +450,11 @@ class bodypainting(CoreAttributes):
                     "Trying to add wrong object to service in %s" %
                     self.__class__.__name__)
 
+    def add_language(self,language):
+        if unused(self.language):
+            self.language = []
+        #TODO: check valid
+        self.language.append(language)
 
 class service(CoreAttributes):
     """https://iiif.io/api/presentation/3.0/#service
@@ -1310,6 +1316,14 @@ class AnnotationCollection(CommonAttributes):
         super(AnnotationCollection, self).__init__()
         self.label = Recommended("An Annotation Collection should have the label property with at least one entry.")
 
+    def set_id(self, objid, extendbase_url=None):
+        """AnnotationCollection should have http(s) link.
+        """
+        try:     
+            return super().set_id(objid=objid, extendbase_url=extendbase_url)
+        except AssertionError:
+            self.id = objid
+
 class CMRCattributes(CommonAttributes):
     """
     This is another class for grouping the attributes in common with
@@ -1515,6 +1529,7 @@ class refManifest(CoreAttributes):
         super(refManifest,self).__init__()
         self.thumbnail = Recommended("A Manifest reference should have the thumbnail property with at least one item.")
         self.type = "Manifest"
+        self.navDate = None
 
     def add_thumbnail(self, thumbnailobj=None):
         """
@@ -1603,12 +1618,12 @@ class Collection(CMRCattributes,plus.ViewingDirection):
                 newobj.id = obj.id
                 newobj.label = obj.label
                 newobj.thumbnail = obj.thumbnail
-                self.items.append(obj)
+                newobj.navDate = obj.navDate
+                self.items.append(newobj)
             else:
                 raise ValueError(
                     "Trying to add wrong object as canvas to items in %s" %
                     self.__class__.__name__)
-        return checkitem(self, (dict,Manifest), obj)
 
 class Range(CMRCattributes,plus.ViewingDirection):
     def __init__(self):

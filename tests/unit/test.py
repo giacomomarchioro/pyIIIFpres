@@ -460,6 +460,9 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         colMan = self.Collection.add_manifest_to_items()
         # check that manifest is referenced not embedded
         self.assertFalse(hasattr(colMan,"items"))
+        self.Collection.add_manifest_to_items(self.Manifest)
+        lastadd = self.Collection.items[-1]
+        self.assertFalse(hasattr(lastadd,"items"))
 
     def test_manifest(self):
         # check that manifest is referenced not embedded
@@ -503,6 +506,23 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         # TODO: the URI of the Canvas must be repeated in the target
         with self.assertRaises(AssertionError):
             self.Annotation.set_id("www.example.com")
+
+    # Content resource are inside body
+    def test_bodypainting(self):
+        self.assertEqual(self.bodypainting.id,Required())
+        self.assertEqual(self.bodypainting.type,Required())
+        self.assertEqual(self.bodypainting.format,Recommended())
+        self.assertEqual(self.bodypainting.profile,Recommended())
+        self.assertEqual(self.bodypainting.language,None)
+        self.assertEqual(self.bodypainting.height,Required()) # or may
+        self.assertEqual(self.bodypainting.width,Required()) # or may
+        self.assertEqual(self.bodypainting.duration,None)
+    
+    def test_annotationcollection(self):
+        self.assertEqual(self.AnnotationCollection.id,Required())
+        self.assertEqual(self.AnnotationCollection.label,Recommended())
+        self.AnnotationCollection.set_id("non http")
+
 
         
 
