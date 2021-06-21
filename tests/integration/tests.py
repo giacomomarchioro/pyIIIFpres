@@ -187,7 +187,14 @@ class TestWithReferenceManifest(unittest.TestCase):
         test_0230_navdate_navdate_collection
         """ 
         ref,json_manifest = get_files("0230-navdate-navdate_collection",'collection')
-        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0202_start_canvas(self):
+        """
+        test_0202-start-canvas
+        """ 
+        ref,json_manifest = get_files("0202-start-canvas")
+        #printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 

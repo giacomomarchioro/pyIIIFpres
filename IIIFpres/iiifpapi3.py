@@ -1482,8 +1482,24 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
             self.items = []
         self.items.append(item)
 
-    def set_start(self, start):
-        self.start = start
+    def set_start(self):
+        """This method add a start obejct at self.start.
+        IIIF: A Canvas, or part of a Canvas, which the client should show on 
+        initialization for the resource that has the start property.
+        The reference to part of a Canvas is handled in the same way that 
+        Ranges reference parts of Canvases. This property allows the client to
+        begin with the first Canvas that contains interesting content rather 
+        than requiring the user to manually navigate to find it.
+        
+        manifest.set_start()
+        manifest.start.set_type('Canvas')
+        manifest.start.set_id("https://example.org/iiif/1/canvas/1")
+
+        Returns:
+            start object: a reference to the start object to be used
+        """
+        self.start = start()
+        return self.start
 
     def add_services(self, services=None):
         if unused(self.services):
@@ -1657,9 +1673,24 @@ class Range(CMRCattributes,plus.ViewingDirection):
         self.items.append(sr )
         return sr 
 
-    def set_start(self, start):
-        # TODO: use addmethod
-        self.start = start
+    def set_start(self):
+        """This method add a start obejct at self.start.
+        IIIF: A Canvas, or part of a Canvas, which the client should show on 
+        initialization for the resource that has the start property.
+        The reference to part of a Canvas is handled in the same way that 
+        Ranges reference parts of Canvases. This property allows the client to
+        begin with the first Canvas that contains interesting content rather 
+        than requiring the user to manually navigate to find it.
+        
+        manifest.set_start()
+        manifest.start.set_type('Canvas')
+        manifest.start.set_id("https://example.org/iiif/1/canvas/1")
+
+        Returns:
+            start object: a reference to the start object to be used
+        """
+        self.start = start()
+        return self.start
 
     def set_supplementary(self, objid=None, extendbase_url=None):
         self.supplementary = supplementary()
