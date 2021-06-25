@@ -2,10 +2,13 @@
 # -*- coding: UTF-8 -*-.
 from . import plus
 from . import visualization_html
+from .utilities import check_valid_URI
+from .BCP47_tags_list import lang_tags
 import json
 global BASE_URL
 BASE_URL = "https://"
-
+global LANGUAGES 
+LANGUAGES = lang_tags
 
 class Required(object):
     """
@@ -176,18 +179,24 @@ class CoreAttributes(object):
             if objid:
                 raise ValueError(
                     "Set id using extendbase_url or objid not both.")
+            
             if isinstance(extendbase_url, str):
-                self.id = "/".join((BASE_URL, extendbase_url))
+                joined = "/".join((BASE_URL, extendbase_url))
+                assert check_valid_URI(joined),"Special characters must be encoded"
+                self.id = joined
             if isinstance(extendbase_url, list):
                 extendbase_url.insert(0, BASE_URL)
-                self.id = "/".join(extendbase_url)
+                joined = "/".join(extendbase_url)
+                assert check_valid_URI(joined),"Special characters must be encoded"
+                self.id = joined
 
         elif objid is None:
             self.id = BASE_URL
         else:
-            assert objid.startswith("http"), "ID must start with http"
+            assert objid.startswith("http"), "ID must start with http or https"
             if self.type == 'Canvas':
-                assert "#" not in (objid), "URI of the canvas must not contain a fragment: \# followed"
+                assert "#" not in (objid), "URI of the canvas must not contain a fragment: \#"
+            assert check_valid_URI(objid),"Special characters must be encoded"
             self.id = objid
 
     def set_type(self):
@@ -212,6 +221,7 @@ class CoreAttributes(object):
             self.label = {}
         if language is None:
             language = "none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
         self.label[language] = [text]
 
     def json_dumps(
@@ -274,7 +284,11 @@ class CoreAttributes(object):
             id_ = "Missing"
         else:
             id_ = self.id
-        return " id:".join((self.type,id_))
+        if unused(self.type):
+            type_ = "Type Missing"
+        else:
+            type_ = self.type
+        return " id:".join((type_,id_))
 
 
 class seeAlso(CoreAttributes):
@@ -390,6 +404,7 @@ class bodycommenting(object):
         self.value = value
 
     def set_language(self, language):
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
         self.language = language
 
 
@@ -453,7 +468,7 @@ class bodypainting(CoreAttributes):
     def add_language(self,language):
         if unused(self.language):
             self.language = []
-        #TODO: check valid
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
         self.language.append(language)
 
 class service(CoreAttributes):
@@ -697,6 +712,7 @@ class homepage(CoreAttributes):
     def set_language(self, language):
         if unused(self.language):
             self.language = []
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
         self.language.append(language)
 
     def set_format(self, format):
@@ -901,6 +917,7 @@ class languagemap(object):
             value = [value]
         # TODO: if html must begin with < and ends with >
         # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
         self.value[language] = value
 
     def add_label(self, label, language="none"):
@@ -910,6 +927,7 @@ class languagemap(object):
             label = [label]
         # TODO: check that is not html
         # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
         self.label[language] = label
 
 
@@ -967,6 +985,8 @@ class CommonAttributes(CoreAttributes):
 
         if not isinstance(value, list):
             value = [value]
+        assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none"
+        assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none"
 
         if entry is None:
             entry = {"label": {language_l: [label]},
@@ -985,6 +1005,7 @@ class CommonAttributes(CoreAttributes):
         """
         if unused(self.summary):
             self.summary = {}
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
         self.summary[language] = [text]
 
     def add_requiredStatement(self, label=None, value=None, language_l=None,
@@ -1011,6 +1032,9 @@ class CommonAttributes(CoreAttributes):
         if (label is not None or value is not None) and entry is not None:
             raise ValueError(
                 "Either use entry arguments or a combination of other arguments, NOT both.")
+        assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none"
+        assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none"
+
         if entry is None:
             entry = {"label": {language_l: [label]},
                      "value": {language_v: [value]}}
@@ -1269,7 +1293,7 @@ class Annotation(CommonAttributes):
 
         motivations = ["painting", "supplementing"]
         if motivation not in motivations:
-            pass  # TODO:warning
+            print("Motivation not painting neither supplementing")
         if motivation == "painting":
             self.body = bodypainting()
         if motivation == "commenting":
@@ -1483,7 +1507,7 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
         self.items.append(item)
 
     def set_start(self):
-        """This method add a start obejct at self.start.
+        """This method set a start obejct at self.start.
         IIIF: A Canvas, or part of a Canvas, which the client should show on 
         initialization for the resource that has the start property.
         The reference to part of a Canvas is handled in the same way that 

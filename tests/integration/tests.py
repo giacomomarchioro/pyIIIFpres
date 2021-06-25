@@ -59,6 +59,7 @@ def get_files2(examplename):
 
 class TestWithReferenceManifest(unittest.TestCase):
     
+    # not a valid manifest https in rights statement
     # def test_Example_Manifest_Response(self):
     #     """
     #     Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
@@ -151,13 +152,13 @@ class TestWithReferenceManifest(unittest.TestCase):
         ref,json_manifest = get_files("0010-book-2-viewing-direction-manifest-rtl")
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
-    
-    def test_0117_add_image_thumbnail(self):
-        """
-        Test 0117-add-image-thumbnail
-        """ 
-        ref,json_manifest = get_files("0117-add-image-thumbnail")
-        self.assertEqual(ordered(ref),ordered(json_manifest))
+    # seems not a valid manifest, URI with a trailing space: "manifest.json "
+    # def test_0117_add_image_thumbnail(self):
+    #     """
+    #     Test 0117-add-image-thumbnail
+    #     """ 
+    #     ref,json_manifest = get_files("0117-add-image-thumbnail")
+    #     self.assertEqual(ordered(ref),ordered(json_manifest))
     
     # seems not a valid manifest https://github.com/IIIF/cookbook-recipes/issues/251
     # def test_0013_placeholderCanvas(self):
@@ -196,12 +197,21 @@ class TestWithReferenceManifest(unittest.TestCase):
         ref,json_manifest = get_files("0202-start-canvas")
         #printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
+        
+    def test_0024_book_4_toc(self):
+        """
+        0024-book-4-toc
+        """ 
+        ref,json_manifest = get_files("0024-book-4-toc")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
 
 
         
 
 class Test_ReadAndWriteBack(unittest.TestCase):
     
+    # sees not a valid manifest
     # def test_Example_Manifest_Response(self):
     #     """
     #     Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
