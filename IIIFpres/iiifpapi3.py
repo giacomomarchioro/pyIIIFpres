@@ -493,12 +493,16 @@ class service(CoreAttributes):
 
     def __init__(self):
         super(service, self).__init__()
-        self.profile = Recommended(
-            "Each object should have a profile property.")
         self.type = Required(
             "Each object must have a type property."
         )
+        self.profile = Recommended(
+            "Each object should have a profile property.")
+      
+        self.width = None
+        self.height = None
         self.service = None
+        self.sizes = None
 
     def set_type(self, mytype):
         """
@@ -520,6 +524,12 @@ class service(CoreAttributes):
     def set_profile(self, profile):
         self.profile = profile
 
+    def set_width(self,width):
+        self.width = int(width)
+    
+    def set_height(self,height):
+        self.height = int(height)
+
     def add_service(self, serviceobj=None):
         if unused(self.service):
             self.service = []
@@ -534,6 +544,11 @@ class service(CoreAttributes):
                 raise ValueError(
                     "Trying to add wrong object to service in %s" %
                     self.__class__.__name__)
+
+    def add_size(self,width,height):
+        if unused(self.sizes):
+            self.sizes = []
+        self.sizes.append({"width":width,"height":height})
 
 
 class thumbnail(CoreAttributes, plus.HeightWidthDuration):

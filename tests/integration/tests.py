@@ -195,7 +195,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         test_0202-start-canvas
         """ 
         ref,json_manifest = get_files("0202-start-canvas")
-        #printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
         
     def test_0024_book_4_toc(self):
@@ -203,10 +202,22 @@ class TestWithReferenceManifest(unittest.TestCase):
         0024-book-4-toc
         """ 
         ref,json_manifest = get_files("0024-book-4-toc")
-        printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
-
+    def test_0234_provider(self):
+        """
+        0234_provider
+        """ 
+        ref,json_manifest = get_files("0234-provider")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0053_seeAlso(self):
+        """
+        0053-seeAlso
+        """ 
+        ref,json_manifest = get_files("0053-seeAlso")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
         
 
 class Test_ReadAndWriteBack(unittest.TestCase):
