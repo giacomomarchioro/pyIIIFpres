@@ -20,6 +20,7 @@ def modify_API3_json(path):
                   'Collection':iiifpapi3.Collection()}
     assert t['type'] in entitydict.keys(),"%s not a valid IIF object"%t['type']
     newobj = entitydict[t['type']]
+    #TODO: find better solution .update will cause height and width to be set R.
     newobj.__dict__ = t
     return newobj 
 
@@ -63,7 +64,12 @@ def read_API3_json(path):
             for n, item in enumerate(obj['items']):
                 obj['items'][n] = map_to_class(item)   
         newobj = entitydict[obj['type']]()
-        newobj.__dict__ = obj
+        # TODO: find better solution .update will cause height and width to be set R.
+        # newobj.__dict__ = newobj works apparently with no problem
+        newobj.__dict__.update(obj)
+        if obj['type'] == 'Canvas':
+            if newobj.duration != None:
+                newobj.set_duration(newobj.duration)
         return newobj
     newobj = map_to_class(t)
     return newobj 
