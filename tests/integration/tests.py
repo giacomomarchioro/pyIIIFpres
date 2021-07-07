@@ -379,7 +379,7 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         0053-seeAlso
         """ 
         ref,json_manifest = get_files2("0053-seeAlso")
-        printdiff(ref,json_manifest)
+        #printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 
