@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-.
 from . import plus
 from . import visualization_html
-from .utilities import check_valid_URI
 from .BCP47_tags_list import lang_tags
 import json
 global BASE_URL
@@ -144,6 +143,20 @@ def checkstru(selfx, classx, obj):
             raise ValueError("%s object cannot be added to %s." %
                              (obj_name, class_name))
 
+
+def check_valid_URI(URI):
+    isvalid = True
+    URI = URI.replace("https:/","",1)
+    URI = URI.replace("http:/","",1)
+    for indx, carat in enumerate(URI):
+        if carat in r"""!"#$%&'()*+, :;<=>?@[\]^`{|}~ """:
+            if carat == " ":
+                carat = "a space"
+            arrow = " "*(indx) + "^"
+            isvalid = False
+            print("I found: %s here. \n%s\n%s" %(carat,URI,arrow))
+    return isvalid
+    
 # Let's group all the common arguments across the differnet types of collection
 
 

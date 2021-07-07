@@ -115,16 +115,5 @@ def remove_and_insert_new(obj,id,newobj):
     else:
         pass
 
-def check_valid_URI(URI):
-    isvalid = True
-    URI = URI.replace("https:/","",1)
-    URI = URI.replace("http:/","",1)
-    for indx, carat in enumerate(URI):
-        if carat in r"""!"#$%&'()*+, :;<=>?@[\]^`{|}~ """:
-            if carat == " ":
-                carat = "a space"
-            arrow = " "*(indx) + "^"
-            isvalid = False
-            print("I found: %s here. \n%s\n%s" %(carat,URI,arrow))
-    return isvalid
+
                   
