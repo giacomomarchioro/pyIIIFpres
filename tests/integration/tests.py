@@ -294,6 +294,94 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         ref,json_manifest = get_files2("0009-book-1")
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
+    def test_0011_book_3_behaviour_manifest_continuous(self):
+        """
+        Test 0011-book-3-behaviour-manifest-continuous
+        """ 
+        ref,json_manifest = get_files2("0011-book-3-behaviour-manifest-continuous")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0011_book_3_behavior_manifest_individuals(self):
+        """
+        Test 0011-book-3-behavior-manifest-individuals
+        """ 
+        ref,json_manifest = get_files2("0011-book-3-behavior-manifest-individuals")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0010_book_2_viewing_direction_manifest_rtl(self):
+        """
+        Test 0010-book-2-viewing-direction-manifest-rtl
+        """ 
+        ref,json_manifest = get_files2("0010-book-2-viewing-direction-manifest-rtl")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    # seems not a valid manifest, URI with a trailing space: "manifest.json "
+    # def test_0117_add_image_thumbnail(self):
+    #     """
+    #     Test 0117-add-image-thumbnail
+    #     """ 
+    #     ref,json_manifest = get_files2("0117-add-image-thumbnail")
+    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    # seems not a valid manifest https://github.com/IIIF/cookbook-recipes/issues/251
+    # def test_0013_placeholderCanvas(self):
+    #     """
+    #     Test 0013-placeholderCanvas
+    #     """ 
+    #     ref,json_manifest = get_files2("0013-placeholderCanvas")
+    #     printdiff(ref,json_manifest)
+    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0230_navdate_navdate_map_2(self):
+        """
+        test_0230_navdate_navdate_map_
+        """ 
+        ref,json_manifest = get_files2("0230-navdate-navdate_map_2-manifest")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0230_navdate_navdate_map_1(self):
+        """
+        test_0230_navdate_navdate_map_1
+        """ 
+        ref,json_manifest = get_files2("0230-navdate-navdate_map_1-manifest")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0230_navdate_navdate_collection(self):
+        """
+        test_0230_navdate_navdate_collection
+        """ 
+        ref,json_manifest = get_files2("0230-navdate-navdate_collection")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0202_start_canvas(self):
+        """
+        test_0202-start-canvas
+        """ 
+        ref,json_manifest = get_files2("0202-start-canvas")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+        
+    def test_0024_book_4_toc(self):
+        """
+        0024-book-4-toc
+        """ 
+        ref,json_manifest = get_files2("0024-book-4-toc")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0234_provider(self):
+        """
+        0234_provider
+        """ 
+        ref,json_manifest = get_files2("0234-provider")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0053_seeAlso(self):
+        """
+        0053-seeAlso
+        """ 
+        ref,json_manifest = get_files2("0053-seeAlso")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
 
 # with open('org.json','w') as o, open('final.json','w') as f:
 #     json.dump(ordered(ref),o,indent=2)
