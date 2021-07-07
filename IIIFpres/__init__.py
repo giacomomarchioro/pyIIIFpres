@@ -1,1 +1,1 @@
-from BCP47_tags import BCP47lang
+from .BCP47_tags import BCP47lang
