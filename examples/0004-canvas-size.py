@@ -1,6 +1,8 @@
 # implementation of Image and Canvas with Differing Dimensions https://iiif.io/api/cookbook/recipe/0004-canvas-size/
 from IIIFpres import iiifpapi3
 iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0004-canvas-size"
+# we need to add a non IANA media type
+iiifpapi3.MEDIATYPES['image'].append('image/jpg')
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Still image from an opera performance at Indiana University")

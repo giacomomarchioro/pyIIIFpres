@@ -3,11 +3,14 @@
 from . import plus
 from . import visualization_html
 from .BCP47_tags_list import lang_tags
+from .dictmediatype import mediatypedict
 import json
 global BASE_URL
 BASE_URL = "https://"
 global LANGUAGES 
 LANGUAGES = lang_tags
+global MEDIATYPES
+MEDIATYPES = mediatypedict
 
 class Required(object):
     """
@@ -50,7 +53,7 @@ class Recommended(object):
 
 def unused(attr):
     """
-    This function check if an attribute is not set (has no value in it).
+    This function checks if an attribute is not set (has no value in it).
     """
     if isinstance(attr, (Required, Recommended)) or attr is None:
         return True
@@ -149,7 +152,7 @@ def check_valid_URI(URI):
     URI = URI.replace("https:/","",1)
     URI = URI.replace("http:/","",1)
     for indx, carat in enumerate(URI):
-        if carat in r"""!"#$%&'()*+, :;<=>?@[\]^`{|}~ """:
+        if carat in r"""!"#$%&'()*+ :;<=>?@[\]^`{|}~ """: #removed comma which is used by IIIF Image API
             if carat == " ":
                 carat = "a space"
             arrow = " "*(indx) + "^"
@@ -344,9 +347,12 @@ class seeAlso(CoreAttributes):
 
         Args: format (str): the format of the IIIF type, usually is the MIME e.g. 
         image/jpg """
-        msg = "Format should be in the form type/format e.g. image/jpg"
+        msg = "Format should be in the form type/format e.g. image/jpeg"
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
         self.format = format
 
 
@@ -444,6 +450,9 @@ class bodypainting(CoreAttributes):
         assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
         self.format = format
 
     def set_width(self, width):
@@ -531,7 +540,7 @@ class service(CoreAttributes):
             "AuthLogoutService"]
         #assert any([mytype.startswith(i) for i in values]
         #           ), "Must start with:%s was: %s" % (str(values)[1:-1],mytype)
-        # throw error with ExampleExtensionService
+        # throws error with ExampleExtensionService
         self.type = mytype
 
     def set_profile(self, profile):
@@ -587,6 +596,9 @@ class thumbnail(CoreAttributes, plus.HeightWidthDuration):
         assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
         self.format = format
 
     def add_service(self, serviceobj=None):
@@ -757,6 +769,9 @@ class homepage(CoreAttributes):
         assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
         self.format = format
 
     def set_type(self, mtype):
@@ -811,6 +826,9 @@ class logo(CoreAttributes, plus.HeightWidthDuration):
         assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
         self.format = format
 
     def set_type(self, mtype):
@@ -880,6 +898,9 @@ class rendering(CoreAttributes):
         assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
         self.format = format
 
     def set_type(self, type):
@@ -1835,6 +1856,9 @@ class ImageApiSelector(object):
         assert isinstance(format,str),msg
         assert "/" in format, msg
         assert format.split("/")[0].isalpha(), msg
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
         self.format = format
 
 

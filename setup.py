@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyIIIFpres",
-    version="0.0.7",
+    version="0.0.8",
     author="Giacomo Marchioro",
     author_email="giacomomarchioro@outlook.com",
     description="A tool creating JSON manifests compliant with IIIF presentation API 3.0",

@@ -255,6 +255,7 @@ class Test_ReadAndWriteBack(unittest.TestCase):
     def test_0004_canvas_size(self):
         """
         Test 0004-canvas-size
+        !!Warning seems it uses a strange media type image/jpg
         """ 
         ref,json_manifest = get_files2("0004-canvas-size")
         self.assertEqual(ordered(ref),ordered(json_manifest))
