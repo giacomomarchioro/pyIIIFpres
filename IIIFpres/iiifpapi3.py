@@ -51,6 +51,12 @@ class Recommended(object):
 # Note: we use None for OPTIONAL with the meaning of
 # https://tools.ietf.org/html/rfc2119
 
+if not __debug__:
+    def Recommended(msg):
+        return None
+    def Required(msg):
+        return None
+
 def unused(attr):
     """
     This function checks if an attribute is not set (has no value in it).
@@ -163,6 +169,8 @@ def check_valid_URI(URI):
 # Let's group all the common arguments across the differnet types of collection
 
 
+
+
 class CoreAttributes(object):
     """
     Core attributes are the attributes in all the major
@@ -256,6 +264,12 @@ class CoreAttributes(object):
             str: The object in JSON format.
         """
         context = "http://iiif.io/api/presentation/3/context.json"
+
+        if not __debug__:
+            # in debug Required and Recommend are None hence we use a faster
+            # serializer
+            print("Debug True")
+            dumps_errors = True
 
         def serializerwitherrors(obj):
             return {k: v for k, v in obj.__dict__.items() if v is not None}
