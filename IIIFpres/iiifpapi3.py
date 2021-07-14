@@ -51,12 +51,6 @@ class Recommended(object):
 # Note: we use None for OPTIONAL with the meaning of
 # https://tools.ietf.org/html/rfc2119
 
-if not __debug__:
-    def Recommended(msg):
-        return None
-    def Required(msg):
-        return None
-
 def unused(attr):
     """
     This function checks if an attribute is not set (has no value in it).
@@ -66,6 +60,14 @@ def unused(attr):
     else:
         return False
 
+if not __debug__:
+    # For performance optimization
+    def Recommended(msg=None):
+        return None
+    def Required(msg=None):
+        return None
+    def unused(attr):
+        return True if attr is None else False 
 
 def serializable(attr):
     """Check if attribute is Required and if so rise Value error.
@@ -268,7 +270,7 @@ class CoreAttributes(object):
         if not __debug__:
             # in debug Required and Recommend are None hence we use a faster
             # serializer
-            print("Debug True")
+            print("Debug False")
             dumps_errors = True
 
         def serializerwitherrors(obj):
@@ -294,10 +296,58 @@ class CoreAttributes(object):
         res = "".join(('{\n  "@context": "%s",\n ' % context, res[3:]))
         return res
 
+    def orjson_dumps(
+            self,
+            dumps_errors=False):
+        """Dumps the content of the object in JSON format.
+
+        Args:
+            dumps_errors (bool, optional): If set true it shows any problem 
+            found directly on the JSON file with a Required or Recommended tag.
+            Defaults to False.
+
+        Returns:
+            str: The object in JSON format.
+        """
+        import orjson
+        context = "http://iiif.io/api/presentation/3/context.json"
+
+        if not __debug__:
+            # in debug Required and Recommend are None hence we use a faster
+            # serializer
+            print("Debug False")
+            dumps_errors = True
+
+        def serializerwitherrors(obj):
+            return {k: v for k, v in obj.__dict__.items() if v is not None}
+
+        def serializer(obj):
+            return {k: v for k, v in obj.__dict__.items() if serializable(v)}
+
+        if dumps_errors:
+            res = orjson.dumps(
+                self,
+                default=serializerwitherrors,
+                option = orjson.OPT_INDENT_2)
+        else:
+            res = orjson.dumps(
+                self,
+                default=serializer,
+                option = orjson.OPT_INDENT_2)
+        # little hack for fixing context first 3 chrs "{\n"
+        res = "".join(('{\n  "@context": "%s",\n ' % context,
+                         res[3:].decode("utf-8") ))
+        return res
+
     def json_save(self, filename, save_errors=False, ensure_ascii=False):
         with open(filename, 'w') as f:
             f.write(self.json_dumps(
                 dumps_errors=save_errors, ensure_ascii=ensure_ascii))
+    
+    def orjson_save(self, filename, save_errors=False):
+        with open(filename, 'w') as f:
+            f.write(self.orjson_dumps(
+                dumps_errors=save_errors))
 
     def inspect(self):
         jdump = self.json_dumps(dumps_errors=True)

@@ -63,3 +63,28 @@ infos['brand_raw'],infos['hz_advertised_friendly']]
 with open(r'performance_log_2000_canvas_2000_annotations_Optimized.csv', 'a') as f:
     writer = csv.writer(f)
     writer.writerow(fields)
+
+# Fifth test not optimized orjson
+command = ["time","python","4000_canvas_40000_annotations_orjson.py"]
+result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+times = result.stderr.split()
+
+fields=[times[0],times[2],times[4],version,datetime.datetime.now(),
+infos['python_version'],infos['arch_string_raw'],infos['vendor_id_raw'],
+infos['brand_raw'],infos['hz_advertised_friendly']]
+with open(r'performance_log_4000_canvas_40000_annotations_orjson.csv', 'a') as f:
+    writer = csv.writer(f)
+    writer.writerow(fields)
+
+
+# Sixith test optimized orjson
+command = ["time","python","-O","4000_canvas_40000_annotations_orjson.py"]
+result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+times = result.stderr.split()
+
+fields=[times[0],times[2],times[4],version,datetime.datetime.now(),
+infos['python_version'],infos['arch_string_raw'],infos['vendor_id_raw'],
+infos['brand_raw'],infos['hz_advertised_friendly']]
+with open(r'performance_log_4000_canvas_40000_annotations_Optimized_orjson.csv', 'a') as f:
+    writer = csv.writer(f)
+    writer.writerow(fields)
