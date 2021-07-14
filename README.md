@@ -3,7 +3,7 @@
 ----------------
 This is a Python module built for easing the construction of JSON manifests compliant with IIIF [API 3.0](https://iiif.io/api/presentation/3.0/) in a production environment, similarly to [iiif-prezi](https://github.com/iiif-prezi/iiif-prezi) for earlier versions of the protocol.
 
-**NOTE: This is NOT a reference implementation and is currently under development, any pull request and issues are welcome!**
+**NOTE: This is NOT a reference implementation. Pull request and issue are welcome!**
 
 ## Installation
 The library uses only standard libraries and can be installed using `pip`:
@@ -82,3 +82,5 @@ from IIIFpres.utilities import read_API3_json
 mymanifest = read_API3_json('manifest.json')
 ```
 This map Canvas, Annotation and the major IIIF types to iiifpapi3 classes, loading the rests as dicts.
+
+See the [project wiki](https://github.com/giacomomarchioro/pyIIIFpres/wiki) for  information regarding [getting image sizes automatically](https://github.com/giacomomarchioro/pyIIIFpres/wiki/Getting-image-sizes-automatically), [improve the writing performance](https://github.com/giacomomarchioro/pyIIIFpres/wiki/Improve-performance-of-writing-and-serving-JSON-IIIF-objects) and more.
