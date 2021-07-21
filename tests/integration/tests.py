@@ -218,6 +218,22 @@ class TestWithReferenceManifest(unittest.TestCase):
         ref,json_manifest = get_files("0053-seeAlso")
         #printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0065_opera_multiple_canvases(self):
+        """
+        0065-opera-multiple-canvases
+        """ 
+        ref,json_manifest = get_files("0065-opera-multiple-canvases")
+        #printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0026_toc_opera(self):
+        """
+        0026-toc-opera
+        """ 
+        ref,json_manifest = get_files("0026-toc-opera")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
         
 
 class Test_ReadAndWriteBack(unittest.TestCase):
@@ -381,6 +397,22 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         """ 
         ref,json_manifest = get_files2("0053-seeAlso")
         #printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0065_opera_multiple_canvases(self):
+        """
+        0065-opera-multiple-canvases
+        """ 
+        ref,json_manifest = get_files2("0065-opera-multiple-canvases")
+        #printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0026_toc_opera(self):
+        """
+        0026-toc-opera
+        """ 
+        ref,json_manifest = get_files2("0026-toc-opera")
+        printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 
