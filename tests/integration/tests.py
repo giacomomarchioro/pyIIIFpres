@@ -232,7 +232,7 @@ class TestWithReferenceManifest(unittest.TestCase):
         0026-toc-opera
         """ 
         ref,json_manifest = get_files("0026-toc-opera")
-        printdiff(ref,json_manifest)
+        #printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
         
 
