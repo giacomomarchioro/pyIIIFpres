@@ -1,6 +1,6 @@
 #https://iiif.io/api/presentation/3.0/#b-example-manifest-response
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = "https://example.org/iiif/book1"
+iiifpapi3.BASE_URL = "https://example.org/iiif/book1/"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest")
 manifest.add_label("en","Book 1")
@@ -130,10 +130,10 @@ for idx,d in enumerate(data):
         annopage2.set_id("https://example.org/iiif/book1/comments/p%s/1" %idx)
     
 rng = manifest.add_range_to_structures()
-rng.set_id(extendbase_url=["range","r0"])
+rng.set_id(extendbase_url="range/r0")
 rng.add_label("en","Table of Contents")
 rng2 = iiifpapi3.Range()
-rng2.set_id(extendbase_url=["range","r1"])
+rng2.set_id(extendbase_url="range/r1")
 rng2.add_label("en","Introduction")
 rng2.set_supplementary("https://example.org/iiif/book1/annocoll/introTexts")
 rng2.add_canvas_to_items("https://example.org/iiif/book1/canvas/p1")

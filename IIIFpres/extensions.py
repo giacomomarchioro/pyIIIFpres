@@ -2,8 +2,6 @@ from .iiifpapi3 import CoreAttributes, Manifest
 from .iiifpapi3 import check_valid_URI,unused
 from .iiifpapi3 import Recommended,Required
 from .iiifpapi3 import BASE_URL,LANGUAGES,MEDIATYPES
-from .iiifpapi3 import config
-
 #from shapely.geometry import mapping, shape
 
 class Feature(object):

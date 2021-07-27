@@ -150,10 +150,10 @@ for idx,d in enumerate(images):
     
     
 rng = manifest.add_range_to_structures()
-rng.set_id(extendbase_url=["range","r0"])
+rng.set_id(extendbase_url="range/r0")
 rng.add_label("en","Table of Contents")
 rng2 = iiifpapi3.Range()
-rng2.set_id(extendbase_url=["range","r1"])
+rng2.set_id(extendbase_url="range/r1")
 rng2.add_label("en","Introduction")
 rng2.set_supplementary("https://example.org/iiif/book1/annocoll/introTexts")
 rng2.add_canvas_to_items("https://example.org/iiif/book1/canvas/p1")
