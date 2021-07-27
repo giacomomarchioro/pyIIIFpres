@@ -125,7 +125,7 @@ for idx,d in enumerate(images):
     idx+=1 
     image = os.path.join(folder,d)
     canvas = manifest.add_canvas_to_items()
-    canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
+    canvas.set_id(extendbase_url="canvas/p%s"%idx) # in this case we use the base url
     out = check_output(["exiftool", image])
     Metadata = dict((e[:32].strip(),e[33:].strip()) for e in out.decode('utf8').split('\n'))
     width = Metadata['Image Width']
@@ -134,9 +134,9 @@ for idx,d in enumerate(images):
     canvas.set_width(height)
     canvas.add_label("it",plabels[idx])
     annopage = canvas.add_annotationpage_to_items()
-    annopage.set_id(extendbase_url=["page","p%s"%idx,"1"])
+    annopage.set_id(extendbase_url="page/p%s/1" %idx)
     annotation = annopage.add_annotation_to_items(target=canvas.id)
-    annotation.set_id(extendbase_url=["annotation","p%s-image"%str(idx).zfill(4)])
+    annotation.set_id(extendbase_url="annotation/p%s-image"%str(idx).zfill(4))
     annotation.set_motivation("painting")
     annotation.body.set_id(image+"/full/max/0/default.jpg")
     annotation.body.set_type("Image")

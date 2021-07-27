@@ -1,6 +1,6 @@
 # https://iiif.io/api/cookbook/recipe/0024-book-4-toc
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0024-book-4-toc"
+iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0024-book-4-toc/"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Ethiopic Ms 10")

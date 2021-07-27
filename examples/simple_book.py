@@ -14,14 +14,14 @@ data = (("Blank page",3204,4613,"https://iiif.io/api/image/3.0/example/reference
 for idx,d in enumerate(data):
     idx+=1 
     canvas = iiifpapi3.Canvas()
-    canvas.set_id(extendbase_url=["canvas","p%s"%idx]) # in this case we use the base url
+    canvas.set_id(extendbase_url="canvas/p%s"%idx) # in this case we use the base url
     canvas.set_height(d[2])
     canvas.set_width(d[1])
     canvas.add_label("en",d[0])
     annopage = iiifpapi3.AnnotationPage()
-    annopage.set_id(extendbase_url=["page","p%s"%idx,"1"])
+    annopage.set_id(extendbase_url="page/p%s/1" %idx)
     annotation = iiifpapi3.Annotation(target=canvas.id)
-    annotation.set_id(extendbase_url=["annotation","p%s-image"%str(idx).zfill(4)])
+    annotation.set_id(extendbase_url="annotation/p%s-image"%str(idx).zfill(4))
     annotation.set_motivation("painting")
     annotation.body.set_id("".join(d[3:]))
     annotation.body.set_type("Image")

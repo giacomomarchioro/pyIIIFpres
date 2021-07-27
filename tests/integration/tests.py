@@ -32,7 +32,7 @@ def ordered(obj):
     else:
         return obj
 
-def get_files(examplename,resourcetype='manifest'):
+def get_files(examplename,resourcetype='manifest',context=None):
     """
     Return the dictionary of the reference example and the one produced 
     read it from json and writing it back.
@@ -42,10 +42,10 @@ def get_files(examplename,resourcetype='manifest'):
     with open(os.path.join(fixture_dir,'%s.json' %examplename)) as f: 
         ref = json.load(f) 
     example = runpy.run_path(os.path.join(prj_dir,'examples','%s.py'%examplename))
-    json_manifest = json.loads(example[resourcetype].json_dumps())
+    json_manifest = json.loads(example[resourcetype].json_dumps(context=context))
     return ref,json_manifest
 
-def get_files2(examplename):
+def get_files2(examplename,context=None):
     """
     Return the dictionary of the reference example and the one produced by the script.
     Use the name of the example without extension.
@@ -54,7 +54,7 @@ def get_files2(examplename):
     with open(example_path) as f: 
         ref = json.load(f)
     mymanifest = read_API3_json(example_path)
-    json_manifest = json.loads(mymanifest.json_dumps())
+    json_manifest = json.loads(mymanifest.json_dumps(context=context))
     return ref,json_manifest
 
 class TestWithReferenceManifest(unittest.TestCase):
@@ -234,7 +234,24 @@ class TestWithReferenceManifest(unittest.TestCase):
         ref,json_manifest = get_files("0026-toc-opera")
         #printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
-        
+    
+    def test_0154_geo_extension(self):
+        """
+        0154-geo-extension
+        """ 
+        context = [
+            "http://iiif.io/api/extension/navPlace-context/context.json",
+            "http://iiif.io/api/presentation/3/context.json"
+        ]
+        ref,json_manifest = get_files("0154-geo-extension",context=context)
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+#
+#
+#       TEST READ AND WRITE BACK
+# 
+#          
 
 class Test_ReadAndWriteBack(unittest.TestCase):
     

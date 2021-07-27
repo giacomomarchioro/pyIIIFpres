@@ -1,6 +1,6 @@
 # https://iiif.io/api/cookbook/recipe/0009-book-1/
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0011-book-3-behavior"
+iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0011-book-3-behavior/"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest-individuals.json")
 manifest.add_label("ca","[Conoximent de las orines] Ihesus, Ihesus. En nom de Deu et dela beneyeta sa mare e de tots los angels i archangels e de tots los sants e santes de paradis yo micer Johannes comense aquest libre de reseptes en l’ayn Mi 466.")
@@ -30,14 +30,14 @@ data = [('inside cover; 1r',
 for idx,d in enumerate(data):
     idx+=1 
     canvas = manifest.add_canvas_to_items()
-    canvas.set_id(extendbase_url=["canvas","v%s"%idx]) # in this case we use the base url
+    canvas.set_id(extendbase_url="canvas/v%s"%idx) # in this case we use the base url
     canvas.set_height(d[2])
     canvas.set_width(d[1])
     canvas.add_label("en",d[0])
     annopage = canvas.add_annotationpage_to_items()
-    annopage.set_id(extendbase_url=["page","v%s"%idx,"1"])
+    annopage.set_id(extendbase_url="page/v%s/1" %idx)
     annotation = annopage.add_annotation_to_items(target=canvas.id)
-    annotation.set_id(extendbase_url=["annotation","v%s-image"%str(idx).zfill(4)])
+    annotation.set_id(extendbase_url="annotation/v%s-image" %str(idx).zfill(4))
     annotation.set_motivation("painting")
     annotation.body.set_id("".join(d[3:]))
     annotation.body.set_type("Image")

@@ -1,5 +1,5 @@
 from IIIFpres.utilities import read_API3_json
-mymanifest = read_API3_json('tests/integration/fixtures/0010-book-2-viewing-direction-manifest-ttb.json')
+mymanifest = read_API3_json('tests/integration/fixtures/0024-book-4-toc.json')
 fields = []
 for i in mymanifest.items:
     imgurl = i.items[0].items[0].body['service'][0]['id']

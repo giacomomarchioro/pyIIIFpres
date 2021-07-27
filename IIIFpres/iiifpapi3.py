@@ -1,5 +1,6 @@
 
 # -*- coding: UTF-8 -*-.
+from typing import ContextManager
 from . import plus
 from . import visualization_html
 from .BCP47_tags_list import lang_tags
@@ -11,6 +12,8 @@ global LANGUAGES
 LANGUAGES = lang_tags
 global MEDIATYPES
 MEDIATYPES = mediatypedict
+global CONTEXT 
+CONTEXT = "http://iiif.io/api/presentation/3/context.json"
 
 class Required(object):
     """
@@ -197,7 +200,7 @@ class CoreAttributes(object):
         Args:
             objid (str, optional): A string corresponding to the ID of the object.
             Defaults to None.
-            extendbase_url (str or list, optional): A string or a list of strings
+            extendbase_url (str , optional): A string containg the URL part
             to be joined with the iiifpapi3.BASE_URL . Defaults to None.
         """
 
@@ -205,19 +208,12 @@ class CoreAttributes(object):
             if objid:
                 raise ValueError(
                     "Set id using extendbase_url or objid not both.")
-            
-            if isinstance(extendbase_url, str):
-                joined = "/".join((BASE_URL, extendbase_url))
-                assert check_valid_URI(joined),"Special characters must be encoded"
-                self.id = joined
-            if isinstance(extendbase_url, list):
-                extendbase_url.insert(0, BASE_URL)
-                joined = "/".join(extendbase_url)
-                assert check_valid_URI(joined),"Special characters must be encoded"
-                self.id = joined
 
-        elif objid is None:
-            self.id = BASE_URL
+            assert BASE_URL.endswith("/") or extendbase_url.startswith("/"), "Add / to extandbase_url or BASE_URL"
+            joined = "".join((BASE_URL, extendbase_url))
+            assert check_valid_URI(joined),"Special characters must be encoded"
+            self.id = joined
+        
         else:
             assert objid.startswith("http"), "ID must start with http or https"
             if self.type == 'Canvas':
@@ -254,7 +250,8 @@ class CoreAttributes(object):
             self,
             dumps_errors=False,
             ensure_ascii=False,
-            sort_keys=False):
+            sort_keys=False,
+            context=None):
         """Dumps the content of the object in JSON format.
 
         Args:
@@ -265,7 +262,8 @@ class CoreAttributes(object):
         Returns:
             str: The object in JSON format.
         """
-        context = "http://iiif.io/api/presentation/3/context.json"
+        if context is None:
+            context = CONTEXT
 
         if not __debug__:
             # in debug Required and Recommend are None hence we use a faster
@@ -293,12 +291,13 @@ class CoreAttributes(object):
                 ensure_ascii=ensure_ascii,
                 sort_keys=sort_keys)
         # little hack for fixing context first 3 chrs "{\n"
-        res = "".join(('{\n  "@context": "%s",\n ' % context, res[3:]))
+        res = "".join(('{\n  "@context": %s,\n ' %json.dumps(context), res[3:]))
         return res
 
     def orjson_dumps(
             self,
-            dumps_errors=False):
+            dumps_errors=False,
+            context=None):
         """Dumps the content of the object in JSON format.
 
         Args:
@@ -310,7 +309,8 @@ class CoreAttributes(object):
             str: The object in JSON format.
         """
         import orjson
-        context = "http://iiif.io/api/presentation/3/context.json"
+        if context is None:
+            context = CONTEXT
 
         if not __debug__:
             # in debug Required and Recommend are None hence we use a faster
@@ -335,19 +335,19 @@ class CoreAttributes(object):
                 default=serializer,
                 option = orjson.OPT_INDENT_2)
         # little hack for fixing context first 3 chrs "{\n"
-        res = "".join(('{\n  "@context": "%s",\n ' % context,
+        res = "".join(('{\n  "@context": %s,\n ' %json.dumps(context),
                          res[3:].decode("utf-8") ))
         return res
 
-    def json_save(self, filename, save_errors=False, ensure_ascii=False):
+    def json_save(self, filename, save_errors=False, ensure_ascii=False,context=None):
         with open(filename, 'w') as f:
             f.write(self.json_dumps(
-                dumps_errors=save_errors, ensure_ascii=ensure_ascii))
+                dumps_errors=save_errors, ensure_ascii=ensure_ascii,context=context))
     
-    def orjson_save(self, filename, save_errors=False):
+    def orjson_save(self, filename, save_errors=False,context=None):
         with open(filename, 'w') as f:
             f.write(self.orjson_dumps(
-                dumps_errors=save_errors))
+                dumps_errors=save_errors,context=context))
 
     def inspect(self):
         jdump = self.json_dumps(dumps_errors=True)
@@ -1025,11 +1025,16 @@ class languagemap(object):
 
     def add_value(self, value, language="none"):
         if unused(self.value):
-            self.value = {}
+            self.value = {} 
         if not isinstance(value, list):
             value = [value]
-        # TODO: if html must begin with < and ends with >
+       
+        # TODO: if html must begin with < and end with >
         # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
+        # possible hack ignoring self-closing tags?
+        #if any(['</' in i for i in value]):
+        #    assert any([i.startswith('<') and i.endswith('>') for i in value]),\
+        #        'if html must begin with < and end with >'
         assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
         self.value[language] = value
 
@@ -1099,7 +1104,6 @@ class CommonAttributes(CoreAttributes):
         if not isinstance(value, list):
             value = [value]
         assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none"
-        assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none"
 
         if entry is None:
             entry = {"label": {language_l: [label]},

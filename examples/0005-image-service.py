@@ -1,19 +1,19 @@
 # implementation of Image and Canvas with Differing Dimensions https://iiif.io/api/cookbook/recipe/0005-image-service/
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0005-image-service" # do not place final /
+iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0005-image-service/" 
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Picture of Göttingen taken during the 2019 IIIF Conference")
 canvas = manifest.add_canvas_to_items()
-canvas.set_id(extendbase_url=["canvas","p1"])
+canvas.set_id(extendbase_url="canvas/p1")
 canvas.add_label("en","Canvas with a single IIIF image")
 canvas.set_height(3024)
 canvas.set_width(4032)
 annopage = canvas.add_annotationpage_to_items()
-annopage.set_id(extendbase_url=["page","p1","1"])
+annopage.set_id(extendbase_url="page/p1/1")
 annotation = annopage.add_annotation_to_items(target=canvas.id) 
 annotation.set_motivation("painting")
-annotation.set_id(extendbase_url=["annotation","p0001-image"])
+annotation.set_id(extendbase_url="annotation/p0001-image")
 annotation.body.set_id("https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/max/0/default.jpg")
 annotation.body.set_format("image/jpeg")
 annotation.body.set_type("Image")

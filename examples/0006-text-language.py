@@ -1,6 +1,6 @@
 # implementation of Image and Canvas with Differing Dimensions https://iiif.io/api/cookbook/recipe/0006-text-language
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0006-text-language" # do not place final /
+iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0006-text-language/" 
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Whistler's Mother")
@@ -23,14 +23,14 @@ reqstat.add_label(language="en",label="Held By")
 reqstat.add_label(language="fr",label="Détenu par")
 reqstat.add_value(value="Musée d'Orsay, Paris, France")
 canvas = manifest.add_canvas_to_items()
-canvas.set_id(extendbase_url=["canvas","p1"])
+canvas.set_id(extendbase_url="canvas/p1")
 canvas.set_height(991)
 canvas.set_width(1114)
 annopage = canvas.add_annotationpage_to_items()
-annopage.set_id(extendbase_url=["page","p1","1"])
+annopage.set_id(extendbase_url="page/p1/1")
 annotation = annopage.add_annotation_to_items(target=canvas.id) 
 annotation.set_motivation("painting")
-annotation.set_id(extendbase_url=["annotation","p0001-image"])
+annotation.set_id(extendbase_url="annotation/p0001-image")
 annotation.body.set_id("https://iiif.io/api/image/3.0/example/reference/329817fc8a251a01c393f517d8a17d87-Whistlers_Mother/full/max/0/default.jpg")
 annotation.body.set_format("image/jpeg")
 annotation.body.set_type("Image")

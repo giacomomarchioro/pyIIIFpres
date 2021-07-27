@@ -1,6 +1,6 @@
 # implementation of Image and Canvas with Differing Dimensions https://iiif.io/api/cookbook/recipe/0118_multivalue/
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = r"https://example.org/iiif/text-language/manifest" # do not place final /
+iiifpapi3.BASE_URL = r"https://example.org/iiif/text-language/manifest/"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest")
 manifest.add_label("fr","Arrangement en gris et noir no 1")

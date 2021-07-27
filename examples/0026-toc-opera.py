@@ -1,6 +1,6 @@
 # https://iiif.io/api/cookbook/recipe/0026-toc-opera/
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0026-toc-opera"
+iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0026-toc-opera/"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label('it',"L'Elisir D'Amore")

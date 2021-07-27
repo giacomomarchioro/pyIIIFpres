@@ -1,6 +1,6 @@
 # https://iiif.io/api/cookbook/recipe/0117-add-image-thumbnail/
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0117-add-image-thumbnail"
+iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0117-add-image-thumbnail/"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json ")
 manifest.add_label("en","Playbill Cover with Manifest Thumbnail")
@@ -45,15 +45,15 @@ thum.add_service(cplx_service)
 
 
 canvas = manifest.add_canvas_to_items()
-canvas.set_id(extendbase_url=["canvas","p0"])
+canvas.set_id(extendbase_url="canvas/p0")
 canvas.add_label("en","front cover with color bar")
 canvas.set_height(5312)
 canvas.set_width(4520)
 annopage = canvas.add_annotationpage_to_items()
-annopage.set_id(extendbase_url=["page","p0","1"])
+annopage.set_id(extendbase_url="page/p0/1")
 annotation = annopage.add_annotation_to_items(target=canvas.id) 
 annotation.set_motivation("painting")
-annotation.set_id(extendbase_url=["annotation","p0000-image"])
+annotation.set_id(extendbase_url="annotation/p0000-image")
 annotation.body.set_height(5312)
 annotation.body.set_width(4520)
 annotation.body.set_id("https://iiif.io/api/image/3.0/example/reference/4f92cceb12dd53b52433425ce44308c7-ucla_bib1987273_no001_rs_001_full/full/max/0/default.jpg")

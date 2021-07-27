@@ -1,6 +1,6 @@
 # https://iiif.io/api/cookbook/recipe/0013-placeholderCanvas/
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0013-placeholderCanvas"
+iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0013-placeholderCanvas/"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 canvas = manifest.add_canvas_to_items()
