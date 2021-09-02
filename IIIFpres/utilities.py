@@ -33,7 +33,7 @@ def read_API3_json(path):
     Args:
         path (str): [description]
     """
-    if type(path) == 'dict':
+    if type(path) == dict:
         t = path
     else:
         with open(path) as f: 
