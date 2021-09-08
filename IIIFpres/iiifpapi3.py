@@ -79,7 +79,7 @@ def serializable(attr):
         attr : the value of the dictionary representing the attribute of the instance.
     """
     if isinstance(attr, Required):
-        raise ValueError("Required attribute missing")
+        raise ValueError(attr)
     if isinstance(attr, Recommended) or attr is None:
         return False
     else:
