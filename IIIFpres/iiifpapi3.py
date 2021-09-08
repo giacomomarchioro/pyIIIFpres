@@ -14,6 +14,8 @@ global MEDIATYPES
 MEDIATYPES = mediatypedict
 global CONTEXT 
 CONTEXT = "http://iiif.io/api/presentation/3/context.json"
+global VALID_URI_CHARACTERS
+VALID_URI_CHARACTERS = r"""!"$%&'()*+ :;<=>?@[\]^`{|}~ """ #removed comma which is used by IIIF Image API and #
 
 class Required(object):
     """
@@ -163,7 +165,7 @@ def check_valid_URI(URI):
     URI = URI.replace("https:/","",1)
     URI = URI.replace("http:/","",1)
     for indx, carat in enumerate(URI):
-        if carat in r"""!"#$%&'()*+ :;<=>?@[\]^`{|}~ """: #removed comma which is used by IIIF Image API
+        if carat in VALID_URI_CHARACTERS: 
             if carat == " ":
                 carat = "a space"
             arrow = " "*(indx) + "^"
