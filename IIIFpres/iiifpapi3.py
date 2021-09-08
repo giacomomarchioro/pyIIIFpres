@@ -525,7 +525,7 @@ class bodypainting(CoreAttributes):
     def set_height(self, height ):
         self.height = int(height)
 
-    def set_hightwidth(self, height, width):
+    def set_heightwidth(self, height, width):
         self.set_width(width)
         self.set_height(height)
 
