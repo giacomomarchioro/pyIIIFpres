@@ -24,19 +24,17 @@ def modify_API3_json(path):
     newobj.__dict__ = t
     return newobj 
 
-def read_API3_json(path):
+def read_API3_json_dict(jsondict,extensions=None,save_context=False):
     """Read an IIIF json file complaint with API 3.0 and map the IIIF types to classes.
 
     This method parse the major IIIF types and map them to the iiifpapi3 classes.
     NOTE: the method assumes the IIIF object is complaint to API 3.0.
 
     Args:
-        path (str): [description]
+        jsondict (dict): a dict representing the JSON file.
     """
-    with open(path) as f: 
-        t = json.load(f)    
-    t.pop('@context')
-   
+
+    jsondict.pop('@context')
     entitydict = {
      'Annotation':iiifpapi3.Annotation,
      'AnnotationPage':iiifpapi3.AnnotationPage,
@@ -58,7 +56,7 @@ def read_API3_json(path):
      'services':iiifpapi3.services,
      'start':iiifpapi3.start,
         }
-    assert t['type'] in entitydict.keys(),"%s not a valid IIIF object"%t['type']
+    assert jsondict['type'] in entitydict.keys(),"%s not a valid IIIF object"%jsondict['type']
     def map_to_class(obj,iscollection=False):
         parent_is_collection = False
         if obj['type'] == 'Collection':
@@ -80,8 +78,38 @@ def read_API3_json(path):
             if newobj.duration != None:
                 newobj.set_duration(newobj.duration)
         return newobj
-    newobj = map_to_class(t)
+    newobj = map_to_class(jsondict)
     return newobj 
+
+
+
+def read_API3_json(path,extensions=None,save_context=False):
+    """Read an IIIF json file complaint with API 3.0 and map the IIIF types to classes.
+
+    This method parse the major IIIF types and map them to the iiifpapi3 classes.
+    NOTE: the method assumes the IIIF object is complaint to API 3.0.
+
+    Args:
+        path (str): path of the jsonfile
+    """
+    with open(path) as f: 
+        jsondict = json.load(f)
+    return read_API3_json_dict(jsondict,extensions=extensions,save_context=save_context)  
+    
+def read_API3_json_file(path,extensions=None,save_context=False):
+    """Read an IIIF json file complaint with API 3.0 and map the IIIF types to classes.
+
+    This method parse the major IIIF types and map them to the iiifpapi3 classes.
+    NOTE: the method assumes the IIIF object is complaint to API 3.0.
+
+    Args:
+        path (str): path of the jsonfile
+    """
+    with open(path) as f: 
+        jsondict = json.load(f)
+    return read_API3_json_dict(jsondict,extensions=extensions,save_context=save_context)    
+
+
 
 
 def delete_object_byID(obj,id):
