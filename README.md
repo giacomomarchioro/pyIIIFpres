@@ -3,7 +3,7 @@
 ----------------
 This is a Python module built for easing the construction of JSON manifests compliant with IIIF [API 3.0](https://iiif.io/api/presentation/3.0/) in a production environment, similarly to [iiif-prezi](https://github.com/iiif-prezi/iiif-prezi) for earlier versions of the protocol.
 
-**NOTE: This is NOT a reference implementation. Pull request and issue are welcome!**
+**NOTE: This is NOT a reference implementation. Pull requests and issues are welcome!**
 
 ## Installation
 The library uses only standard libraries and can be installed using `pip`:
