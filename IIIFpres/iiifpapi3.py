@@ -14,8 +14,8 @@ global MEDIATYPES
 MEDIATYPES = mediatypedict
 global CONTEXT 
 CONTEXT = "http://iiif.io/api/presentation/3/context.json"
-global VALID_URI_CHARACTERS
-VALID_URI_CHARACTERS = r"""!"$%&'()*+ :;<=>?@[\]^`{|}~ """ #removed comma which is used by IIIF Image API and #
+global INVALID_URI_CHARACTERS
+INVALID_URI_CHARACTERS = r"""!"$%&'()*+ :;<=>?@[\]^`{|}~ """ #removed comma which is used by IIIF Image API and #
 
 class Required(object):
     """
@@ -165,7 +165,7 @@ def check_valid_URI(URI):
     URI = URI.replace("https:/","",1)
     URI = URI.replace("http:/","",1)
     for indx, carat in enumerate(URI):
-        if carat in VALID_URI_CHARACTERS: 
+        if carat in INVALID_URI_CHARACTERS: 
             if carat == " ":
                 carat = "a space"
             arrow = " "*(indx) + "^"
@@ -245,7 +245,7 @@ class CoreAttributes(object):
             self.label = {}
         if language is None:
             language = "none"
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty.. Please read https://git.io/JoQty."
         self.label[language] = [text]
 
     def json_dumps(
@@ -489,7 +489,7 @@ class bodycommenting(object):
         self.value = value
 
     def set_language(self, language):
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.language = language
 
 
@@ -556,7 +556,7 @@ class bodypainting(CoreAttributes):
     def add_language(self,language):
         if unused(self.language):
             self.language = []
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.language.append(language)
 
 class service(CoreAttributes):
@@ -818,7 +818,7 @@ class homepage(CoreAttributes):
     def set_language(self, language):
         if unused(self.language):
             self.language = []
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.language.append(language)
 
     def set_format(self, format):
@@ -1037,7 +1037,7 @@ class languagemap(object):
         #if any(['</' in i for i in value]):
         #    assert any([i.startswith('<') and i.endswith('>') for i in value]),\
         #        'if html must begin with < and end with >'
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.value[language] = value
 
     def add_label(self, label, language="none"):
@@ -1047,7 +1047,7 @@ class languagemap(object):
             label = [label]
         # TODO: check that is not html
         # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.label[language] = label
 
 
@@ -1105,7 +1105,7 @@ class CommonAttributes(CoreAttributes):
 
         if not isinstance(value, list):
             value = [value]
-        assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none"
+        assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
 
         if entry is None:
             entry = {"label": {language_l: [label]},
@@ -1124,7 +1124,7 @@ class CommonAttributes(CoreAttributes):
         """
         if unused(self.summary):
             self.summary = {}
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.summary[language] = [text]
 
     def add_requiredStatement(self, label=None, value=None, language_l=None,
@@ -1151,8 +1151,8 @@ class CommonAttributes(CoreAttributes):
         if (label is not None or value is not None) and entry is not None:
             raise ValueError(
                 "Either use entry arguments or a combination of other arguments, NOT both.")
-        assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none"
-        assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none"
+        assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
 
         if entry is None:
             entry = {"label": {language_l: [label]},
