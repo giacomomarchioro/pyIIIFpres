@@ -16,6 +16,23 @@ global CONTEXT
 CONTEXT = "http://iiif.io/api/presentation/3/context.json"
 global INVALID_URI_CHARACTERS
 INVALID_URI_CHARACTERS = r"""!"$%&'()*+ :;<=>?@[\]^`{|}~ """ #removed comma which is used by IIIF Image API and #
+global BEHAVIOURS
+BEHAVIOURS = ["auto-advance",
+"no-auto-advance",
+"repeat",
+"no-repeat",
+"unordered",
+"individuals",
+"continuous",
+"paged",
+"facing-pages",
+"non-paged",
+"multi-part",
+"together",
+"sequence",
+"thumbnail-nav",
+"no-nav",
+"hidden"]
 
 class Required(object):
     """
@@ -1210,12 +1227,50 @@ class CommonAttributes(CoreAttributes):
 
     def add_behavior(self, behavior):
         """
+        https://iiif.io/api/presentation/3.0/#behavior
         A set of user experience features that the publisher of the content
         would prefer the client to use when presenting the resource. This
         specification defines the values in the table below. Others may be
         defined externally as an extension.
         """
-        # TODO: CHECK IF ALLOWED
+        # TODO: should we assert if behaviour disjoint with others?
+        assert behavior in BEHAVIOURS,f"{behavior} is not valid. See https://git.io/Jo7r9."
+
+        if behavior == "auto-advance" or behavior == "no-auto-advance":
+            assert self.type in ["Collection","Manifest","Canvas","Range"], f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
+            if self.type == "Range":
+                #TODO: Ranges that include or are Canvases with at least the duration dimension. 
+                pass
+
+        elif behavior == "repeat" or behavior == "no-repeat":
+            assert self.type in ["Collection","Manifest"],f"{behavior} behavior is valid only for Collection and Manifest"
+            # TODO: assert any([True for i in self.items if i.type == "Canvas" and i.duration is not None]), "This behaviour should be used when canvas has duration property. Add it after the canvas definition."
+
+        elif behavior == "unordered" or behavior == "individuals":
+            assert self.type in ["Collection","Manifest","Range"], f"{behavior} behavior is valid only for Collection, Manifest,Range"
+
+        elif behavior == "continuous" or behavior == "paged":
+            assert self.type in ["Collection","Manifest","Range"], f"{behavior} behavior is valid only for Collection, Manifest,Range"
+            # TODO: assert any([True for i in self.items if i.type == "Canvas" and i.height is not None]), "This behaviour should be used when canvas has duration property. Add it after the canvas definition."
+
+        elif behavior == "facing-pages" or behavior == "non-paged":
+            assert self.type == "Canvas", f"{behavior} behavior is valid only on on Canvases, where the Canvas has at least height and width dimensions."
+            assert self.height is not None,f"with {behavior} behavior Canvas must have height property."
+            assert self.width is not None, f"with {behavior} behavior Canvas must have width property."
+
+        elif behavior == "multi-part" or behavior == "together":
+            assert self.type == "Collection", f"{behavior} behavior is valid only on Collections."
+        
+        elif behavior == "sequence":
+            assert self.type == "Range", f"{behavior} behavior is valid only on Ranges, where the Range is referenced in the structures property of a Manifest"
+            #TODO: Valid only on Ranges, where the Range is referenced in the structures property of a Manifest
+
+        elif behavior == "thumbnail-nav" or behavior == "no-nav":
+            assert self.type == "Collection", f"{behavior} behavior is valid only on Collections."
+        
+        elif behavior == "hidden":
+            assert self.type in ["Annotation","Collection","AnnotationPage","Annotations","SpecificResource","Choice"],f"{behavior} behavior is valid only on Annotation Collections, Annotation Pages, Annotations, Specific Resources and Choices."
+
         if unused(self.behavior):
             self.behavior = []
         self.behavior.append(behavior)
