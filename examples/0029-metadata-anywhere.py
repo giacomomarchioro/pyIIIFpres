@@ -12,7 +12,7 @@ manifest.add_metadata(
     value="1 painting : oil on canvas ; canvas 152 x 244.4 cm",
     language_l="en",language_v="en")
 manifest.add_metadata(label="Reference",value="Wellcome Library no. 47369i",language_l="en",language_v="en")
-reqst = manifest.add_requiredStatement()
+reqst = manifest.set_requiredStatement()
 reqst.add_label(language="en",label="Attribution")
 reqst.add_value(language="en",value="Wellcome Collection. Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)")
 canvas = manifest.add_canvas_to_items()

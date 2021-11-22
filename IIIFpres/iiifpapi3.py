@@ -6,6 +6,7 @@ from . import visualization_html
 from .BCP47_tags_list import lang_tags
 from .dictmediatype import mediatypedict
 import json
+import warnings
 global BASE_URL
 BASE_URL = "https://"
 global LANGUAGES 
@@ -1144,7 +1145,7 @@ class CommonAttributes(CoreAttributes):
         assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.summary[language] = [text]
 
-    def add_requiredStatement(self, label=None, value=None, language_l=None,
+    def set_requiredStatement(self, label=None, value=None, language_l=None,
                               language_v=None, entry=None):
         """
         IIIF: Text that must be displayed when the resource is displayed or
@@ -1156,6 +1157,14 @@ class CommonAttributes(CoreAttributes):
         always be possible to display this statement to the user in the
         client’s initial state. If initially hidden, clients must make the
         method of revealing it as obvious as possible.
+
+        If left empty returns a multilanguage object that you can use as in this example:
+
+            reqst = manifest.set_requiredStatement()
+            reqst.add_label('Hosting','en') 
+            reqst.add_value('hosted by imagineRio','en') 
+            reqst.add_label('Hospedagem','pt-BR')
+            reqst.add_value('Hospedado per imagineRio','pt-BR')
         """
         if label is None and value is None and entry is None:
             languagemapobj = languagemap()
@@ -1168,10 +1177,10 @@ class CommonAttributes(CoreAttributes):
         if (label is not None or value is not None) and entry is not None:
             raise ValueError(
                 "Either use entry arguments or a combination of other arguments, NOT both.")
-        assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
-        assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
-
+        
         if entry is None:
+            assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+            assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
             entry = {"label": {language_l: [label]},
                      "value": {language_v: [value]}}
         self.requiredStatement = entry
@@ -1194,6 +1203,13 @@ class CommonAttributes(CoreAttributes):
         assert any([rights.startswith(i) for i in licenceurls]
                    ), "Must start with:%s" % str(licenceurls)[1:-1]
         self.rights = rights
+
+
+    def add_requiredStatement(self, label=None, value=None, language_l=None,
+                              language_v=None, entry=None):
+        
+        warnings.warn('Please use set_requiredStatement instead.', DeprecationWarning) 
+        return self.set_requiredStatement(label,value,language_l,language_v,entry)
 
     def add_thumbnail(self, thumbnailobj=None):
         """
