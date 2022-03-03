@@ -84,3 +84,7 @@ mymanifest = read_API3_json('manifest.json')
 This map Canvas, Annotation and the major IIIF types to iiifpapi3 classes, loading the rests as dicts.
 
 See the [project wiki](https://github.com/giacomomarchioro/pyIIIFpres/wiki) for  information regarding [getting image sizes automatically](https://github.com/giacomomarchioro/pyIIIFpres/wiki/Getting-image-sizes-automatically), [improve the writing performance](https://github.com/giacomomarchioro/pyIIIFpres/wiki/Improve-performance-of-writing-and-serving-JSON-IIIF-objects) and more.
+
+
+## Acknowledgements
+I would like to thanks [Marim Passos](https://github.com/martimpassos) for reporting issues, and IIIF community and coordinators.
