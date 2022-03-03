@@ -13,7 +13,7 @@ The library uses only standard libraries and can be installed using `pip`:
 
 ## Basic usage
 The module maps the API structure to Python classes. The user `set_` objects that can have only one value (e.g. `id`) and `add_` objects that can have multiple entities (e.g. `labels`).
-As an example, we will execute the [Simple Manifest - Book recipe](https://iiif.io/api/cookbook/recipe/0009-book-1/) from the IIIF cookbook. More examples in the homonymous folder.
+As an example, we will execute the [Simple Manifest - Book recipe](https://iiif.io/api/cookbook/recipe/0009-book-1/) from the IIIF cookbook. More examples from the [cookbook](https://iiif.io/api/cookbook/) in the examples folder of this repository.
 
 ```python
 from IIIFpres import iiifpapi3
@@ -87,4 +87,4 @@ See the [project wiki](https://github.com/giacomomarchioro/pyIIIFpres/wiki) for 
 
 
 ## Acknowledgements
-I would like to thanks [Marim Passos](https://github.com/martimpassos) for reporting issues, and IIIF community and coordinators.
+I would like to thanks [Martim Passos](https://github.com/martimpassos) for reporting issues, and IIIF community and coordinators.
