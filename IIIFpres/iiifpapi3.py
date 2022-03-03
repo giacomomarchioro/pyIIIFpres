@@ -7,6 +7,7 @@ from .BCP47_tags_list import lang_tags
 from .dictmediatype import mediatypedict
 import json
 import warnings
+import copy
 global BASE_URL
 BASE_URL = "https://"
 global LANGUAGES 
@@ -56,7 +57,7 @@ class Required(object):
 class Recommended(object):
     """
     This is not an IIIF object but a class used by this software to identify 
-    required fields.
+    recommended fields.
     This is equivalent to SHOULD statement in the guideline with the meaning
     of https://tools.ietf.org/html/rfc2119.
     """
@@ -511,6 +512,11 @@ class bodycommenting(object):
         self.language = language
 
 
+class choice(CoreAttributes):
+    def __init__(self):
+        super(choice, self).__init__()
+        self.id = None
+
 class bodypainting(CoreAttributes):
     def __init__(self):
         super(bodypainting, self).__init__()
@@ -525,6 +531,7 @@ class bodypainting(CoreAttributes):
         self.duration = None
         self.service = None
         self.language = None
+        self.items = None
 
     def set_type(self, mytype):
         self.type = mytype
@@ -571,6 +578,29 @@ class bodypainting(CoreAttributes):
                     "Trying to add wrong object to service in %s" %
                     self.__class__.__name__)
 
+    def add_choice(self,choiceobj=None):
+        assert isinstance(self.type,Required) or self.type == "Choice", "Body type must be Choice"
+        if unused(self.items):
+            self.items = []
+        if choiceobj is None:
+            self.id = None
+            self.format = None
+            self.height = None
+            self.width = None
+            #TODO: myabe assert these properties are not defined
+            choice = bodypainting()
+            self.set_type("Choice")
+            self.items.append(choice)
+            # TODO: remove items from the new bodypainting?
+            return choice
+        else:
+            if isinstance(choiceobj, bodypainting) or isinstance(choiceobj, dict):
+                self.items.append(choiceobj)
+            else:
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" %
+                    self.__class__.__name__)
+        
     def add_language(self,language):
         if unused(self.language):
             self.language = []
@@ -1844,11 +1874,8 @@ class Collection(CMRCattributes,plus.ViewingDirection):
         else:
             if isinstance(obj, Manifest):
                 # Adding a Manifest only the references and thumbnail are passed
-                newobj = refManifest()
-                newobj.id = obj.id
-                newobj.label = obj.label
-                newobj.thumbnail = obj.thumbnail
-                newobj.navDate = obj.navDate
+                newobj = copy.copy(obj)
+                delattr(newobj,'items')
                 self.items.append(newobj)
             else:
                 raise ValueError(
