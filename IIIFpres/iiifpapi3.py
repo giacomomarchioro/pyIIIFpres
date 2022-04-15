@@ -1,6 +1,5 @@
 
 # -*- coding: UTF-8 -*-.
-from typing import ContextManager
 from . import plus
 from . import visualization_html
 from .BCP47_tags_list import lang_tags
@@ -498,7 +497,10 @@ class bodycommenting(object):
         self.language = None
 
     def set_type(self, mtype):
-        print("Commenting body should be TextualBody not %s" % mtype)
+        if mtype == "TextualBody":
+            print("Commenting/tagging body is by default TextualBody, this set will be ingored.")
+        else:
+            raise ValueError("Commenting/tagging body must be TextualBody you tried to set it %s " %mtype)
 
     def set_format(self, format):
         # TODO: what format are allowed?
@@ -787,10 +789,13 @@ class provider(CoreAttributes):
             "Agents should have the logo property, and its value must be an array of JSON objects as described in the logo section.")
         self.seeAlso = None
 
-    def set_type(self):
+    def set_type(self,mtype=None):
         """The type property must be the string “Agent”.
         """
-        print("The type property must be the default string “Agent”.")
+        if mtype == "Agent" or mtype is None:
+            print("Provider type is by default Agent, this set will be ingored.")
+        else:
+            raise ValueError("The provider agent type must be set to 'Agent' you tried to set it to: %s " %mtype)
 
     def add_logo(self, logoobj=None):
         if unused(self.logo):
@@ -1458,8 +1463,8 @@ class Annotation(CommonAttributes):
 
     def __init__(self, target=Required()):
         super(Annotation, self).__init__()
-        self.motivation = None
-        self.body = None
+        self.motivation = None #TODO: Check if this is required
+        self.body = None #TODO: Check if this is required
         self.target = target
         self.metadata = None
 
@@ -1511,12 +1516,12 @@ class Annotation(CommonAttributes):
         text, or captions for what is
         """
 
-        motivations = ["painting", "supplementing"]
+        motivations = ["painting", "supplementing","commenting","tagging"]
         if motivation not in motivations:
-            print("Motivation not painting neither supplementing")
+            print("Motivation not in %s" % motivations)
         if motivation == "painting":
             self.body = bodypainting()
-        if motivation == "commenting":
+        if motivation == "commenting" or motivation == "tagging":
             self.body = bodycommenting()
         self.motivation = motivation
 
