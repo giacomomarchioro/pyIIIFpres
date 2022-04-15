@@ -247,6 +247,22 @@ class TestWithReferenceManifest(unittest.TestCase):
         printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
+    def test_0266_full_canvas_annotation(self):
+        """
+        0266-full-canvas-annotation
+        """ 
+        ref,json_manifest = get_files("0266-full-canvas-annotation")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0021_tagging(self):
+        """
+        0021-tagging
+        """ 
+        ref,json_manifest = get_files("0021-tagging")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
 #
 #
 #       TEST READ AND WRITE BACK
@@ -432,6 +448,19 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         #printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
+    def test_0266_full_canvas_annotation(self):
+        """
+        0266-full-canvas-annotation
+        """ 
+        ref,json_manifest = get_files2("0266-full-canvas-annotation")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0021_tagging(self):
+        """
+        0021-tagging
+        """ 
+        ref,json_manifest = get_files2("0021-tagging")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
 
 # with open('org.json','w') as o, open('final.json','w') as f:
 #     json.dump(ordered(ref),o,indent=2)
