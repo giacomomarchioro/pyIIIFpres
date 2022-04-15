@@ -1524,6 +1524,20 @@ class Annotation(CommonAttributes):
         if motivation == "commenting" or motivation == "tagging":
             self.body = bodycommenting()
         self.motivation = motivation
+    
+    def set_target_specific_resource(self, specificresource = None):
+        if specificresource is None:
+            specificresource = SpecificResource()
+            self.target = specificresource
+            return specificresource
+        else:
+            if isinstance(specificresource, SpecificResource):
+                self.target = specificresource
+                return
+            else:
+                raise ValueError(
+                    "Trying to add wrong object to target in %s" %
+                    self.__class__.__name__)
 
 class AnnotationPage(CommonAttributes):
     """
@@ -1958,9 +1972,24 @@ class SpecificResource(CommonAttributes):
         self.id = Recommended("An ID is recommended.")
         self.source = None
 
-    def set_source(self, source):
-        self.source = source
+    def set_source(self,source,extendbase_url=None):
+        if extendbase_url:
+            if source:
+                raise ValueError(
+                    "Set id using extendbase_url or objid not both.")
 
+            assert BASE_URL.endswith("/") or extendbase_url.startswith("/"), "Add / to extandbase_url or BASE_URL"
+            joined = "".join((BASE_URL, extendbase_url))
+            assert check_valid_URI(joined),"Special characters must be encoded"
+            self.source = joined
+        
+        else:
+            assert source.startswith("http"), "ID must start with http or https"
+            if self.type == 'Canvas':
+                assert "#" not in (source), "URI of the canvas must not contain a fragment: \#"
+            assert check_valid_URI(source),"Special characters must be encoded"
+            self.source = source
+        
     def set_selector(self, selector):
         self.selector = selector
 
@@ -1968,6 +1997,13 @@ class SpecificResource(CommonAttributes):
         ps = PointSelector()
         self.selector = ps
         return ps
+    
+    def set_selector_as_SvgSelector(self,value=None):
+        ss = SvgSelector()
+        if value is not None:
+            ss.set_value(value)
+        self.selector = ss
+        return ss
 
 
 class start(CoreAttributes):
@@ -2093,5 +2129,19 @@ class FragmentSelector(object):
 
     def set_xywh(self, x, y, w, h):
         self.value = "xywh=%i,%i,%i,%i" % (x, y, w, h)
+
+class SvgSelector(object):
+    """The SvgSelector is used to select a non rectangualar region of an image.
+    https://www.w3.org/TR/annotation-model/#svg-selector
+    """
+    def __init__(self):
+        self.type = "SvgSelector"
+        self.value = None
+
+    def set_type(self, type):
+        print("Type should be kept SvgSelector")
+
+    def set_value(self, value):
+        self.value = value
 
  #json.dumps(g, default=lambda x:x.__dict__)
