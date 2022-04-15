@@ -263,6 +263,14 @@ class TestWithReferenceManifest(unittest.TestCase):
         printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
+    def test_0261_non_rectangular_commenting(self):
+        """
+        0261-non-rectangular-commenting
+        """ 
+        ref,json_manifest = get_files("0261-non-rectangular-commenting")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+
 #
 #
 #       TEST READ AND WRITE BACK
@@ -460,6 +468,13 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         0021-tagging
         """ 
         ref,json_manifest = get_files2("0021-tagging")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0261_non_rectangular_commenting(self):
+        """
+        0261-non-rectangular-commenting
+        """ 
+        ref,json_manifest = get_files2("0261-non-rectangular-commenting")
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 # with open('org.json','w') as o, open('final.json','w') as f:
