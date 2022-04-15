@@ -6,8 +6,13 @@ This is a Python module built for easing the construction of JSON manifests comp
 **NOTE: This is NOT a reference implementation. Pull requests and issues are welcome!**
 
 ## Installation
-The library uses only standard libraries and can be installed using `pip`:
+The library uses only standard libraries and can be installed using `pip`.
 
+Stable version:
+
+    pip install pyIIIFpres==0.1.1
+
+Development :
 
     pip install git+https://github.com/giacomomarchioro/pyIIIFpres
 
@@ -87,4 +92,4 @@ See the [project wiki](https://github.com/giacomomarchioro/pyIIIFpres/wiki) for 
 
 
 ## Acknowledgements
-I would like to thanks [Martim Passos](https://github.com/martimpassos) for reporting issues, and IIIF community and coordinators.
+I would like to thank [Martim Passos](https://github.com/martimpassos) for reporting issues, and IIIF community and coordinators.
