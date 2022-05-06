@@ -22,7 +22,7 @@ As an example, we will execute the [Simple Manifest - Book recipe](https://iiif.
 
 ```python
 from IIIFpres import iiifpapi3
-iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0009-book-1"
+iiifpapi3.BASE_URL = "https://iiif.io/api/cookbook/recipe/0009-book-1/"
 manifest = iiifpapi3.Manifest()
 manifest.set_id(extendbase_url="manifest.json")
 manifest.add_label("en","Simple Manifest - Book")
