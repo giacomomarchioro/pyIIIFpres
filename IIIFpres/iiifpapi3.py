@@ -359,6 +359,19 @@ class CoreAttributes(object):
                          res[3:].decode("utf-8") ))
         return res
 
+    def to_json(
+            self,
+            dumps_errors=False,
+            ensure_ascii=False,
+            sort_keys=False,
+            context=None):
+        res = json.loads(self.json_dumps(
+            dumps_errors=dumps_errors,
+            ensure_ascii=ensure_ascii,
+            sort_keys=sort_keys,
+            context=context)
+        return res
+    
     def json_save(self, filename, save_errors=False, ensure_ascii=False,context=None):
         with open(filename, 'w') as f:
             f.write(self.json_dumps(
