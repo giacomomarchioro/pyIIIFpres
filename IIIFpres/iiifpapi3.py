@@ -369,7 +369,7 @@ class CoreAttributes(object):
             dumps_errors=dumps_errors,
             ensure_ascii=ensure_ascii,
             sort_keys=sort_keys,
-            context=context)
+            context=context))
         return res
     
     def json_save(self, filename, save_errors=False, ensure_ascii=False,context=None):
