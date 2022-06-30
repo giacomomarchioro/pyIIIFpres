@@ -151,6 +151,13 @@ class TestWithReferenceManifest(unittest.TestCase):
         """ 
         ref,json_manifest = get_files("0010-book-2-viewing-direction-manifest-rtl")
         self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    def test_0033_choice(self):
+        """
+        0033-choice
+        """
+        ref,json_manifest = get_files("0033-choice")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
     
     # seems not a valid manifest, URI with a trailing space: "manifest.json "
     # def test_0117_add_image_thumbnail(self):
