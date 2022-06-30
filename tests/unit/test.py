@@ -6,7 +6,7 @@ from IIIFpres.iiifpapi3 import Collection, Required,Recommended
 class TestManifest(unittest.TestCase):
     @classmethod
     def setUp(self):
-        iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0004-canvas-size"
+        iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0004-canvas-size/"
         self.manifest = iiifpapi3.Manifest()
         self.manifest.set_id(extendbase_url="manifest.json")
         self.canvas = self.manifest.add_canvas_to_items()
@@ -514,8 +514,8 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.bodypainting.format,Recommended())
         self.assertEqual(self.bodypainting.profile,Recommended())
         self.assertEqual(self.bodypainting.language,None)
-        self.assertEqual(self.bodypainting.height,Required()) # or may
-        self.assertEqual(self.bodypainting.width,Required()) # or may
+        #self.assertEqual(self.bodypainting.height,Required()) # or may
+        #self.assertEqual(self.bodypainting.width,Required()) # or may
         self.assertEqual(self.bodypainting.duration,None)
     
     def test_annotationcollection(self):

@@ -541,8 +541,8 @@ class bodypainting(CoreAttributes):
             "The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
         self.profile = Recommended(
             "The profile of the resource, if it has one, should also be included.")
-        self.height = Required("Must have an height or a duration.")
-        self.width = Required("Must have an width or a duration.")
+        self.height = None
+        self.width = None
         self.duration = None
         self.service = None
         self.language = None
