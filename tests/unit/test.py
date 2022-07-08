@@ -82,6 +82,16 @@ class TestManifest(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.canvas.set_id("http://thishasafragment#xyx")
 
+    def test_label(self):
+        self.manifest.add_label("en","test")
+        self.manifest.add_label("en",["test1","test2"])
+        with self.assertRaises(AssertionError):
+            self.manifest.add_label("en",{'a':1})
+        with self.assertRaises(AssertionError):
+            self.manifest.add_label("en",[{12:'test'}])
+        with self.assertRaises(AssertionError):
+            self.manifest.add_label("en",[[12]])
+
 
 
 
