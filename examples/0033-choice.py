@@ -1,0 +1,42 @@
+# https://preview.iiif.io/cookbook/3333-choice/recipe/0033-choice/manifest.json
+# experimental 
+from IIIFpres import iiifpapi3
+iiifpapi3.BASE_URL = "https://preview.iiif.io/cookbook/3333-choice/recipe/0033-choice/"
+manifest = iiifpapi3.Manifest()
+manifest.set_id(extendbase_url="manifest.json")
+manifest.add_label("en","Choice Example")
+#manifest.add_behavior("paged")
+canvas = manifest.add_canvas_to_items()
+canvas.set_id(extendbase_url="canvas/p1") # in this case we use the base url
+canvas.set_height(1271)
+canvas.set_width(2000)
+annopage = canvas.add_annotationpage_to_items()
+annopage.set_id(extendbase_url="page/p1/1")
+annotation = annopage.add_annotation_to_items(target=canvas.id)
+annotation.set_id(extendbase_url="annotation/p0001-image")
+annotation.set_motivation("painting")
+choice1 = annotation.body.add_choice()
+choice1.set_id(r"https://iiif.io/api/image/3.0/example/reference/421e65be2ce95439b3ad6ef1f2ab87a9-dee-natural/full/max/0/default.jpg")
+choice1.set_type("Image")
+choice1.set_format("image/jpeg")
+choice1.set_width(2000)
+choice1.set_height(1271)
+choice1.add_label("en","Natural Light")
+s1 = choice1.add_service()
+s1.set_id(r"https://iiif.io/api/image/3.0/example/reference/421e65be2ce95439b3ad6ef1f2ab87a9-dee-natural")
+s1.set_type("ImageService3")
+s1.set_profile("level1")
+
+choice2 = annotation.body.add_choice()
+choice2.set_id(r"https://iiif.io/api/image/3.0/example/reference/421e65be2ce95439b3ad6ef1f2ab87a9-dee-xray/full/max/0/default.jpg")
+choice2.set_type("Image")
+choice2.set_format("image/jpeg")
+choice2.set_width(2000)
+choice2.set_height(1271)
+choice2.add_label("en","X-Ray")
+s2 = choice2.add_service()
+s2.set_id(r"https://iiif.io/api/image/3.0/example/reference/421e65be2ce95439b3ad6ef1f2ab87a9-dee-xray")
+s2.set_type("ImageService3")
+s2.set_profile("level1")
+if __name__ == "__main__":
+    manifest.json_save("0033-choice_manifest.json")
