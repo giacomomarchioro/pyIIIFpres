@@ -92,4 +92,4 @@ See the [project wiki](https://github.com/giacomomarchioro/pyIIIFpres/wiki) for 
 
 
 ## Acknowledgements
-I would like to thank [Martim Passos](https://github.com/martimpassos) for reporting issues, and IIIF community and coordinators.
+Bisides contributors, I would like to thank  [dnoneill](https://github.com/dnoneill) for suggestions , and IIIF community and coordinators.
