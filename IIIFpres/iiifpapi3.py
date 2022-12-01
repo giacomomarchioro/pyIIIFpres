@@ -241,7 +241,7 @@ class CoreAttributes(object):
             assert check_valid_URI(objid),"Special characters must be encoded"
             self.id = objid
 
-    def set_type(self):
+    def set_type(self,type):
         print("The type property must be kept %s." % self.__class__.__name__)
 
     def add_label(self, language, text):
@@ -507,126 +507,6 @@ class supplementary(CoreAttributes):
 
     def set_type(self):
         print("type must be AnnotationCollection")
-
-
-class bodycommenting(object):
-    def __init__(self):
-        self.type = "TextualBody"
-        self.value = None
-        self.language = None
-
-    def set_type(self, mtype):
-        if mtype == "TextualBody":
-            print("Commenting/tagging body is by default TextualBody, this set will be ingored.")
-        else:
-            raise ValueError("Commenting/tagging body must be TextualBody you tried to set it %s " %mtype)
-
-    def set_format(self, format):
-        # TODO: what format are allowed?
-        self.format = format
-
-    def set_value(self, value):
-        self.value = value
-
-    def set_language(self, language):
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
-        self.language = language
-
-
-class choice(CoreAttributes):
-    def __init__(self):
-        super(choice, self).__init__()
-        self.id = None
-
-class bodypainting(CoreAttributes):
-    def __init__(self):
-        super(bodypainting, self).__init__()
-        self.type = Required(
-            "The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
-        self.format = Recommended(
-            "The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
-        self.profile = Recommended(
-            "The profile of the resource, if it has one, should also be included.")
-        self.height = None
-        self.width = None
-        self.duration = None
-        self.service = None
-        self.language = None
-        self.items = None
-
-    def set_type(self, mytype):
-        self.type = mytype
-
-    def set_format(self, format):
-        msg = "Format should be a string in the form type/format e.g. image/jpg"
-        assert isinstance(format,str),msg
-        assert "/" in format, msg
-        assert format.split("/")[0].isalpha(), msg
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
-        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
-        self.format = format
-
-    def set_width(self, width):
-        self.width = int(width)
-
-    def set_height(self, height ):
-        self.height = int(height)
-
-    def set_heightwidth(self, height, width):
-        self.set_width(width)
-        self.set_height(height)
-
-    def set_duration(self, duration):
-        if unused(self.height):
-            self.height = None
-        if unused(self.width):
-            self.width = None
-        self.duration = float(duration)
-
-    def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
-
-    def add_choice(self,choiceobj=None):
-        assert isinstance(self.type,Required) or self.type == "Choice", "Body type must be Choice"
-        if unused(self.items):
-            self.items = []
-        if choiceobj is None:
-            self.id = None
-            self.format = None
-            self.height = None
-            self.width = None
-            #TODO: myabe assert these properties are not defined
-            choice = bodypainting()
-            self.set_type("Choice")
-            self.items.append(choice)
-            # TODO: remove items from the new bodypainting?
-            return choice
-        else:
-            if isinstance(choiceobj, bodypainting) or isinstance(choiceobj, dict):
-                self.items.append(choiceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
-        
-    def add_language(self,language):
-        if unused(self.language):
-            self.language = []
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
-        self.language.append(language)
 
 class service(CoreAttributes):
     """https://iiif.io/api/presentation/3.0/#service
@@ -1566,7 +1446,7 @@ class AnnotationPage(CommonAttributes):
     def __init__(self):
         super(AnnotationPage, self).__init__()
         self.items = Recommended(
-            "The annotation page must incude at least one item.")
+            "The annotation page should incude at least one item.")
 
     def add_item(self, item):
         if unused(self.items):
@@ -1605,6 +1485,177 @@ class AnnotationCollection(CommonAttributes):
             return super().set_id(objid=objid, extendbase_url=extendbase_url)
         except AssertionError:
             self.id = objid
+
+class contentresources(CommonAttributes):
+    """
+    IIIF: Content resources are external web resources that are referenced 
+    from within the Manifest or Collection. 
+    This includes images, video, audio, data, web pages or any other format.
+    https://iiif.io/api/presentation/3.0/#57-content-resources
+
+    """
+    def __init__(self):
+        super(CommonAttributes,self).__init__()
+        self.annotations = None
+    
+    def set_type(self,type):
+        self.type = type
+    
+    def set_format(self,type):
+        self.format = format
+
+    def add_annotation(self, annotation=None):
+        if unused(self.annotations):
+            self.annotations = []
+        if annotation is None:
+            annotation = Annotation(target=self.id)
+            self.annotations.append(annotation)
+            return annotation
+        else:
+            self.annotations.append(annotation)
+
+    def add_annotationpage_to_items(self, annotationpageobj=None):
+        # return self.check(self.items,AnnotationPage,annotationpageobj)
+        if unused(self.items):
+            self.items = []
+        if annotationpageobj is None:
+            annotationp = AnnotationPage()
+            self.items.append(annotationp)
+            return annotationp
+        else:
+            self.items.append(annotationpageobj)
+
+    def add_annotationpage_to_annotations(self, annotationpageobj=None):
+        # return self.check(self.items,AnnotationPage,annotationpageobj)
+        if unused(self.annotations):
+            self.annotations = []
+        if annotationpageobj is None:
+            annotationp = AnnotationPage()
+            self.annotations.append(annotationp)
+            return annotationp
+        else:
+            self.annotations.append(annotationpageobj)
+    
+
+class bodycommenting(object):
+    def __init__(self):
+        self.type = "TextualBody"
+        self.value = None
+        self.language = None
+
+    def set_type(self, mtype):
+        if mtype == "TextualBody":
+            print("Commenting/tagging body is by default TextualBody, this set will be ingored.")
+        else:
+            raise ValueError("Commenting/tagging body must be TextualBody you tried to set it %s " %mtype)
+
+    def set_format(self, format):
+        # TODO: what format are allowed?
+        self.format = format
+
+    def set_value(self, value):
+        self.value = value
+
+    def set_language(self, language):
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        self.language = language
+
+
+class choice(CoreAttributes):
+    def __init__(self):
+        super(choice, self).__init__()
+        self.id = None
+
+class bodypainting(contentresources):
+    def __init__(self):
+        super(bodypainting, self).__init__()
+        self.type = Required(
+            "The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
+        self.format = Recommended(
+            "The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
+        self.profile = Recommended(
+            "The profile of the resource, if it has one, should also be included.")
+        self.height = None
+        self.width = None
+        self.duration = None
+        self.service = None
+        self.language = None
+        self.items = None
+
+    def set_type(self, mytype):
+        self.type = mytype
+
+    def set_format(self, format):
+        msg = "Format should be a string in the form type/format e.g. image/jpg"
+        assert isinstance(format,str),msg
+        assert "/" in format, msg
+        assert format.split("/")[0].isalpha(), msg
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
+        self.format = format
+
+    def set_width(self, width):
+        self.width = int(width)
+
+    def set_height(self, height ):
+        self.height = int(height)
+
+    def set_heightwidth(self, height, width):
+        self.set_width(width)
+        self.set_height(height)
+
+    def set_duration(self, duration):
+        if unused(self.height):
+            self.height = None
+        if unused(self.width):
+            self.width = None
+        self.duration = float(duration)
+
+    def add_service(self, serviceobj=None):
+        if unused(self.service):
+            self.service = []
+        if serviceobj is None:
+            serviceobj = service()
+            self.service.append(serviceobj)
+            return serviceobj
+        else:
+            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
+                self.service.append(serviceobj)
+            else:
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" %
+                    self.__class__.__name__)
+
+    def add_choice(self,choiceobj=None):
+        assert isinstance(self.type,Required) or self.type == "Choice", "Body type must be Choice"
+        if unused(self.items):
+            self.items = []
+        if choiceobj is None:
+            self.id = None
+            self.format = None
+            self.height = None
+            self.width = None
+            #TODO: myabe assert these properties are not defined
+            choice = bodypainting()
+            self.type = "Choice"
+            self.items.append(choice)
+            # TODO: remove items from the new bodypainting?
+            return choice
+        else:
+            if isinstance(choiceobj, bodypainting) or isinstance(choiceobj, dict):
+                self.items.append(choiceobj)
+            else:
+                raise ValueError(
+                    "Trying to add wrong object to service in %s" %
+                    self.__class__.__name__)
+        
+    def add_language(self,language):
+        if unused(self.language):
+            self.language = []
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        self.language.append(language)
+
 
 class CMRCattributes(CommonAttributes):
     """
