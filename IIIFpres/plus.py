@@ -22,7 +22,7 @@ class ViewingDirection(object):
         "right-to-left",
         "bottom-to-top",
         "top-to-bottom"]
-        msg = "viewingDirection mu must be one of these values %s" %viewingDirections
+        msg = "viewingDirection must be one of these values %s" %viewingDirections
         assert viewingDirection in viewingDirections, msg
         self.viewingDirection = viewingDirection
 
