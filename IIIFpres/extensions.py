@@ -63,7 +63,7 @@ class Feature(object):
             self.properties = {}
         if language is None:
             language = "none"
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.properties['label'] = {language : [text]}
     
     def set_summary(self, language, text):
@@ -78,7 +78,7 @@ class Feature(object):
         """
         if unused(self.properties):
             self.summary = {}
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none"
+        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.properties['summary'] = {language : [text]}
 
     def set_geometry_as_point(self,longitude, latitude):
