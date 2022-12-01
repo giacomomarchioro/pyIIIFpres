@@ -10,7 +10,7 @@ The library uses only standard libraries and can be installed using `pip`.
 
 Stable version:
 
-    pip install pyIIIFpres==0.1.1
+    pip install pyIIIFpres
 
 Development :
 
