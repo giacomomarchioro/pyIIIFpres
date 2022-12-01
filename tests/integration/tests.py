@@ -159,6 +159,13 @@ class TestWithReferenceManifest(unittest.TestCase):
         ref,json_manifest = get_files("0033-choice")
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
+    def test_0046_rendering(self):
+        """
+        0046-rendering
+        """
+        ref,json_manifest = get_files("0046-rendering")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
     # seems not a valid manifest, URI with a trailing space: "manifest.json "
     # def test_0117_add_image_thumbnail(self):
     #     """
@@ -276,6 +283,13 @@ class TestWithReferenceManifest(unittest.TestCase):
         """ 
         ref,json_manifest = get_files("0261-non-rectangular-commenting")
         printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0269_embedded_or_referenced_annotations(self):
+        """
+        0269-embedded-or-referenced-annotations
+        """ 
+        ref,json_manifest = get_files("0269-embedded-or-referenced-annotations")
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 #
@@ -482,6 +496,13 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         0261-non-rectangular-commenting
         """ 
         ref,json_manifest = get_files2("0261-non-rectangular-commenting")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0269_embedded_or_referenced_annotations(self):
+        """
+        0269-embedded-or-referenced-annotations
+        """ 
+        ref,json_manifest = get_files2("0269-embedded-or-referenced-annotations")
         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 # with open('org.json','w') as o, open('final.json','w') as f:
