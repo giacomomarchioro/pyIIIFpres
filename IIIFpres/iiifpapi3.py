@@ -1506,7 +1506,7 @@ class contentresources(CommonAttributes):
     def set_type(self,type):
         self.type = type
     
-    def set_format(self,type):
+    def set_format(self,format):
         self.format = format
 
     def add_annotation(self, annotation=None):
