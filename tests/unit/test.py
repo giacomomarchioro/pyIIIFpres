@@ -2,37 +2,16 @@ import unittest
 import json
 from IIIFpres import iiifpapi3
 from IIIFpres.iiifpapi3 import Collection, Required,Recommended
+# for print statements
+import io
+import unittest.mock
 
-class TestManifest(unittest.TestCase):
+class TestEmptyManifest(unittest.TestCase):
     @classmethod
     def setUp(self):
         iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0004-canvas-size/"
         self.manifest = iiifpapi3.Manifest()
-        self.manifest.set_id(extendbase_url="manifest.json")
-        self.canvas = self.manifest.add_canvas_to_items()
-        self.canvas.set_id(extendbase_url="canvas/p1")
-        self.canvas.set_height(1800)
-        self.canvas.set_width(1200)
-        annopage = self.canvas.add_annotationpage_to_items()
-        annopage.set_id(extendbase_url="page/p1/1")
-        annotation = annopage.add_annotation_to_items(target=self.canvas.id) 
-        annotation.set_motivation("painting")
-        annotation.set_id(extendbase_url="annotation/p0001-image")
-        annotation.body.set_height(1800)
-        annotation.body.set_width(1200)
-        annotation.body.set_id("http://iiif.io/api/presentation/2.1/example/fixtures/resources/page1-full.png")
-        annotation.body.set_format("image/png")
-        annotation.body.set_type("Image")
     
-    def test_unicodeiswrittentojson(self):
-        """
-        Test unicode is written correctly.
-        """ 
-        unicodestring = "Picture of Göttingen "
-        self.manifest.add_label("en",unicodestring)
-        reloaded = json.loads(self.manifest.json_dumps())
-        self.assertEqual(reloaded['label']['en'][0] ,unicodestring)
-
     def test_rights_assertion(self):
         """ 
         Test if rights throw assertion.
@@ -78,21 +57,94 @@ class TestManifest(unittest.TestCase):
         test.set_id(url)
         self.assertEqual(test.id,url)
 
-    def test_fragment_in_ID(self):    
-        with self.assertRaises(AssertionError):
-            self.canvas.set_id("http://thishasafragment#xyx")
-
     def test_label(self):
         self.manifest.add_label("en","test")
         self.manifest.add_label("en",["test1","test2"])
         with self.assertRaises(AssertionError):
+            # not valid because should be a list not dict
             self.manifest.add_label("en",{'a':1})
         with self.assertRaises(AssertionError):
+            # not valid because can not be a list of dict
             self.manifest.add_label("en",[{12:'test'}])
         with self.assertRaises(AssertionError):
+            # not valid because can not be a list of lists
             self.manifest.add_label("en",[[12]])
+    
+    def test_label_none(self):
+        """If language set to None must be "none" in JSON.
+        """
+        self.manifest.add_label(None,['test3'])
+        self.assertEqual(self.manifest.label['none'],['test3'])
+
+    def test_adding_multiple_lables_not_overwrite(self):
+        """If we add multiple label they should concatenate
+        """
+        self.manifest.add_label('it',['test1'])
+        self.manifest.add_label('it','test2')
+        self.assertEqual(self.manifest.label,{'it': ['test2', 'test1']})
+         
+    def test_raising_error_when_attribute_required(self):
+        """This should rise a value error bevause ID is required and not set.
+        """
+        with self.assertRaises(ValueError):
+            self.manifest.to_json()
+    
+    def test_raising_error_objid_and_extendbaseURL(self):
+        """User try to set ID using both objid and extendbaseURL
+        """
+        with self.assertRaises(ValueError):
+            self.manifest.set_id(objid=iiifpapi3.BASE_URL,extendbase_url=iiifpapi3.BASE_URL)
+    
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def assert_stdoutmanifest(self, n, expected_output, mock_stdout):
+        self.manifest.set_type('Canvas')
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
+    
+    def test_only_numbers(self):
+        correct = "The type property must be kept Manifest.\n"
+        self.assert_stdoutmanifest("https:/test ", correct)
+
+    def test_serialize_with_error(self):
+        out =  self.manifest.to_json(dumps_errors=True) 
+        e = {'Required': 'A Manifest should have the ID property with at least one item.'}
+        self.assertEqual(out['id'],e)
+       
 
 
+
+class TestManifest(unittest.TestCase):
+    @classmethod
+    def setUp(self):
+        iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0004-canvas-size/"
+        self.manifest = iiifpapi3.Manifest()
+        self.manifest.set_id(extendbase_url="manifest.json")
+        self.canvas = self.manifest.add_canvas_to_items()
+        self.canvas.set_id(extendbase_url="canvas/p1")
+        self.canvas.set_height(1800)
+        self.canvas.set_width(1200)
+        annopage = self.canvas.add_annotationpage_to_items()
+        annopage.set_id(extendbase_url="page/p1/1")
+        annotation = annopage.add_annotation_to_items(target=self.canvas.id) 
+        annotation.set_motivation("painting")
+        annotation.set_id(extendbase_url="annotation/p0001-image")
+        annotation.body.set_height(1800)
+        annotation.body.set_width(1200)
+        annotation.body.set_id("http://iiif.io/api/presentation/2.1/example/fixtures/resources/page1-full.png")
+        annotation.body.set_format("image/png")
+        annotation.body.set_type("Image")
+    
+    def test_unicodeiswrittentojson(self):
+        """
+        Test unicode is written correctly.
+        """ 
+        unicodestring = "Picture of Göttingen "
+        self.manifest.add_label("en",unicodestring)
+        reloaded = json.loads(self.manifest.json_dumps())
+        self.assertEqual(reloaded['label']['en'][0] ,unicodestring)
+    
+    def test_fragment_in_ID(self):    
+        with self.assertRaises(AssertionError):
+            self.canvas.set_id("http://thishasafragment#xyx")
 
 
 class Test_required_recommended_and_optionals(unittest.TestCase):
@@ -534,7 +586,42 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.AnnotationCollection.set_id("non http")
 
 
-        
+class Test_repr_and_print(unittest.TestCase):
+    @classmethod
+    def setUp(self):
+        self.Required = iiifpapi3.seeAlso()
+        self.partOf = iiifpapi3.partOf()
+        self.supplementary = iiifpapi3.supplementary()
+        self.bodycommenting = iiifpapi3.bodycommenting()
+        self.bodypainting = iiifpapi3.bodypainting()
+        self.service = iiifpapi3.service()
+        self.thumbnail = iiifpapi3.thumbnail()
+
+    
+    def test_recommended(self):
+        t = "teststring12312=)123123'''òò"
+        g = iiifpapi3.Recommended(t)
+        self.assertEqual(g.__repr__(),"Recommended attribute:%s"%t)
+    
+    def test_required(self):
+        t = "teststring12312=)123123'''òò"
+        g = iiifpapi3.Required(t)
+        self.assertEqual(g.__repr__(),"Required attribute:%s"%t)
+
+    def test_check_invalid_URI(self):
+        """Check that a space is detected.
+        """
+        self.assertFalse(iiifpapi3.check_valid_URI("https:/test "))
+
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def assert_stdout(self, n, expected_output, mock_stdout):
+        iiifpapi3.check_valid_URI(n)
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
+    
+    def test_only_numbers(self):
+        correct = "I found: a space here. \ntest \n    ^\n"
+        self.assert_stdout("https:/test ", correct)
+
 
 
 
