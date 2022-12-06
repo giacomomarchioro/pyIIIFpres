@@ -105,78 +105,44 @@ def serializable(attr):
     else:
         return True
 
-
-def checkitem(selfx, classx, obj):
-    """Check if item is added to the right class:
-    This function is used to check if the object is added to the right entity. 
-    It returns a reference of the empty object if the object to be added is not
-    specified.
-
-    For instance, I want to add an Annotation object to a Manifest. It checks 
-    if items is unused and if so create  list and append an object of the class
-    provided.
-
-    e.g. checkitem(self, Manifest, obj)
+def add_to(selfx,destination,classx, obj,acceptedclasses=None,target=None,):
+    """Helper function used for adding IIIF object to to IIIF lists.
 
     Args:
-        selfx (class): Original class.
-        classx (class): Class that is allowed.
-        obj (class): Object to be added to the class items.
+        selfx (object): The class it-self
+        destination (str): The class list attribute where the object will be stored.
+        classx (object): The IIIF class that will be used for instantiating the obejct.
+        obj (object): An already instantiated IIIF object.
+        acceptedclasses (objects, optional): Accepted classes for obj. Defaults to None.
+        target (str, optional): The target of an Annotation. Defaults to None.
+
+    Raises:
+        ValueError: When users try to add the wrong object to a list.
 
     Returns:
-        class: an instance of the item that is add if obj is None.
+        IIIF object: A reference to an instance of the IIIF object.
     """
-    #import pdb; pdb.set_trace()
-
-    if unused(selfx.items):
-        selfx.items = []
-    if obj is None:
+    if unused(selfx.__dict__[destination]):
+        selfx.__dict__[destination] = []
+    if obj is None and target is None:
         obj = classx()
-        selfx.items.append(obj)
+        selfx.__dict__[destination].append(obj)
+        return obj
+    elif obj is None:
+        # used for annotation
+        obj = classx(target=target)
+        selfx.__dict__[destination].append(obj)
         return obj
     else:
-        if isinstance(obj, classx):
-            selfx.items.append(obj)
+        if acceptedclasses is None:
+            acceptedclasses = classx
+        if isinstance(obj, acceptedclasses):
+            selfx.__dict__[destination].append(obj)
         else:
             obj_name = obj.__class__.__name__
             class_name = selfx.__class__.__name__
             raise ValueError("%s object cannot be added to %s." %
                              (obj_name, class_name))
-
-
-def checkstru(selfx, classx, obj):
-    """Check if a structure is added to the right entity:
-    This function is used to check if the object is added to the right entity. 
-    It returns a reference of the empty object if the object to be added is not
-    specified.
-
-    For instance, I want to add an Annotation object to a Manifest. It checks if
-    items is unused and if so create  list and append an object of the class 
-    provided.
-
-    Args:
-        selfx (class): Original class.
-        classx (class): Class that is allowed.
-        obj (class): Object to be added to the class items.
-
-    Returns:
-        class: an instance of the item that is add if obj is None.
-    """
-    if unused(selfx.structures):
-        selfx.structures = []
-    if obj is None:
-        obj = classx()
-        selfx.structures.append(obj)
-        return obj
-    else:
-        if isinstance(obj, classx):
-            selfx.structures.append(obj)
-        else:
-            obj_name = obj.__class__.__name__
-            class_name = selfx.__class__.__name__
-            raise ValueError("%s object cannot be added to %s." %
-                             (obj_name, class_name))
-
 
 def check_valid_URI(URI):
     isvalid = True
@@ -271,7 +237,7 @@ class CoreAttributes(object):
         else:
             text = [text]
         if language not in self.label:
-        self.label[language] = text
+            self.label[language] = text
         else:
             # faster way to join lists
             self.label[language][0:0] = text
@@ -573,19 +539,7 @@ class service(CoreAttributes):
         self.height = int(height)
 
     def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'service',service,serviceobj,(service,dict))
 
     def add_size(self,width,height):
         if unused(self.sizes):
@@ -622,19 +576,7 @@ class thumbnail(CoreAttributes, plus.HeightWidthDuration):
         self.format = format
 
     def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'service',service,serviceobj,(service,dict))
 
 
 class provider(CoreAttributes):
@@ -702,55 +644,17 @@ class provider(CoreAttributes):
             raise ValueError("The provider agent type must be set to 'Agent' you tried to set it to: %s " %mtype)
 
     def add_logo(self, logoobj=None):
-        if unused(self.logo):
-            self.logo = []
-        if logoobj is None:
-            logoobj = logo()
-            self.logo.append(logoobj)
-            return logoobj
-        else:
-            if isinstance(logoobj, logo):
-                self.logo.append(logoobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to logo in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'logo',logo,logoobj)
 
     def add_homepage(self, homepageobj=None):
         """
         """
-        # TODO: CHECK IF ALLOWED
-        if unused(self.homepage):
-            self.homepage = []
-        if homepageobj is None:
-            homepageobj = homepage()
-            self.homepage.append(homepageobj)
-            return homepageobj
-        else:
-            if isinstance(homepageobj, homepage):
-                self.homepage.append(homepageobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to homepage in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'homepage',homepage,homepageobj)
 
     def add_seeAlso(self, seeAlsoobj=None):
         """
         """
-        # TODO: CHECK IF ALLOWED
-        if unused(self.seeAlso):
-            self.seeAlso = []
-        if seeAlsoobj is None:
-            seeAlsoobj = seeAlso()
-            self.seeAlso.append(seeAlsoobj)
-            return seeAlsoobj
-        else:
-            if isinstance(seeAlsoobj, seeAlso):
-                self.seeAlso.append(seeAlsoobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to seeAlso in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'seeAlso',seeAlso,seeAlsoobj)
 
 
 class homepage(CoreAttributes):
@@ -861,19 +765,7 @@ class logo(CoreAttributes, plus.HeightWidthDuration):
         raise ValueError("Label not permitted in logo.")
 
     def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'service',service,serviceobj,(service,dict))
 
 
 class rendering(CoreAttributes):
@@ -956,20 +848,7 @@ class services(CoreAttributes):
         self.profile = profile
 
     def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
-
+        return add_to(self,'service',service,serviceobj,(service,dict))
 
 class languagemap(object):
     """This is not a IIIF type but is used for easing the construction of
@@ -1165,20 +1044,7 @@ class CommonAttributes(CoreAttributes):
         Image API service be available for images to enable manipulations such
         as resizing.
         """
-        # TODO: CHECK IF ALLOWED
-        if unused(self.thumbnail):
-            self.thumbnail = []
-        if thumbnailobj is None:
-            thumbnailobj = thumbnail()
-            self.thumbnail.append(thumbnailobj)
-            return thumbnailobj
-        else:
-            if isinstance(thumbnailobj, thumbnail):
-                self.thumbnail.append(thumbnailobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to thumbnail in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'thumbnail',thumbnail,thumbnailobj)
 
     def add_behavior(self, behavior):
         """
@@ -1233,104 +1099,29 @@ class CommonAttributes(CoreAttributes):
     def add_homepage(self, homepageobj=None):
         """
         """
-        # TODO: CHECK IF ALLOWED
-        if unused(self.homepage):
-            self.homepage = []
-        if homepageobj is None:
-            homepageobj = homepage()
-            self.homepage.append(homepageobj)
-            return homepageobj
-        else:
-            if isinstance(homepageobj, homepage):
-                self.homepage.append(homepageobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to homepage in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'homepage',homepage,homepageobj)
 
     def add_seeAlso(self, seeAlsoobj=None):
         """
         """
-        # TODO: CHECK IF ALLOWED
-        if unused(self.seeAlso):
-            self.seeAlso = []
-        if seeAlsoobj is None:
-            seeAlsoobj = seeAlso()
-            self.seeAlso.append(seeAlsoobj)
-            return seeAlsoobj
-        else:
-            if isinstance(seeAlsoobj, seeAlso):
-                self.seeAlso.append(seeAlsoobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to seeAlso in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'seeAlso',seeAlso,seeAlsoobj)
 
     def add_partOf(self, partOfobj=None):
         """
         """
-        # TODO: CHECK IF ALLOWED
-        if unused(self.partOf):
-            self.partOf = []
-        if partOfobj is None:
-            partOfobj = partOf()
-            self.partOf.append(partOfobj)
-            return partOfobj
-        else:
-            if isinstance(partOfobj, seeAlso):
-                self.partOf.append(partOfobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to partOf in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'partOf',partOf,partOfobj)
 
     def add_rendering(self, renderingobj=None):
         """
         """
-        # TODO: CHECK IF ALLOWED
-        if unused(self.rendering):
-            self.rendering = []
-        if renderingobj is None:
-            renderingobj = rendering()
-            self.rendering.append(renderingobj)
-            return renderingobj
-        else:
-            if isinstance(renderingobj, rendering):
-                self.rendering.append(renderingobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to renderging in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'rendering',rendering,renderingobj)
 
     def add_provider(self, providerobj=None):
-        if unused(self.provider):
-            self.provider = []
-        if providerobj is None:
-            providerobj = provider()
-            self.provider.append(providerobj)
-            return providerobj
-        else:
-            if isinstance(providerobj, provider):
-                self.provider.append(providerobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to provider in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'provider',provider,providerobj)
 
     def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'service',service,serviceobj,(service,dict))
+
 
 class Annotation(CommonAttributes):
     """
@@ -1454,19 +1245,13 @@ class AnnotationPage(CommonAttributes):
             "The annotation page should incude at least one item.")
 
     def add_item(self, item):
+        #TODO: remove
         if unused(self.items):
             self.items = []
         self.items.append(item)
 
     def add_annotation_to_items(self, annotation=None, target=None):
-        if unused(self.items):
-            self.items = []
-        if annotation is None:
-            annotation = Annotation(target=target)
-            self.items.append(annotation)
-            return annotation
-        else:
-            self.items.append(annotation)
+        return add_to(self,'items',Annotation,annotation,target=target)
 
 class AnnotationCollection(CommonAttributes):
     """https://iiif.io/api/presentation/3.0/#58-annotation-collection
@@ -1510,6 +1295,8 @@ class contentresources(CommonAttributes):
         self.format = format
 
     def add_annotation(self, annotation=None):
+        return add_to(self,'annotations',Annotation,annotation,target=self.id)
+
         if unused(self.annotations):
             self.annotations = []
         if annotation is None:
@@ -1519,28 +1306,11 @@ class contentresources(CommonAttributes):
         else:
             self.annotations.append(annotation)
 
-    def add_annotationpage_to_items(self, annotationpageobj=None):
-        # return self.check(self.items,AnnotationPage,annotationpageobj)
-        if unused(self.items):
-            self.items = []
-        if annotationpageobj is None:
-            annotationp = AnnotationPage()
-            self.items.append(annotationp)
-            return annotationp
-        else:
-            self.items.append(annotationpageobj)
+    def add_annotationpage_to_items(self, annotationpageobj=None,target=None):
+        return add_to(self,'items',AnnotationPage,annotationpageobj,target=target)
 
     def add_annotationpage_to_annotations(self, annotationpageobj=None):
-        # return self.check(self.items,AnnotationPage,annotationpageobj)
-        if unused(self.annotations):
-            self.annotations = []
-        if annotationpageobj is None:
-            annotationp = AnnotationPage()
-            self.annotations.append(annotationp)
-            return annotationp
-        else:
-            self.annotations.append(annotationpageobj)
-    
+        return add_to(self,'annotations',AnnotationPage,annotationpageobj)
 
 class bodycommenting(object):
     def __init__(self):
@@ -1618,19 +1388,7 @@ class bodypainting(contentresources):
         self.duration = float(duration)
 
     def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'service',service,serviceobj,(service,dict))
 
     def add_choice(self,choiceobj=None):
         assert isinstance(self.type,Required) or self.type == "Choice", "Body type must be Choice"
@@ -1741,41 +1499,20 @@ class Canvas(CMRCattributes):
         self.duration = float(duration)
 
     def add_item(self, item):
+        #TODO: remove
         if unused(self.items):
             self.items = []
         self.items.append(item)
 
     def add_annotation(self, annotation=None):
-        if unused(self.annotations):
-            self.annotations = []
-        if annotation is None:
-            annotation = Annotation(target=self.id)
-            self.annotations.append(annotation)
-            return annotation
-        else:
-            self.annotations.append(annotation)
+        return add_to(self,'annotations',Annotation,annotation,target=self.id)
 
     def add_annotationpage_to_items(self, annotationpageobj=None):
-        # return self.check(self.items,AnnotationPage,annotationpageobj)
-        if unused(self.items):
-            self.items = []
-        if annotationpageobj is None:
-            annotationp = AnnotationPage()
-            self.items.append(annotationp)
-            return annotationp
-        else:
-            self.items.append(annotationpageobj)
+        return add_to(self,'items',AnnotationPage,annotationpageobj)
 
     def add_annotationpage_to_annotations(self, annotationpageobj=None):
-        # return self.check(self.items,AnnotationPage,annotationpageobj)
-        if unused(self.annotations):
-            self.annotations = []
-        if annotationpageobj is None:
-            annotationp = AnnotationPage()
-            self.annotations.append(annotationp)
-            return annotationp
-        else:
-            self.annotations.append(annotationpageobj)
+        return add_to(self,'annotations',AnnotationPage,annotationpageobj)
+
     
 class Manifest(CMRCattributes, plus.ViewingDirection):
     """
@@ -1845,29 +1582,10 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
         self.services.append(services)
 
     def add_annotation(self, annotation=None):
-        if unused(self.annotations):
-            self.annotations = []
-        if annotation is None:
-            annotation = Annotation(target=self.id)
-            self.annotations.append(annotation)
-            return annotation
-        else:
-            self.annotations.append(annotation)
+        return add_to(self,'annotations',Annotation,annotation,target=self.id)
 
     def add_canvas_to_items(self, canvasobj=None):
-        if unused(self.items):
-            self.items = []
-        if canvasobj is None:
-            canvasobj = Canvas()
-            self.items.append(canvasobj)
-            return canvasobj
-        else:
-            if isinstance(canvasobj, Canvas):
-                self.items.append(canvasobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object as canvas to items in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'items',Canvas,canvasobj)
 
     def add_structure(self, structure):
         if unused(self.structures):
@@ -1875,7 +1593,7 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
         self.structures.append(structure)
 
     def add_range_to_structures(self, rangeobj=None):
-        return checkstru(self, Range, rangeobj)
+        return add_to(self,'structures',Range,rangeobj)
 
 
 class refManifest(CoreAttributes):
@@ -1900,21 +1618,7 @@ class refManifest(CoreAttributes):
         Image API service be available for images to enable manipulations such
         as resizing.
         """
-        # TODO: CHECK IF ALLOWED
-        if unused(self.thumbnail):
-            self.thumbnail = []
-        if thumbnailobj is None:
-            thumbnailobj = thumbnail()
-            self.thumbnail.append(thumbnailobj)
-            return thumbnailobj
-        else:
-            if isinstance(thumbnailobj, thumbnail):
-                self.thumbnail.append(thumbnailobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to thumbnail in %s" %
-                    self.__class__.__name__)
-
+        return add_to(self,'thumbnail',thumbnail,thumbnailobj)
 
 class Collection(CMRCattributes,plus.ViewingDirection):
     def __init__(self):
@@ -1931,50 +1635,27 @@ class Collection(CMRCattributes,plus.ViewingDirection):
         self.viewingDirection = None
 
     def add_service(self, serviceobj=None):
-        if unused(self.service):
-            self.service = []
-        if serviceobj is None:
-            serviceobj = service()
-            self.service.append(serviceobj)
-            return serviceobj
-        else:
-            if isinstance(serviceobj, service) or isinstance(serviceobj, dict):
-                self.service.append(serviceobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object to service in %s" %
-                    self.__class__.__name__)
+        return add_to(self,'service',service,serviceobj,(service,dict))
 
-    def add_annotation(self, annotation):
-        if unused(self.annotation):
-            self.annotation = []
-        self.annotation.append(annotation)
+    def add_annotation(self, annotationobj):
+        return add_to(self,'annotations',Annotation,annotationobj,target=self.id)
 
     def add_item(self, item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
 
-    def add_collection_to_items(self,obj=None):
+    def add_collection_to_items(self,collectionobj=None):
+        return add_to(self,'items',Collection,collectionobj)
         return checkitem(self, Collection, obj)
     
-    def add_manifest_to_items(self,obj=None):
-        if unused(self.items):
-            self.items = []
-        if obj is None:
-            obj = refManifest()
-            self.items.append(obj)
-            return obj
-        else:
-            if isinstance(obj, Manifest):
+    def add_manifest_to_items(self,manifestobj=None):
+        if isinstance(manifestobj, Manifest):
                 # Adding a Manifest only the references and thumbnail are passed
-                newobj = copy.copy(obj)
+                newobj = copy.copy(manifestobj)
                 delattr(newobj,'items')
-                self.items.append(newobj)
-            else:
-                raise ValueError(
-                    "Trying to add wrong object as canvas to items in %s" %
-                    self.__class__.__name__)
+                manifestobj = newobj
+        return add_to(self,'items',refManifest,manifestobj,(Manifest,refManifest))
 
 class Range(CMRCattributes,plus.ViewingDirection):
     def __init__(self):
@@ -1986,27 +1667,19 @@ class Range(CMRCattributes,plus.ViewingDirection):
         self.viewingDirection = None
         self.start = None
  
-    def add_annotation(self, annotation):
-        if unused(self.annotation):
-            self.annotation = []
-        self.annotation.append(annotation)
+    def add_annotation(self, annotationobj=None):
+        return add_to(self,'annotations',Annotation,annotationobj)
 
     def add_item(self, item):
         if unused(self.items):
             self.items = []
         self.items.append(item)
 
-    def add_range_to_items(self):
-        if unused(self.items):self.items = []
-        newrange = Range()
-        self.items.append(newrange)
-        return newrange
+    def add_range_to_items(self,rangeobj=None):
+        return add_to(self,'items',Range,rangeobj)
     
-    def add_specificresource_to_items(self):
-        if unused(self.items):self.items = []
-        sr = SpecificResource()
-        self.items.append(sr )
-        return sr 
+    def add_specificresource_to_items(self,specificresourceobj=None):
+        return add_to(self,'items',SpecificResource,specificresourceobj)
 
     def set_start(self):
         """This method add a start obejct at self.start.
