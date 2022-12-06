@@ -2102,7 +2102,7 @@ class start(CoreAttributes):
 
 class ImageApiSelector(object):
     def __init__(self):
-        self.type = None
+        self.type = "ImageApiSelector"
         self.region = None
         self.size = None
         self.rotation = None
@@ -2110,7 +2110,7 @@ class ImageApiSelector(object):
         self.fromat = None
 
     def set_type(self, type):
-        self.type = type
+        print("Type should be kept ImageApiSelector")
 
     def set_region(self, region):
         self.region = region
@@ -2120,6 +2120,9 @@ class ImageApiSelector(object):
 
     def set_quality(self, quality):
         self.quality = quality
+    
+    def set_size(self, size):
+        self.size = size
 
     def set_format(self, format):
         """Set the format of the IIIF type. IIIF: The specific media type
