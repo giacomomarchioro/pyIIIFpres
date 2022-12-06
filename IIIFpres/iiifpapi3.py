@@ -401,6 +401,7 @@ class CoreAttributes(object):
     
     def show_errors_in_browser(self):
         visualization_html.show_error_in_browser(self.json_dumps(dumps_errors=True))
+        return True
 
     def __repr__(self):
         if unused(self.id):
