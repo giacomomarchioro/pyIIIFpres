@@ -264,13 +264,17 @@ class CoreAttributes(object):
         if language is None:
             language = "none"
         assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty.. Please read https://git.io/JoQty."
-        assert isinstance(text,str) or isinstance(text,list),"text, can be a string or a list of string"
+        assert isinstance(text,(str,list)),"text, can be a string or a list of string"
         if isinstance(text,list):
             for i in text:
                 assert isinstance(i,str),"list in labels can contain only strings."
         else:
             text = [text]
+        if language not in self.label:
         self.label[language] = text
+        else:
+            # faster way to join lists
+            self.label[language][0:0] = text
 
     def json_dumps(
             self,
