@@ -146,6 +146,8 @@ class TestEmptyManifest(unittest.TestCase):
     def test_deprecated(self):
         with self.assertWarns(Warning):
             self.manifest.add_requiredStatement('date','1834')
+        with self.assertWarns(Warning):
+            self.manifest.add_services(iiifpapi3.service())
     
 class TestManifest(unittest.TestCase):
     @classmethod
