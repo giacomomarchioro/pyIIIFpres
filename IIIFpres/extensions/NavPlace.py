@@ -1,10 +1,10 @@
-from .iiifpapi3 import CoreAttributes, Manifest
-from .iiifpapi3 import check_valid_URI,unused
-from .iiifpapi3 import Recommended,Required
-from .iiifpapi3 import BASE_URL,LANGUAGES,MEDIATYPES
+from ..iiifpapi3 import ImmutableType
+from ..iiifpapi3 import Recommended,Required
+from ..iiifpapi3 import BASE_URL,LANGUAGES,MEDIATYPES
+from ..iiifpapi3 import check_ID,unused
 #from shapely.geometry import mapping, shape
 
-class Feature(object):
+class Feature(ImmutableType):
     def __init__(self):
         self.id = Required()
         self.type  = "Feature"
@@ -19,30 +19,9 @@ class Feature(object):
             extendbase_url (str or list, optional): A string or a list of strings
             to be joined with the iiifpapi3.BASE_URL . Defaults to None.
         """
-
-        if extendbase_url:
-            if objid:
-                raise ValueError(
-                    "Set id using extendbase_url or objid not both.")
-            
-            if isinstance(extendbase_url, str):
-                joined = "".join((BASE_URL, extendbase_url))
-                assert check_valid_URI(joined),"Special characters must be encoded"
-                self.id = joined
-            if isinstance(extendbase_url, list):
-                extendbase_url.insert(0, BASE_URL)
-                joined = "".join(extendbase_url)
-                assert check_valid_URI(joined),"Special characters must be encoded"
-                self.id = joined
-
-        elif objid is None:
-            self.id = config.base_url
-        else:
-            assert objid.startswith("http"), "ID must start with http or https"
-            if self.type == 'Canvas':
-                assert "#" not in (objid), "URI of the canvas must not contain a fragment: \#"
-            assert check_valid_URI(objid),"Special characters must be encoded"
-            self.id = objid
+        self.id = check_ID(self=self,
+                           extendbase_url=extendbase_url,
+                           objid=objid)
 
     def set_label(self, language, text):
         """Add a label to the object
@@ -77,7 +56,7 @@ class Feature(object):
         purposes.
         """
         if unused(self.properties):
-            self.summary = {}
+            self.properties = {}
         assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.properties['summary'] = {language : [text]}
 
@@ -95,8 +74,6 @@ class Feature(object):
                 latitude
               ]
             }
-
-
 
 class navPlace(object):
     def __init__(self):
