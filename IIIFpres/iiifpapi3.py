@@ -73,6 +73,8 @@ class Recommended(object):
 # Note: we use None for OPTIONAL with the meaning of
 # https://tools.ietf.org/html/rfc2119
 
+# The package is based on 4 main helper functions:
+
 def unused(attr):
     """
     This function checks if an attribute is not set (has no value in it).
@@ -82,8 +84,8 @@ def unused(attr):
     else:
         return False
 
+# For performance optimization we can reduce the instantiation of Classes
 if not __debug__:
-    # For performance optimization
     def Recommended(msg=None):
         return None
     def Required(msg=None):
@@ -166,7 +168,35 @@ def check_valid_URI(URI):
             isvalid = False
             print("I found: %s here. \n%s\n%s" %(carat,URI,arrow))
     return isvalid
+
+def check_ID(self,extendbase_url,objid):
+    """Function for creating and checking IDs.
+
+    Args:
+        extendbase_url (str): The baseURL to extend.
+        objid (str): A valid ID.
+
+    Raises:
+        ValueError: When trying to use both args together.
+    """
+    if extendbase_url:
+        if objid:
+            raise ValueError(
+                "Set id using extendbase_url or objid not both.")
+
+        assert BASE_URL.endswith("/") or extendbase_url.startswith("/"), "Add / to extandbase_url or BASE_URL"
+        joined = "".join((BASE_URL, extendbase_url))
+        assert check_valid_URI(joined),"Special characters must be encoded"
+        return joined
     
+    else:
+        assert objid.startswith("http"), "ID must start with http or https"
+        if self.type == 'Canvas':
+            assert "#" not in (objid), "URI of the canvas must not contain a fragment: \#"
+        assert check_valid_URI(objid),"Special characters must be encoded"
+        return objid
+
+
 # Let's group all the common arguments across the differnet types of collection
 
 
@@ -199,23 +229,7 @@ class CoreAttributes(object):
             extendbase_url (str , optional): A string containg the URL part
             to be joined with the iiifpapi3.BASE_URL . Defaults to None.
         """
-
-        if extendbase_url:
-            if objid:
-                raise ValueError(
-                    "Set id using extendbase_url or objid not both.")
-
-            assert BASE_URL.endswith("/") or extendbase_url.startswith("/"), "Add / to extandbase_url or BASE_URL"
-            joined = "".join((BASE_URL, extendbase_url))
-            assert check_valid_URI(joined),"Special characters must be encoded"
-            self.id = joined
-        
-        else:
-            assert objid.startswith("http"), "ID must start with http or https"
-            if self.type == 'Canvas':
-                assert "#" not in (objid), "URI of the canvas must not contain a fragment: \#"
-            assert check_valid_URI(objid),"Special characters must be encoded"
-            self.id = objid
+        self.id = check_ID(self,extendbase_url,objid)
 
     def add_label(self, language, text):
         """Add a label to the object
@@ -1640,22 +1654,7 @@ class SpecificResource(CommonAttributes):
         self.source = None
 
     def set_source(self,source,extendbase_url=None):
-        if extendbase_url:
-            if source:
-                raise ValueError(
-                    "Set id using extendbase_url or objid not both.")
-
-            assert BASE_URL.endswith("/") or extendbase_url.startswith("/"), "Add / to extandbase_url or BASE_URL"
-            joined = "".join((BASE_URL, extendbase_url))
-            assert check_valid_URI(joined),"Special characters must be encoded"
-            self.source = joined
-        
-        else:
-            assert source.startswith("http"), "ID must start with http or https"
-            if self.type == 'Canvas':
-                assert "#" not in (source), "URI of the canvas must not contain a fragment: \#"
-            assert check_valid_URI(source),"Special characters must be encoded"
-            self.source = source
+        self.source = check_ID(self,extendbase_url=extendbase_url,objid=source)
         
     def set_selector(self, selector):
         self.selector = selector
