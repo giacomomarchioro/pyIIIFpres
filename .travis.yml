@@ -15,10 +15,10 @@ install:
   - pip install orjson
   - pip install dictdiffer
   - pip install coverage
-  - pip install coveralls
+  - pip install coveralls || true
 # command to run tests
 script:
   - coverage run --source=./IIIFpres/ --omit=./IIIFpres/MediaTypes.py -m unittest discover -s tests/
 
-after_success:
-  coveralls
+  after_success:
+  coveralls || true
