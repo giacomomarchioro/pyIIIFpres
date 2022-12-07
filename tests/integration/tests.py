@@ -406,11 +406,11 @@ class TestWithReferenceManifest(unittest.TestCase):
 class Test_ReadAndWriteBack(unittest.TestCase):
     
     # sees not a valid manifest, we use an edited version
-    def test_Example_Manifest_Response(self):
+    def test_Example_manifest_response(self):
          """
          Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
          """ 
-         ref,json_manifest = get_files("Example_Manifest_Response")
+         ref,json_manifest = get_files("Example_manifest_response")
          self.assertEqual(ordered(ref),ordered(json_manifest))
 
 
