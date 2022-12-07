@@ -784,33 +784,14 @@ class rendering(MutableType,CoreAttributes,Format):
         self.label  = Required("Rendering object must have a label.")
         self.type = Required("Rendering should have a type")
 
-class services(CoreAttributes):
+class ServicesList(object):
     """
-    A list of one or more service definitions on the top-most resource of the
-    document, that are typically shared by more than one subsequent resource.
-    This allows for these shared services to be collected together in a single
-    place, rather than either having their information duplicated potentially
-    many times throughout the document, or requiring a consuming client to
-    traverse the entire document structure to find the information. The
-    resource that the service applies to must still have the service property,
-    as described above, where the service resources have at least the id and
-    type or @id and @type properties. This allows the client to know that the
-    service applies to that resource. Usage of the services property is at the
-    discretion of the publishing system.
+    This is helper method not a IIIF object.
+    services is just a list grouping Service objects inside Manifest and 
+    Collection.
     """
-
-    def __init__(self):
-        super(services, self).__init__()
-        self.profile = Recommended(
-            "services should have a profile property e.g. https://example.org/docs/service.")
-        self.service = Required(
-            "Services must have at least one service, use add_service() method to add one.")
-
-    def set_profile(self, profile):
-        self.profile = profile
-
-    def add_service(self, serviceobj=None):
-        return add_to(self,'service',service,serviceobj,(service,dict))
+    def add_service_to_services(self, serviceobj=None):
+        return add_to(self,'services',service,serviceobj,(service,dict))
 
 class languagemap(object):
     """This is not a IIIF type but is used for easing the construction of

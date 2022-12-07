@@ -228,7 +228,6 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.homepage = iiifpapi3.homepage()
         self.logo = iiifpapi3.logo()
         self.rendering = iiifpapi3.rendering()
-        self.services = iiifpapi3.services()
         #self.languagemap = iiifpapi3.languagemap()
         self.Annotation = iiifpapi3.Annotation()
         self.AnnotationPage = iiifpapi3.AnnotationPage()

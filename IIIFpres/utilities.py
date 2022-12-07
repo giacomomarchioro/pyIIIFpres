@@ -53,7 +53,6 @@ def read_API3_json_dict(jsondict,extensions=None,save_context=False):
      'homepage':iiifpapi3.homepage,
      'logo':iiifpapi3.logo,
      'rendering':iiifpapi3.rendering,
-     'services':iiifpapi3.services,
      'start':iiifpapi3.start,
         }
     assert jsondict['type'] in entitydict.keys(),"%s not a valid IIIF object"%jsondict['type']

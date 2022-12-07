@@ -89,7 +89,7 @@ mycomplexserv =  {
         }
       ]
     }
-manifest.add_services(mycomplexserv)
+manifest.add_service_to_services(mycomplexserv)
 
 
 #        label,width,height,id,
