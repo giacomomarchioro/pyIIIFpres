@@ -20,5 +20,5 @@ install:
 script:
   - coverage run --source=./IIIFpres/ --omit=./IIIFpres/MediaTypes.py -m unittest discover -s tests/
 
-  after_success:
+after_success:
   coveralls || true
