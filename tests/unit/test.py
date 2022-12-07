@@ -106,6 +106,13 @@ class TestEmptyManifest(unittest.TestCase):
         data = '{\n  "@context": "http://iiif.io/api/presentation/3/context.json",\n  "id": {\n    "Required": "A Manifest must have the ID property."\n  },\n  "type": "Manifest",\n  "label": {\n    "Required": "A Manifest must have the label property with at least one entry."\n  },\n  "metadata": {\n    "Recommended": "A Manifest should have the metadata property with at least one item."\n  },\n  "summary": {\n    "Recommended": "A Manifest should have the summary property with at least one entry."\n  },\n  "thumbnail": {\n    "Recommended": "A Manifest should have the thumbnail property with at least one item."\n  },\n  "provider": {\n    "Recommended": "A Manifest should have the provider property with at least one item."\n  },\n  "items": {\n    "Required": "The Manifest must have an items property"\n  }\n}'
         open_mock.return_value.write.assert_called_once_with(data)
 
+    def test_ORJSON_save(self):
+        open_mock = unittest.mock.mock_open()
+        with unittest.mock.patch("IIIFpres.iiifpapi3.open", open_mock, create=True):
+            self.manifest.orjson_save("errortest.json",save_errors=True)
+        data = '{\n  "@context": "http://iiif.io/api/presentation/3/context.json",\n  "id": {\n    "Required": "A Manifest must have the ID property."\n  },\n  "type": "Manifest",\n  "label": {\n    "Required": "A Manifest must have the label property with at least one entry."\n  },\n  "metadata": {\n    "Recommended": "A Manifest should have the metadata property with at least one item."\n  },\n  "summary": {\n    "Recommended": "A Manifest should have the summary property with at least one entry."\n  },\n  "thumbnail": {\n    "Recommended": "A Manifest should have the thumbnail property with at least one item."\n  },\n  "provider": {\n    "Recommended": "A Manifest should have the provider property with at least one item."\n  },\n  "items": {\n    "Required": "The Manifest must have an items property"\n  }\n}'
+        open_mock.return_value.write.assert_called_once_with(data)
+
     def test_type_is_immutable(self):
         """Test that we can not change the type of a IIIF object with immutable
         type."""
