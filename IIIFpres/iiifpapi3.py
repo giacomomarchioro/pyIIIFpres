@@ -1253,7 +1253,23 @@ class AnnotationCollection(CommonAttributes):
         except AssertionError:
             self.id = objid
 
-class contentresources(MutableType,CommonAttributes,HeightWidth,Duration):
+class AnnotationsList(object):
+    """Some IIIF obejcts have a list of annotations. This list can contain
+    only AnnotationPages.
+    """
+    def add_annotationpage_to_annotations(self,annopageobj=None):
+        """Add an AnnotationPage to the annotations list.
+
+        Args:
+            annopageobj (AnnnotationPage, optional): An AnnotationPage object.
+             Defaults to None.
+
+        Returns:
+            AnnotationPage: An AnnotationPage.
+        """
+        return add_to(self,'annotations',AnnotationPage,annopageobj)
+
+class contentresources(MutableType,CommonAttributes,HeightWidth,Duration,AnnotationsList):
     """
     IIIF: Content resources are external web resources that are referenced 
     from within the Manifest or Collection. 
@@ -1272,6 +1288,7 @@ class contentresources(MutableType,CommonAttributes,HeightWidth,Duration):
         self.format = format
 
     def add_annotation(self, annotation=None):
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
         return add_to(self,'annotations',Annotation,annotation,target=self.id)
 
     def add_annotationpage_to_items(self, annotationpageobj=None,target=None):
@@ -1339,8 +1356,7 @@ class bodypainting(contentresources):
         assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.language.append(language)
 
-
-class CMRCattributes(CommonAttributes,ImmutableType):
+class CMRCattributes(CommonAttributes,AnnotationsList,ImmutableType):
     """
     This is another class for grouping the attributes in common with
     Canvas, Manifest, Range and Collection.
@@ -1415,13 +1431,11 @@ class Canvas(CMRCattributes,HeightWidth,Duration):
         add_to(self,'items',AnnotationPage,item)
 
     def add_annotation(self, annotation=None):
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
         return add_to(self,'annotations',Annotation,annotation,target=self.id)
 
     def add_annotationpage_to_items(self, annotationpageobj=None):
         return add_to(self,'items',AnnotationPage,annotationpageobj)
-
-    def add_annotationpage_to_annotations(self, annotationpageobj=None):
-        return add_to(self,'annotations',AnnotationPage,annotationpageobj)
 
 class start(CoreAttributes):
     def __init__(self):
@@ -1467,6 +1481,7 @@ class Start(object):
         else:
             self.start = startobj
         return self.start
+
 
 class Manifest(CMRCattributes,ViewingDirection,Start,ServicesList):
     """
@@ -1526,7 +1541,8 @@ class Manifest(CMRCattributes,ViewingDirection,Start,ServicesList):
         add_to(self,'services',service,services,(service,dict))
 
     def add_annotation(self, annotation=None):
-        return add_to(self,'annotations',Annotation,annotation,target=self.id)
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
+        return add_to(self,'annotations',AnnotationPage,annotation)
 
     def add_canvas_to_items(self, canvasobj=None):
         return add_to(self,'items',Canvas,canvasobj)
@@ -1544,10 +1560,6 @@ class Manifest(CMRCattributes,ViewingDirection,Start,ServicesList):
 
     def add_range_to_structures(self, rangeobj=None):
         return add_to(self,'structures',Range,rangeobj)
-
-    def add_annotationpage_to_annotations(self,annopageobj=None):
-        return add_to(self,'annotations',AnnotationPage,annopageobj)
-
 
 class refManifest(CoreAttributes,Thumbnail):
     def __init__(self):
@@ -1571,7 +1583,8 @@ class Collection(CMRCattributes,ViewingDirection,ServicesList):
         self.viewingDirection = None
 
     def add_annotation(self, annotationobj):
-        return add_to(self,'annotations',Annotation,annotationobj,target=self.id)
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
+        return add_to(self,'annotations',AnnotationPage,annotationobj)
 
     def add_item(self, item):
         """Add an item (Collection or Manifest) to the Manifest without returning.
@@ -1606,7 +1619,8 @@ class Range(CMRCattributes,ViewingDirection,Start):
         self.start = None
  
     def add_annotation(self, annotationobj=None):
-        return add_to(self,'annotations',Annotation,annotationobj)
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
+        return add_to(self,'annotations',AnnotationPage,annotationobj)
 
     def add_item(self, item):
         """Add an item (Range,Canvas,Specific Resource where the source is a 
@@ -1655,7 +1669,7 @@ class SpecificResource(CommonAttributes):
 
     def set_source(self,source,extendbase_url=None):
         self.source = check_ID(self,extendbase_url=extendbase_url,objid=source)
-        
+
     def set_selector(self, selector):
         self.selector = selector
 
@@ -1756,4 +1770,5 @@ class SvgSelector(ImmutableType):
     def set_value(self, value):
         self.value = value
 
- #json.dumps(g, default=lambda x:x.__dict__)
+ # The motivation of the Annotations must not be painting, and the target of 
+ # the Annotations must include this resource or part of it.

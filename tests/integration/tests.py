@@ -321,6 +321,7 @@ class TestWithReferenceManifest(unittest.TestCase):
         ref,json_manifest = get_files("0234-provider")
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
+    
     def test_0053_seeAlso(self):
         """
         0053-seeAlso
@@ -387,6 +388,14 @@ class TestWithReferenceManifest(unittest.TestCase):
         """ 
         ref,json_manifest = get_files("0269-embedded-or-referenced-annotations")
         self.assertEqual(ordered(ref),ordered(json_manifest))
+
+    # def test_0326_annotating_image_layer(self):
+    #     """
+    #     0326-annotating-image-layer
+    #     """ 
+    #     ref,json_manifest = get_files("0326-annotating-image-layer")
+    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+    
 
 #
 #
