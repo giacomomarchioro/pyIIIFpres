@@ -12,77 +12,76 @@ class TestEmptyManifest(unittest.TestCase):
         iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0004-canvas-size/"
         self.manifest = iiifpapi3.Manifest()
     
+    def test_add_created_canvas(self):
+        mycnv = iiifpapi3.Canvas()
+        mycnv.set_id(extendbase_url="canvas/p1/123121231")
+        self.manifest.add_canvas_to_items(mycnv)
+        self.assertEqual(self.manifest.items[0],mycnv)
+
+    def test_adding_worng_object(self):
+        """Test if I add annotation to manifest items using
+        add_canvas_to_items_method."""
+        myanno = iiifpapi3.Annotation()
+        with self.assertRaises(ValueError):
+            self.manifest.add_canvas_to_items(myanno)
+
     def test_rights_assertion(self):
-        """ 
-        Test if rights throw assertion.
-        """
+        """Test if rights throw assertion."""
         with self.assertRaises(AssertionError):
             self.manifest.set_rights("creativecommons.org/licenses/by-sa/3.0/")
         with self.assertRaises(AssertionError):
             self.manifest.set_rights("https://creativecommons.org/licenses/by/4.0/")
     
     def test_accompanyingCanvas(self):
-        """ 
-        Test if an accompanyingCanvas rise attribute error when try
-        to set a nested accompanyingCanvas
-        """
+        """Test if an accompanyingCanvas rise attribute error when try to set a
+        nested accompanyingCanvas."""
         ac = self.manifest.set_accompanyingCanvas()
         with self.assertRaises(AttributeError):
             ac.set_accompanyingCanvas()
     
     def test_id_assertion(self):
-        """ 
-        Test ID should be in form.
-        """
+        """Test ID should be in form."""
         with self.assertRaises(AssertionError):
             self.manifest.set_id("creativecommons.org/licenses/by-sa/3.0/")
         with self.assertRaises(AssertionError):
             self.manifest.set_id("//creativecommons.org/licenses/by/4.0/")
         
     def test_id_http(self):
-        """ 
-        http is valid URI.
-        """
+        """http is valid URI."""
         url = "http://example.org/iiif/book1/canvas/p1"
         test = iiifpapi3.CoreAttributes()
         test.set_id(url)
         self.assertEqual(test.id,url)
     
     def test_id_https(self):
-        """ 
-        https is valid URI.
-        """
+        """https is valid URI."""
         url = "https://example.org/iiif/book1/canvas/p1"
         test = iiifpapi3.CoreAttributes()
         test.set_id(url)
         self.assertEqual(test.id,url)
-
-    def test_label(self):
-        self.manifest.add_label("en","test")
-        self.manifest.add_label("en",["test1","test2"])
-        with self.assertRaises(AssertionError):
-            # not valid because should be a list not dict
-            self.manifest.add_label("en",{'a':1})
-        with self.assertRaises(AssertionError):
-            # not valid because can not be a list of dict
-            self.manifest.add_label("en",[{12:'test'}])
-        with self.assertRaises(AssertionError):
-            # not valid because can not be a list of lists
-            self.manifest.add_label("en",[[12]])
     
     def test_label_none(self):
-        """If language set to None must be "none" in JSON.
-        """
+        """If language set to None must be "none" in JSON."""
         self.manifest.add_label(None,['test3'])
         self.assertEqual(self.manifest.label['none'],['test3'])
 
     def test_adding_multiple_lables_not_overwrite(self):
-        """If we add multiple label they should concatenate
-        """
+        """If we add multiple label they should concatenate."""
         self.manifest.add_label('it',['test1'])
         self.manifest.add_label('it','test2')
         self.assertEqual(self.manifest.label,{'it': ['test2', 'test1']})
          
+    def test_raising_error_when_attribute_required(self):
+        """This should rise a value error bevause ID is required and not
+        set."""
+        with self.assertRaises(ValueError):
+            self.manifest.to_json()
+    
+    def test_raising_error_objid_and_extendbaseURL(self):
+        """User try to set ID using both objid and extendbaseURL."""
+        with self.assertRaises(ValueError):
+            self.manifest.set_id(objid=iiifpapi3.BASE_URL,extendbase_url=iiifpapi3.BASE_URL)
+    
     def test_raising_error_when_attribute_required(self):
         """This should rise a value error bevause ID is required and not set.
         """
@@ -95,23 +94,52 @@ class TestEmptyManifest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.manifest.set_id(objid=iiifpapi3.BASE_URL,extendbase_url=iiifpapi3.BASE_URL)
     
-    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
-    def assert_stdoutmanifest(self, n, expected_output, mock_stdout):
-        self.manifest.set_type('Canvas')
-        self.assertEqual(mock_stdout.getvalue(), expected_output)
-    
-    def test_only_numbers(self):
-        correct = "The type property must be kept Manifest.\n"
-        self.assert_stdoutmanifest("https:/test ", correct)
-
     def test_serialize_with_error(self):
         out =  self.manifest.to_json(dumps_errors=True) 
-        e = {'Required': 'A Manifest should have the ID property with at least one item.'}
+        e = {'Required': 'A Manifest must have the ID property.'}
         self.assertEqual(out['id'],e)
-       
 
+    def test_JSON_save(self):
+        open_mock = unittest.mock.mock_open()
+        with unittest.mock.patch("IIIFpres.iiifpapi3.open", open_mock, create=True):
+            self.manifest.json_save("errortest.json",save_errors=True)
+        data = '{\n  "@context": "http://iiif.io/api/presentation/3/context.json",\n  "id": {\n    "Required": "A Manifest must have the ID property."\n  },\n  "type": "Manifest",\n  "label": {\n    "Required": "A Manifest must have the label property with at least one entry."\n  },\n  "metadata": {\n    "Recommended": "A Manifest should have the metadata property with at least one item."\n  },\n  "summary": {\n    "Recommended": "A Manifest should have the summary property with at least one entry."\n  },\n  "thumbnail": {\n    "Recommended": "A Manifest should have the thumbnail property with at least one item."\n  },\n  "provider": {\n    "Recommended": "A Manifest should have the provider property with at least one item."\n  },\n  "items": {\n    "Required": "The Manifest must have an items property"\n  }\n}'
+        open_mock.return_value.write.assert_called_once_with(data)
 
+    def test_type_is_immutable(self):
+        """Test that we can not change the type of a IIIF object with immutable
+        type."""
+        with self.assertRaises(ValueError):
+            self.manifest.set_type('Collection')
+    
+    def test_inspect(self):
+        self.assertTrue(self.manifest.inspect())
+    
+    def test_show_errors_in_browser(self):
+        HTML = self.manifest.show_errors_in_browser(getHTML=True)
+        text = '"Recommended": "A Manifest should have the metadata property with at least one item."'
+        self.assertIn(text,HTML)
 
+    def test_type_is_immutable(self):
+        """Test that we can not change the type of a IIIF object with immutable type.
+        """
+        with self.assertRaises(ValueError):
+            self.manifest.set_type('Collection')
+    
+    def test_metadata(self):
+        with self.assertRaises(ValueError):
+            entry = {'date':1231}
+            self.manifest.add_metadata('date','1834',entry=entry)
+    
+    def test_requiredStatement(self):
+        with self.assertRaises(ValueError):
+            entry = {'en':1231}
+            self.manifest.set_requiredStatement('en','1834',entry=entry)
+
+    def test_deprecated(self):
+        with self.assertWarns(Warning):
+            self.manifest.add_requiredStatement('date','1834')
+    
 class TestManifest(unittest.TestCase):
     @classmethod
     def setUp(self):
@@ -120,19 +148,25 @@ class TestManifest(unittest.TestCase):
         self.manifest.set_id(extendbase_url="manifest.json")
         self.canvas = self.manifest.add_canvas_to_items()
         self.canvas.set_id(extendbase_url="canvas/p1")
-        self.canvas.set_height(1800)
-        self.canvas.set_width(1200)
-        annopage = self.canvas.add_annotationpage_to_items()
-        annopage.set_id(extendbase_url="page/p1/1")
-        annotation = annopage.add_annotation_to_items(target=self.canvas.id) 
-        annotation.set_motivation("painting")
-        annotation.set_id(extendbase_url="annotation/p0001-image")
-        annotation.body.set_height(1800)
-        annotation.body.set_width(1200)
-        annotation.body.set_id("http://iiif.io/api/presentation/2.1/example/fixtures/resources/page1-full.png")
-        annotation.body.set_format("image/png")
-        annotation.body.set_type("Image")
+        self.height = 1800
+        self.width = 1200
+        self.canvas.set_hightwidth(self.height,self.width)
+        self.annotation = iiifpapi3.Annotation()
+
+    def test_setHW(self):
+        self.assertEqual(self.canvas.width,self.width)
+
+    def test_unicodeiswrittentojson(self):
+        """Test unicode is written correctly.""" 
+        unicodestring = "Picture of Göttingen "
+        self.manifest.add_label("en",unicodestring)
+        reloaded = json.loads(self.manifest.json_dumps())
+        self.assertEqual(reloaded['label']['en'][0] ,unicodestring)
     
+    def test_correctHW(self):
+        self.assertEqual(self.canvas.height,self.height)
+        self.assertEqual(self.canvas.width,self.width)
+
     def test_unicodeiswrittentojson(self):
         """
         Test unicode is written correctly.
@@ -145,7 +179,31 @@ class TestManifest(unittest.TestCase):
     def test_fragment_in_ID(self):    
         with self.assertRaises(AssertionError):
             self.canvas.set_id("http://thishasafragment#xyx")
+    
+    def test_repr(self):
+        self.assertEqual(repr(self.manifest),"Manifest id:https://iiif.io/api/cookbook/recipe/0004-canvas-size/manifest.json")
 
+    def test_annotation_motivation(self):
+        with self.assertWarns(Warning):
+            self.annotation.set_motivation("My Strange Motivation")
+        
+    def test_set_target_specific_resource_to_annotation(self):
+        with self.assertRaises(ValueError):
+            self.annotation.set_target_specific_resource(self.manifest)
+    
+    def test_set_target_specific_resource_to_annotation(self):
+        sr = iiifpapi3.SpecificResource()
+        self.annotation.set_target_specific_resource(sr)
+        self.assertEqual(self.annotation.target,sr)
+
+    def test_set_target_specific_resource_to_annotation(self):
+        with self.assertRaises(ValueError):
+             self.annotation.set_target_specific_resource(self.manifest)
+    
+    def test_nested_placehoder_canvases(self):
+        self.manifest.set_placeholderCanvas()
+        with self.assertRaises(AttributeError):
+            self.manifest.placeholderCanvas.set_placeholderCanvas()
 
 class Test_required_recommended_and_optionals(unittest.TestCase):
     @classmethod
@@ -332,6 +390,8 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.logo.id,Required())
         self.assertEqual(self.logo.type,'Image')
         self.assertEqual(self.logo.format,Recommended())
+        with self.assertRaises(ValueError):
+            self.logo.add_label('en','test')
     
     def test_rendering_args(self):
         self.assertEqual(self.rendering.id,Required())
@@ -585,19 +645,102 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.AnnotationCollection.label,Recommended())
         self.AnnotationCollection.set_id("non http")
 
+    def test_add_item_manifest(self):
+        t = self.Canvas
+        self.Manifest.add_item(t)
+        self.assertEqual(self.Manifest.items[0],t)
+    
+    def test_add_item_canvas(self):
+        t = self.AnnotationPage
+        self.Canvas.add_item(t)
+        self.assertEqual(self.Canvas.items[0],t)
+
+    def test_add_item_collection(self):
+        t = self.Manifest
+        self.Collection.add_item(t)
+        self.assertEqual(self.Collection.items[0],t)
+        t = self.Collection
+        self.Collection.add_item(t)
+        self.assertEqual(self.Collection.items[1],t)
+
+    def test_add_item_annop(self):
+        t = self.Annotation
+        self.AnnotationPage.add_item(t)
+        self.assertEqual(self.AnnotationPage.items[0],t)
+
+    def test_add_item_range(self):
+        t = self.Canvas
+        self.Range.add_item(t)
+        self.assertEqual(self.Range.items[0],t)
+
+    def test_behavior_auto_advance(self):
+        self.Canvas.add_behavior('auto-advance')
+        self.Collection.add_behavior('auto-advance')
+        self.Manifest.add_behavior('auto-advance')
+        self.Range.add_behavior('auto-advance')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('no-auto-advance')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('no-auto-advance')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('no-auto-advance')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('no-auto-advance')
+    
+    def test_behavior_no_auto_advance(self):
+        self.Canvas.add_behavior('no-auto-advance')
+        self.Collection.add_behavior('no-auto-advance')
+        self.Manifest.add_behavior('no-auto-advance')
+        self.Range.add_behavior('no-auto-advance')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('auto-advance')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('auto-advance')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('auto-advance')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('auto-advance')
+
+    def test_behavior_no_repeat(self):
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('no-repeat')
+        self.Collection.add_behavior('no-repeat')
+        self.Manifest.add_behavior('no-repeat')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('no-repeat')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('repeat')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('repeat')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('repeat')
+
+    def test_behavior_repeat(self):
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('repeat')
+        self.Collection.add_behavior('repeat')
+        self.Manifest.add_behavior('repeat')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('repeat')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('no-repeat')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('no-repeat')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('no-repeat')
+
 
 class Test_repr_and_print(unittest.TestCase):
     @classmethod
     def setUp(self):
-        self.Required = iiifpapi3.seeAlso()
-        self.partOf = iiifpapi3.partOf()
-        self.supplementary = iiifpapi3.supplementary()
-        self.bodycommenting = iiifpapi3.bodycommenting()
-        self.bodypainting = iiifpapi3.bodypainting()
-        self.service = iiifpapi3.service()
-        self.thumbnail = iiifpapi3.thumbnail()
+        self.seeAlso = iiifpapi3.seeAlso()
 
-    
+    def test_check_invalid_URI(self):
+        """Check that a space is detected."""
+        self.assertFalse(iiifpapi3.check_valid_URI("https:/test "))
+
     def test_recommended(self):
         t = "teststring12312=)123123'''òò"
         g = iiifpapi3.Recommended(t)
@@ -621,6 +764,9 @@ class Test_repr_and_print(unittest.TestCase):
     def test_only_numbers(self):
         correct = "I found: a space here. \ntest \n    ^\n"
         self.assert_stdout("https:/test ", correct)
+
+    def test_repr_missing_type_and_id(self):
+        self.assertEqual(repr(self.seeAlso),'Type Missing id:Missing')
 
 
 

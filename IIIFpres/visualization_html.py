@@ -3,7 +3,7 @@ import tempfile
 import webbrowser 
 import time
 
-def show_error_in_browser(myjson):
+def show_error_in_browser(myjson,getHTML=False):
     html_page = """
     <!DOCTYPE html>
     <html lang="en">
@@ -38,9 +38,11 @@ def show_error_in_browser(myjson):
     </body>
     </html>
     """%myjson
-
-    with tempfile.NamedTemporaryFile('r+', suffix = '.html') as f:
-        f.write(html_page) 
-        webbrowser.open('file://' + f.name) 
-        f.seek(0)
-        time.sleep(1)
+    if getHTML:
+        return html_page
+    else:
+        with tempfile.NamedTemporaryFile('r+', suffix = '.html') as f:
+            f.write(html_page) 
+            webbrowser.open('file://' + f.name) 
+            f.seek(0)
+            time.sleep(1)

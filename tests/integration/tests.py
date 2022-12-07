@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-.
-from IIIFpres.iiifpapi3 import Manifest
-from IIIFpres.utilities import read_API3_json
+from IIIFpres.iiifpapi3 import Canvas
+from IIIFpres.utilities import read_API3_json,read_API3_json_file
+from IIIFpres import utilities
 import unittest
 import json
 import os
@@ -57,15 +58,111 @@ def get_files2(examplename,context=None):
     json_manifest = json.loads(mymanifest.json_dumps(context=context))
     return ref,json_manifest
 
+r0001 = """
+{
+  "@context": "http://iiif.io/api/presentation/3/context.json",
+  "id": "https://iiif.io/api/cookbook/recipe/0001-mvm-image/manifest.json",
+  "type": "Manifest",
+  "label": {
+    "en": [
+      "Image 1"
+    ]
+  },
+  "items": [
+    {
+      "id": "https://iiif.io/api/cookbook/recipe/0001-mvm-image/canvas/p1",
+      "type": "Canvas",
+      "height": 1800,
+      "width": 1200,
+      "items": [
+        {
+          "id": "https://iiif.io/api/cookbook/recipe/0001-mvm-image/page/p1/1",
+          "type": "AnnotationPage",
+          "items": [
+            {
+              "id": "https://iiif.io/api/cookbook/recipe/0001-mvm-image/annotation/p0001-image",
+              "type": "Annotation",
+              "motivation": "painting",
+              "body": {
+                "id": "http://iiif.io/api/presentation/2.1/example/fixtures/resources/page1-full.png",
+                "type": "Image",
+                "format": "image/png",
+                "height": 1800,
+                "width": 1200
+              },
+              "target": "https://iiif.io/api/cookbook/recipe/0001-mvm-image/canvas/p1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+"""
+
+class TestUtilites(unittest.TestCase):
+    @classmethod
+    def setUp(self):
+        self.ref = json.loads(r0001)
+    
+    def test_read_API3_json_file(self):
+        example_path = os.path.join(fixture_dir,'0001-mvm-image.json')
+        json_manifest = read_API3_json_file(example_path)
+        self.assertEqual(ordered(self.ref),ordered(json_manifest.to_json()))
+
+    def test_remove_id(self):
+        idr = "https://iiif.io/api/cookbook/recipe/0001-mvm-image/canvas/p1"
+        utilities.delete_object_byID(self.ref,idr)
+        self.assertEqual(len(self.ref['items']),0)
+    
+    def test_remove_annoid(self):
+        idr = "https://iiif.io/api/cookbook/recipe/0001-mvm-image/page/p1/1"
+        utilities.delete_object_byID(self.ref,idr)
+        self.assertEqual(len(self.ref['items'][0]['items']),0)
+
+    def test_remove_and_insert(self):
+        idr = "https://iiif.io/api/cookbook/recipe/0001-mvm-image/canvas/p1"
+        newcnv = Canvas()
+        newid = "https://iiif.io/api/cookbook/recipe/0001-mvm-image/canvas/new"
+        newcnv.set_id(newid)
+        utilities.remove_and_insert_new(self.ref,idr,newcnv)
+        self.assertEqual(self.ref['items'][0].id,newid)
+
+    def test_modify(self):
+        example_path = os.path.join(fixture_dir,'0001-mvm-image.json')
+        obj = utilities.modify_API3_json(example_path)
+        self.assertEqual(ordered(self.ref),ordered(obj.to_json()))
+
+    def test_remove_annoid(self):
+        idr = "https://iiif.io/api/cookbook/recipe/0001-mvm-image/page/p1/1"
+        example_path = os.path.join(fixture_dir,'0001-mvm-image.json')
+        obj = utilities.modify_API3_json(example_path)
+        utilities.delete_object_byID(obj,idr)
+        # note modify transform only the first layer the rest are dicts
+        # items[0].items wont' work.
+        self.assertEqual(len(obj.items[0]['items'] ),0)
+
+    def test_remove_and_insert(self):
+        idr = "https://iiif.io/api/cookbook/recipe/0001-mvm-image/canvas/p1"
+        newcnv = Canvas()
+        newid = "https://iiif.io/api/cookbook/recipe/0001-mvm-image/canvas/new"
+        newcnv.set_id(newid)
+        example_path = os.path.join(fixture_dir,'0001-mvm-image.json')
+        obj = utilities.modify_API3_json(example_path)
+        utilities.remove_and_insert_new(obj,idr,newcnv)
+        self.assertEqual(obj.items[0].id,newid)
+
+
+
 class TestWithReferenceManifest(unittest.TestCase):
     
     # not a valid manifest https in rights statement
-    # def test_Example_Manifest_Response(self):
-    #     """
-    #     Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
-    #     """ 
-    #     ref,json_manifest = get_files("Example_Manifest_Response")
-    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+    def test_Example_Manifest_Response(self):
+        """
+        Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
+        """ 
+        ref,json_manifest = get_files("Example_Manifest_Response")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
 
 
     def test_0001_mvm_image(self):
@@ -166,22 +263,21 @@ class TestWithReferenceManifest(unittest.TestCase):
         ref,json_manifest = get_files("0046-rendering")
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
-    # seems not a valid manifest, URI with a trailing space: "manifest.json "
-    # def test_0117_add_image_thumbnail(self):
-    #     """
-    #     Test 0117-add-image-thumbnail
-    #     """ 
-    #     ref,json_manifest = get_files("0117-add-image-thumbnail")
-    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+    def test_0117_add_image_thumbnail(self):
+        """
+        Test 0117-add-image-thumbnail
+        """ 
+        ref,json_manifest = get_files("0117-add-image-thumbnail")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
     
     # seems not a valid manifest https://github.com/IIIF/cookbook-recipes/issues/251
-    # def test_0013_placeholderCanvas(self):
-    #     """
-    #     Test 0013-placeholderCanvas
-    #     """ 
-    #     ref,json_manifest = get_files("0013-placeholderCanvas")
-    #     printdiff(ref,json_manifest)
-    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+    def test_0013_placeholderCanvas(self):
+        """
+        Test 0013-placeholderCanvas
+        """ 
+        ref,json_manifest = get_files("0013-placeholderCanvas")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
 
     def test_0230_navdate_navdate_map_2(self):
         """
@@ -300,13 +396,13 @@ class TestWithReferenceManifest(unittest.TestCase):
 
 class Test_ReadAndWriteBack(unittest.TestCase):
     
-    # sees not a valid manifest
-    # def test_Example_Manifest_Response(self):
-    #     """
-    #     Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
-    #     """ 
-    #     ref,json_manifest = get_files("Example_Manifest_Response")
-    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+    # sees not a valid manifest, we use an edited version
+    def test_Example_Manifest_Response(self):
+         """
+         Test Example_Manifest_Response https://iiif.io/api/presentation/3.0/#b-example-manifest-response
+         """ 
+         ref,json_manifest = get_files("Example_Manifest_Response")
+         self.assertEqual(ordered(ref),ordered(json_manifest))
 
 
     def test_0001_mvm_image(self):
@@ -394,22 +490,21 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         ref,json_manifest = get_files2("0010-book-2-viewing-direction-manifest-rtl")
         self.assertEqual(ordered(ref),ordered(json_manifest))
     
-    # seems not a valid manifest, URI with a trailing space: "manifest.json "
-    # def test_0117_add_image_thumbnail(self):
-    #     """
-    #     Test 0117-add-image-thumbnail
-    #     """ 
-    #     ref,json_manifest = get_files2("0117-add-image-thumbnail")
-    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+    def test_0117_add_image_thumbnail(self):
+        """
+        Test 0117-add-image-thumbnail
+        """ 
+        ref,json_manifest = get_files2("0117-add-image-thumbnail")
+        self.assertEqual(ordered(ref),ordered(json_manifest))
     
-    # seems not a valid manifest https://github.com/IIIF/cookbook-recipes/issues/251
-    # def test_0013_placeholderCanvas(self):
-    #     """
-    #     Test 0013-placeholderCanvas
-    #     """ 
-    #     ref,json_manifest = get_files2("0013-placeholderCanvas")
-    #     printdiff(ref,json_manifest)
-    #     self.assertEqual(ordered(ref),ordered(json_manifest))
+    
+    def test_0013_placeholderCanvas(self):
+        """
+        Test 0013-placeholderCanvas
+        """ 
+        ref,json_manifest = get_files2("0013-placeholderCanvas")
+        printdiff(ref,json_manifest)
+        self.assertEqual(ordered(ref),ordered(json_manifest))
 
     def test_0230_navdate_navdate_map_2(self):
         """

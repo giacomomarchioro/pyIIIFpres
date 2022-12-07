@@ -1,6 +1,6 @@
 {
   "@context": "http://iiif.io/api/presentation/3/context.json",
-  "id": "https://iiif.io/api/cookbook/recipe/0117-add-image-thumbnail/manifest.json ",
+  "id": "https://iiif.io/api/cookbook/recipe/0117-add-image-thumbnail/manifest.json",
   "type": "Manifest",
   "label": {
     "en": [

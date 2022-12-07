@@ -1,6 +1,5 @@
 
 # -*- coding: UTF-8 -*-.
-from . import plus
 from . import visualization_html
 from .BCP47_tags_list import lang_tags
 from .dictmediatype import mediatypedict
@@ -122,17 +121,20 @@ def add_to(selfx,destination,classx, obj,acceptedclasses=None,target=None,):
     Returns:
         IIIF object: A reference to an instance of the IIIF object.
     """
+    # if the argument is none we create a list.
     if unused(selfx.__dict__[destination]):
         selfx.__dict__[destination] = []
+    # if we are not providing a IIIF Object we create one.
     if obj is None and target is None:
         obj = classx()
         selfx.__dict__[destination].append(obj)
         return obj
     elif obj is None:
-        # used for annotation
+        # used for annotation.
         obj = classx(target=target)
         selfx.__dict__[destination].append(obj)
         return obj
+    # otherwise we check that the object that we provide has the right type.
     else:
         if acceptedclasses is None:
             acceptedclasses = classx
@@ -145,6 +147,14 @@ def add_to(selfx,destination,classx, obj,acceptedclasses=None,target=None,):
                              (obj_name, class_name))
 
 def check_valid_URI(URI):
+    """Check if it is a valid URI.
+
+    Args:
+        URI (str): The URI to check.
+
+    Returns:
+        Bool: True if it is valid.
+    """
     isvalid = True
     URI = URI.replace("https:/","",1)
     URI = URI.replace("http:/","",1)
@@ -174,7 +184,7 @@ class CoreAttributes(object):
 
     def __init__(self):
         self.id = Required(
-            "A %s should have the ID property with at least one item." %
+            "A %s must have the ID property." %
             self.__class__.__name__)
         self.type = self.__class__.__name__
         # These might be suggested or may be used if needed.
@@ -206,9 +216,6 @@ class CoreAttributes(object):
                 assert "#" not in (objid), "URI of the canvas must not contain a fragment: \#"
             assert check_valid_URI(objid),"Special characters must be encoded"
             self.id = objid
-
-    def set_type(self,type):
-        print("The type property must be kept %s." % self.__class__.__name__)
 
     def add_label(self, language, text):
         """Add a label to the object
@@ -365,9 +372,9 @@ class CoreAttributes(object):
         print("Missing recommended field: %s." %jdump.count('"Recommended":') )
         return True
     
-    def show_errors_in_browser(self):
-        visualization_html.show_error_in_browser(self.json_dumps(dumps_errors=True))
-        return True
+    def show_errors_in_browser(self,getHTML=False):
+        HTML = visualization_html.show_error_in_browser(self.json_dumps(dumps_errors=True),getHTML=getHTML)
+        return HTML
 
     def __repr__(self):
         if unused(self.id):
@@ -380,8 +387,81 @@ class CoreAttributes(object):
             type_ = self.type
         return " id:".join((type_,id_))
 
+# Common helpers methods that will be used for constructing the IIIF objects.
 
-class seeAlso(CoreAttributes):
+class Format(object):
+     def set_format(self, format):
+        """Set the format of the IIIF type.
+        IIIF: The specific media type (often called a MIME type) for a content 
+        resource, for example image/jpeg. This is important for distinguishing 
+        different formats of the same overall type of resource, such as 
+        distinguishing text in XML from plain text. 
+
+        Args: format (str): the format of the IIIF type, usually is the MIME e.g. 
+        image/jpg """
+        assert "/" in format, "Format should be in the form type/format e.g. image/jpeg"
+        assert format.split("/")[0].isalpha(), "Format should be in the form type/format e.g. image/jpeg"
+        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
+        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
+        self.format = format
+
+class HeightWidth(object):
+    def set_width(self,width):
+        self.width = int(width)
+    
+    def set_height(self,height):
+        self.height = int(height)
+    
+    def set_hightwidth(self,height, width):
+        self.set_width(width)
+        self.set_height(height)
+
+class Duration(object):
+    def set_duration(self, duration):
+        if unused(self.height):
+            self.height = None
+        if unused(self.width):
+            self.width = None
+        self.duration = float(duration)
+
+class ViewingDirection(object):
+    def set_viewingDirection(self,viewingDirection):
+        """
+        left-to-right	The object is displayed from left to right. The default if not specified.
+        right-to-left	The object is displayed from right to left.
+        top-to-bottom	The object is displayed from the top to the bottom.
+        bottom-to-top	The object is displayed from the bottom to the top.
+        """
+        viewingDirections = ["left-to-right",
+        "right-to-left",
+        "bottom-to-top",
+        "top-to-bottom"]
+        msg = "viewingDirection must be one of these values %s" %viewingDirections
+        assert viewingDirection in viewingDirections, msg
+        self.viewingDirection = viewingDirection
+
+class MutableType(object):
+    """ In some IIIF objects the type can be changed.
+    """
+    def set_type(self,mtype=None):
+        assert not mtype[0].isdigit(), "First letter should not be a digit"
+        self.type = mtype
+
+class ImmutableType(object):
+    """ In some IIIF objects the type cannot be changed.
+    """
+    def set_type(self,mtype=None):
+        classname = self.__class__.__name__
+        classtype = self.type
+        if mtype == classtype or mtype is None:
+            warnings.warn("%s type is by default %s, this set will be ingored." %(classname,classtype))
+        else:
+            raise ValueError("The %s type must be set to '%s' you tried to set it to: %s " %(classname,classtype,mtype))
+
+# IIIF Objects:
+
+class seeAlso(CoreAttributes,Format,MutableType):
     """
     IIF: A machine-readable resource such as an XML or RDF description that is 
     related to the current resource that has the seeAlso property. Properties 
@@ -404,33 +484,11 @@ class seeAlso(CoreAttributes):
         self.format = Recommended("SeeAlso type is recommended e.g. text/xml")
         self.profile = Recommended("Resources referenced by the seeAlso or service properties should have the profile property.")
 
-    def set_type(self, datatype):
-        # TODO: add check
-        self.type = datatype
-
     def set_profile(self, profile):
         # TODO: add check
         self.profile = profile
 
-    def set_format(self, format):
-        """Set the format of the IIIF type.
-        IIIF: The specific media type (often called a MIME type) for a content 
-        resource, for example image/jpeg. This is important for distinguishing 
-        different formats of the same overall type of resource, such as 
-        distinguishing text in XML from plain text. 
-
-        Args: format (str): the format of the IIIF type, usually is the MIME e.g. 
-        image/jpg """
-        msg = "Format should be in the form type/format e.g. image/jpeg"
-        assert "/" in format, msg
-        assert format.split("/")[0].isalpha(), msg
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
-        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
-        self.format = format
-
-
-class partOf(CoreAttributes):
+class partOf(MutableType,CoreAttributes):
     """
     A containing resource that includes the resource that has the partOf
     property. When a client encounters the partOf property, it might retrieve
@@ -447,15 +505,7 @@ class partOf(CoreAttributes):
         self.type = Required("Each partOf item must have a type")
         self.label = Recommended("Each partOf item should have the label property.")
 
-    def set_type(self, type_):
-        assert not type_[0].isdigit(), "First letter should not be a digit"
-        self.type = type_
-
-    def set_id(self, objid):
-        self.id = objid
-
-
-class supplementary(CoreAttributes):
+class supplementary(ImmutableType,CoreAttributes):
     """
     IIIF: A link from this Range to an Annotation Collection that includes the 
     supplementing Annotations of content resources for the Range. Clients 
@@ -476,10 +526,7 @@ class supplementary(CoreAttributes):
         self.type = "AnnotationCollection"
         self.label = Recommended("An Annotation Collection should have the label property with at least one entry.")
 
-    def set_type(self):
-        print("type must be AnnotationCollection")
-
-class service(CoreAttributes):
+class service(CoreAttributes,HeightWidth):
     """https://iiif.io/api/presentation/3.0/#service
     IIIF:A service that the client might interact with directly and gain 
     additional information or functionality for using the resource that has 
@@ -532,12 +579,6 @@ class service(CoreAttributes):
     def set_profile(self, profile):
         self.profile = profile
 
-    def set_width(self,width):
-        self.width = int(width)
-    
-    def set_height(self,height):
-        self.height = int(height)
-
     def add_service(self, serviceobj=None):
         return add_to(self,'service',service,serviceobj,(service,dict))
 
@@ -547,39 +588,36 @@ class service(CoreAttributes):
         self.sizes.append({"width":width,"height":height})
 
 
-class thumbnail(CoreAttributes, plus.HeightWidthDuration):
+class thumbnail(MutableType,CoreAttributes,Format,HeightWidth,Duration):
     def __init__(self):
         super(thumbnail, self).__init__()
         self.service = None
 
-    def set_type(self, mtype):
-        self.type = mtype
-
-    def set_format(self, format):
-        """Set the format of the IIIF type.
-        IIIF: The specific media type (often called a MIME type) for a content 
-        resource,for example image/jpeg. This is important for distinguishing 
-        different formats of the same overall type of resource, such as 
-        distinguishing text in XML from plain text.
-
-        Args:
-            format (str): the format of the IIIF type, usually is the MIME 
-            e.g. image/jpg
-        """
-        msg = "Format should be a string in the form type/format e.g. image/jpg"
-        assert isinstance(format,str),msg
-        assert "/" in format, msg
-        assert format.split("/")[0].isalpha(), msg
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
-        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
-        self.format = format
-
     def add_service(self, serviceobj=None):
         return add_to(self,'service',service,serviceobj,(service,dict))
 
+class Thumbnail(object):
+    """Helper class for adding thumbnail.
+    """
+    def add_thumbnail(self, thumbnailobj=None):
+        """
+        https://iiif.io/api/presentation/3.0/#thumbnail
+        IIF: A content resource, such as a small image or short audio clip, that
+        represents the resource that has the thumbnail property. A resource may
+        have multiple thumbnail resources that have the same or different type
+        and format.
 
-class provider(CoreAttributes):
+        The value must be an array of JSON objects, each of which must have the
+        id and type properties, and should have the format property. Images and
+        videos should have the width and height properties, and time-based
+        media should have the duration property. It is recommended that a IIIF
+        Image API service be available for images to enable manipulations such
+        as resizing.
+        """
+        return add_to(self,'thumbnail',thumbnail,thumbnailobj)
+
+
+class provider(ImmutableType,CoreAttributes):
     """
     IIIF: An organization or person that contributed to providing the content 
     of the resource. Clients can then display this information to the user to 
@@ -635,14 +673,6 @@ class provider(CoreAttributes):
             "Agents should have the logo property, and its value must be an array of JSON objects as described in the logo section.")
         self.seeAlso = None
 
-    def set_type(self,mtype=None):
-        """The type property must be the string “Agent”.
-        """
-        if mtype == "Agent" or mtype is None:
-            print("Provider type is by default Agent, this set will be ingored.")
-        else:
-            raise ValueError("The provider agent type must be set to 'Agent' you tried to set it to: %s " %mtype)
-
     def add_logo(self, logoobj=None):
         return add_to(self,'logo',logo,logoobj)
 
@@ -657,7 +687,7 @@ class provider(CoreAttributes):
         return add_to(self,'seeAlso',seeAlso,seeAlsoobj)
 
 
-class homepage(CoreAttributes):
+class homepage(MutableType,CoreAttributes,Format):
     """https://iiif.io/api/presentation/3.0/#homepage
     IIIF: A web page that is about the object represented by the resource that 
     has the homepage property. The web page is usually published by the 
@@ -672,7 +702,7 @@ class homepage(CoreAttributes):
         super(homepage, self).__init__()
         self.language = None
         self.label = Required("Hompage must have a label")
-        self.type = Required("Homepage must have an type.")
+        self.type = Required("Homepage must have a type.")
         self.format = Recommended(
             "Hompage should have a format property e.g. Text.")
 
@@ -682,30 +712,7 @@ class homepage(CoreAttributes):
         assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.language.append(language)
 
-    def set_format(self, format):
-        """Set the format of the IIIF type.
-        IIIF: The specific media type (often called a MIME type) for a content 
-        resource, for example image/jpeg. This is important for distinguishing 
-        different formats of the same overall type of resource, such as 
-        distinguishing text in XML from plain text.
-
-        Args:
-            format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
-        """
-        msg = "Format should be a string in the form type/format e.g. image/jpg"
-        assert isinstance(format,str),msg
-        assert "/" in format, msg
-        assert format.split("/")[0].isalpha(), msg
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
-        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
-        self.format = format
-
-    def set_type(self, mtype):
-        self.type = mtype
-
-
-class logo(CoreAttributes, plus.HeightWidthDuration):
+class logo(ImmutableType,CoreAttributes,HeightWidth,Format):
     """
     A small image resource that represents the Agent resource it is associated 
     with. The logo must be clearly rendered when the resource is displayed or 
@@ -739,36 +746,14 @@ class logo(CoreAttributes, plus.HeightWidthDuration):
         self.service = Recommended(
             "Logo should have service attribute, you can add using srv = mylogo.add_service()")
 
-    def set_format(self, format):
-        """Set the format of the IIIF type.
-        IIIF: The specific media type (often called a MIME type) for a content 
-        resource, for example image/jpeg. This is important for distinguishing 
-        different formats of the same overall type of resource, such as 
-        distinguishing text in XML from plain text.
-
-        Args:
-            format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
-        """
-        msg = "Format should be a string in the form type/format e.g. image/jpg"
-        assert isinstance(format,str),msg
-        assert "/" in format, msg
-        assert format.split("/")[0].isalpha(), msg
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
-        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
-        self.format = format
-
-    def set_type(self, mtype):
-        raise AttributeError("Logo type must be Image")
-
-    def set_label(self, label):
+    def add_label(self, language, text):
         raise ValueError("Label not permitted in logo.")
 
     def add_service(self, serviceobj=None):
         return add_to(self,'service',service,serviceobj,(service,dict))
 
 
-class rendering(CoreAttributes):
+class rendering(MutableType,CoreAttributes,Format):
     """https://iiif.io/api/presentation/3.0/#rendering 
     A resource that is an alternative, non-IIIF representation of the resource
     that has the rendering property. Such representations typically cannot be
@@ -798,29 +783,6 @@ class rendering(CoreAttributes):
             "Rendering should have a format property e.g. application/pdf.")
         self.label  = Required("Rendering object must have a label.")
         self.type = Required("Rendering should have a type")
-
-    def set_format(self, format):
-        """Set the format of the IIIF type.
-        IIIF: The specific media type (often called a MIME type) for a content resource,
-        for example image/jpeg. This is important for distinguishing different formats
-        of the same overall type of resource, such as distinguishing text in XML from
-        plain text.
-
-        Args:
-            format (str): the format of the IIIF type, usually is the MIME e.g. image/jpg
-        """
-        msg = "Format should be a string in the form type/format e.g. image/jpg"
-        assert isinstance(format,str),msg
-        assert "/" in format, msg
-        assert format.split("/")[0].isalpha(), msg
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
-        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
-        self.format = format
-
-    def set_type(self, type):
-        self.type = type
-
 
 class services(CoreAttributes):
     """
@@ -891,7 +853,7 @@ class languagemap(object):
 # COMMON ATTRIBUTES TO MAJOR CONTAINERS
 ##
 
-class CommonAttributes(CoreAttributes):
+class CommonAttributes(CoreAttributes,Thumbnail):
     """
     Common attributes are the attributes that are in common with all the major
     classes/container of IIIF namely: Collection, Manifest, Canvas, Range and
@@ -997,6 +959,8 @@ class CommonAttributes(CoreAttributes):
                 "Either use entry arguments or a combination of other arguments, NOT both.")
         
         if entry is None:
+            if language_l is None: language_l = "none"
+            if language_v is None: language_v = "none"
             assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
             assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
             entry = {"label": {language_l: [label]},
@@ -1029,23 +993,6 @@ class CommonAttributes(CoreAttributes):
         warnings.warn('Please use set_requiredStatement instead.', DeprecationWarning) 
         return self.set_requiredStatement(label,value,language_l,language_v,entry)
 
-    def add_thumbnail(self, thumbnailobj=None):
-        """
-        https://iiif.io/api/presentation/3.0/#thumbnail
-        IIF: A content resource, such as a small image or short audio clip, that
-        represents the resource that has the thumbnail property. A resource may
-        have multiple thumbnail resources that have the same or different type
-        and format.
-
-        The value must be an array of JSON objects, each of which must have the
-        id and type properties, and should have the format property. Images and
-        videos should have the width and height properties, and time-based
-        media should have the duration property. It is recommended that a IIIF
-        Image API service be available for images to enable manipulations such
-        as resizing.
-        """
-        return add_to(self,'thumbnail',thumbnail,thumbnailobj)
-
     def add_behavior(self, behavior):
         """
         https://iiif.io/api/presentation/3.0/#behavior
@@ -1056,12 +1003,17 @@ class CommonAttributes(CoreAttributes):
         """
         # TODO: should we assert if behaviour disjoint with others?
         assert behavior in BEHAVIOURS,f"{behavior} is not valid. See https://git.io/Jo7r9."
-
+        if unused(self.behavior):
+            self.behavior = []
         if behavior == "auto-advance" or behavior == "no-auto-advance":
             assert self.type in ["Collection","Manifest","Canvas","Range"], f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
             if self.type == "Range":
                 #TODO: Ranges that include or are Canvases with at least the duration dimension. 
                 pass
+            if behavior == "auto-advance":
+                assert "no-auto-advance" not in self.behavior,"Conflicts with no-auto-advance"
+            if behavior == "no-auto-advance":
+                assert "auto-advance" not in self.behavior,"Conflicts with auto-advance"
 
         elif behavior == "repeat" or behavior == "no-repeat":
             assert self.type in ["Collection","Manifest"],f"{behavior} behavior is valid only for Collection and Manifest"
@@ -1092,8 +1044,6 @@ class CommonAttributes(CoreAttributes):
         elif behavior == "hidden":
             assert self.type in ["Annotation","Collection","AnnotationPage","Annotations","SpecificResource","Choice"],f"{behavior} behavior is valid only on Annotation Collections, Annotation Pages, Annotations, Specific Resources and Choices."
 
-        if unused(self.behavior):
-            self.behavior = []
         self.behavior.append(behavior)
 
     def add_homepage(self, homepageobj=None):
@@ -1213,7 +1163,7 @@ class Annotation(CommonAttributes):
 
         motivations = ["painting", "supplementing","commenting","tagging"]
         if motivation not in motivations:
-            print("Motivation not in %s" % motivations)
+            warnings.warn("Motivation not in %s" % motivations)
         if motivation == "painting":
             self.body = bodypainting()
         if motivation == "commenting" or motivation == "tagging":
@@ -1238,17 +1188,24 @@ class AnnotationPage(CommonAttributes):
     """
 
     """
-
+    # TODO: AnnotationPage type MUST be AnnotationPage?
     def __init__(self):
         super(AnnotationPage, self).__init__()
         self.items = Recommended(
             "The annotation page should incude at least one item.")
 
     def add_item(self, item):
-        #TODO: remove
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
+        """Add an item (Annotation) to the AnnotationPage.
+        
+        Same as `add_annotation_to_items` but doesn't return.
+
+        An Annotation Page should have the items property with at least one 
+        item. Each item must be an Annotation.
+
+        Args:
+            item (Annotation): The Annotation
+        """
+        add_to(self,'items',Annotation,item)
 
     def add_annotation_to_items(self, annotation=None, target=None):
         return add_to(self,'items',Annotation,annotation,target=target)
@@ -1276,7 +1233,7 @@ class AnnotationCollection(CommonAttributes):
         except AssertionError:
             self.id = objid
 
-class contentresources(CommonAttributes):
+class contentresources(MutableType,CommonAttributes,HeightWidth,Duration):
     """
     IIIF: Content resources are external web resources that are referenced 
     from within the Manifest or Collection. 
@@ -1287,9 +1244,9 @@ class contentresources(CommonAttributes):
     def __init__(self):
         super(CommonAttributes,self).__init__()
         self.annotations = None
-    
-    def set_type(self,type):
-        self.type = type
+        self.type = Required("The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
+        self.format = Recommended("The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
+        self.profile = Recommended("The profile of the resource, if it has one, should also be included")
     
     def set_format(self,format):
         self.format = format
@@ -1297,32 +1254,17 @@ class contentresources(CommonAttributes):
     def add_annotation(self, annotation=None):
         return add_to(self,'annotations',Annotation,annotation,target=self.id)
 
-        if unused(self.annotations):
-            self.annotations = []
-        if annotation is None:
-            annotation = Annotation(target=self.id)
-            self.annotations.append(annotation)
-            return annotation
-        else:
-            self.annotations.append(annotation)
-
     def add_annotationpage_to_items(self, annotationpageobj=None,target=None):
         return add_to(self,'items',AnnotationPage,annotationpageobj,target=target)
 
     def add_annotationpage_to_annotations(self, annotationpageobj=None):
         return add_to(self,'annotations',AnnotationPage,annotationpageobj)
 
-class bodycommenting(object):
+class bodycommenting(ImmutableType):
     def __init__(self):
         self.type = "TextualBody"
         self.value = None
         self.language = None
-
-    def set_type(self, mtype):
-        if mtype == "TextualBody":
-            print("Commenting/tagging body is by default TextualBody, this set will be ingored.")
-        else:
-            raise ValueError("Commenting/tagging body must be TextualBody you tried to set it %s " %mtype)
 
     def set_format(self, format):
         # TODO: what format are allowed?
@@ -1335,57 +1277,15 @@ class bodycommenting(object):
         assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
         self.language = language
 
-
-class choice(CoreAttributes):
-    def __init__(self):
-        super(choice, self).__init__()
-        self.id = None
-
 class bodypainting(contentresources):
     def __init__(self):
         super(bodypainting, self).__init__()
-        self.type = Required(
-            "The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
-        self.format = Recommended(
-            "The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
-        self.profile = Recommended(
-            "The profile of the resource, if it has one, should also be included.")
         self.height = None
         self.width = None
         self.duration = None
         self.service = None
         self.language = None
         self.items = None
-
-    def set_type(self, mytype):
-        self.type = mytype
-
-    def set_format(self, format):
-        msg = "Format should be a string in the form type/format e.g. image/jpg"
-        assert isinstance(format,str),msg
-        assert "/" in format, msg
-        assert format.split("/")[0].isalpha(), msg
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
-        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
-        self.format = format
-
-    def set_width(self, width):
-        self.width = int(width)
-
-    def set_height(self, height ):
-        self.height = int(height)
-
-    def set_heightwidth(self, height, width):
-        self.set_width(width)
-        self.set_height(height)
-
-    def set_duration(self, duration):
-        if unused(self.height):
-            self.height = None
-        if unused(self.width):
-            self.width = None
-        self.duration = float(duration)
 
     def add_service(self, serviceobj=None):
         return add_to(self,'service',service,serviceobj,(service,dict))
@@ -1420,7 +1320,7 @@ class bodypainting(contentresources):
         self.language.append(language)
 
 
-class CMRCattributes(CommonAttributes):
+class CMRCattributes(CommonAttributes,ImmutableType):
     """
     This is another class for grouping the attributes in common with
     Canvas, Manifest, Range and Collection.
@@ -1461,7 +1361,7 @@ class CMRCattributes(CommonAttributes):
         #TODO: check
         self.navDate = navDate
 
-class Canvas(CMRCattributes):
+class Canvas(CMRCattributes,HeightWidth,Duration):
     """https://iiif.io/api/presentation/3.0/#53-canvas 
     The Canvas represents an individual page or view and acts as a central
     point for assembling the different content resources that make up the
@@ -1481,28 +1381,18 @@ class Canvas(CMRCattributes):
         self.placeholderCanvas = None
         self.accompanyingCanvas = None
     
-    def set_width(self, width ):
-        self.width = int(width)
-
-    def set_height(self, height ):
-        self.height = int(height)
-
-    def set_hightwidth(self, height , width ):
-        self.set_width(width)
-        self.set_height(height)
-
-    def set_duration(self, duration):
-        if unused(self.height):
-            self.height = None
-        if unused(self.width):
-            self.width = None
-        self.duration = float(duration)
-
     def add_item(self, item):
-        #TODO: remove
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
+        """Add an item (AnnotationPage) to the Canvas.
+        
+        Same as `add_annotationpage_to_items` but doesn't return.
+
+        A Canvas should have the items property with at least one item.
+        Each item must be an Annotation Page.
+
+        Args:
+            item (AnnotationPage): The AnnotationPage object.
+        """
+        add_to(self,'items',AnnotationPage,item)
 
     def add_annotation(self, annotation=None):
         return add_to(self,'annotations',Annotation,annotation,target=self.id)
@@ -1513,8 +1403,52 @@ class Canvas(CMRCattributes):
     def add_annotationpage_to_annotations(self, annotationpageobj=None):
         return add_to(self,'annotations',AnnotationPage,annotationpageobj)
 
-    
-class Manifest(CMRCattributes, plus.ViewingDirection):
+class start(CoreAttributes):
+    def __init__(self):
+        super(start, self).__init__()
+        self.type = Required("Start object must have a type.")
+        self.profile = Recommended("Start object should have a profile.")
+        self.source = None
+        self.selector = None
+
+    def set_type(self, mtype):
+        if mtype != "Canvas":
+            self.source = Required(
+                "If you are not pointing to a Canvas please specify a source.")
+            self.selector = Required(
+                "If you are not pointing to a Canvas please specify a selector")
+        self.type = mtype
+
+    def set_source(self, source):
+        self.source = source
+
+    def set_selector(self, selector):
+        self.selector = selector
+
+class Start(object):
+     def set_start(self,startobj=None):
+        """This method set a start obejct at self.start.
+        IIIF: A Canvas, or part of a Canvas, which the client should show on 
+        initialization for the resource that has the start property.
+        The reference to part of a Canvas is handled in the same way that 
+        Ranges reference parts of Canvases. This property allows the client to
+        begin with the first Canvas that contains interesting content rather 
+        than requiring the user to manually navigate to find it.
+        
+        manifest.set_start()
+        manifest.start.set_type('Canvas')
+        manifest.start.set_id("https://example.org/iiif/1/canvas/1")
+
+        Returns:
+            start object: a reference to the start object to be used
+        """
+        if startobj is None:
+            self.start = start()
+        else:
+            self.start = startobj
+        return self.start
+
+class Manifest(CMRCattributes, ViewingDirection,Start):
     """
     The Manifest resource typically represents a single object and any
     intellectual work or works embodied within that object. In particular it
@@ -1553,28 +1487,19 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
         self.placeholderCanvas = None
 
     def add_item(self, item):
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
-
-    def set_start(self):
-        """This method set a start obejct at self.start.
-        IIIF: A Canvas, or part of a Canvas, which the client should show on 
-        initialization for the resource that has the start property.
-        The reference to part of a Canvas is handled in the same way that 
-        Ranges reference parts of Canvases. This property allows the client to
-        begin with the first Canvas that contains interesting content rather 
-        than requiring the user to manually navigate to find it.
+        """Add an item (Canvas) to the Manifest.
         
-        manifest.set_start()
-        manifest.start.set_type('Canvas')
-        manifest.start.set_id("https://example.org/iiif/1/canvas/1")
+        Same as `add_canvas_to_items` but doesn't return.
 
-        Returns:
-            start object: a reference to the start object to be used
+        A Manifest must have the items property with at least one item. 
+        Each item must be a Canvas.
+        Clients must process items on a Manifest.
+
+        Args:
+            item (Canvas): The canvas
         """
-        self.start = start()
-        return self.start
+        add_to(self,'items',Canvas,item)
+
 
     def add_services(self, services=None):
         if unused(self.services):
@@ -1595,32 +1520,18 @@ class Manifest(CMRCattributes, plus.ViewingDirection):
     def add_range_to_structures(self, rangeobj=None):
         return add_to(self,'structures',Range,rangeobj)
 
+    def add_annotationpage_to_annotations(self,annopageobj=None):
+        return add_to(self,'annotations',AnnotationPage,annopageobj)
 
-class refManifest(CoreAttributes):
+
+class refManifest(CoreAttributes,Thumbnail):
     def __init__(self):
         super(refManifest,self).__init__()
         self.thumbnail = Recommended("A Manifest reference should have the thumbnail property with at least one item.")
         self.type = "Manifest"
         self.navDate = None
 
-    def add_thumbnail(self, thumbnailobj=None):
-        """
-        https://iiif.io/api/presentation/3.0/#thumbnail
-        IIF: A content resource, such as a small image or short audio clip, that
-        represents the resource that has the thumbnail property. A resource may
-        have multiple thumbnail resources that have the same or different type
-        and format.
-
-        The value must be an array of JSON objects, each of which must have the
-        id and type properties, and should have the format property. Images and
-        videos should have the width and height properties, and time-based
-        media should have the duration property. It is recommended that a IIIF
-        Image API service be available for images to enable manipulations such
-        as resizing.
-        """
-        return add_to(self,'thumbnail',thumbnail,thumbnailobj)
-
-class Collection(CMRCattributes,plus.ViewingDirection):
+class Collection(CMRCattributes,ViewingDirection):
     def __init__(self):
         super(Collection, self).__init__()
         self.services = None
@@ -1641,13 +1552,18 @@ class Collection(CMRCattributes,plus.ViewingDirection):
         return add_to(self,'annotations',Annotation,annotationobj,target=self.id)
 
     def add_item(self, item):
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
+        """Add an item (Collection or Manifest) to the Manifest without returning.
+        
+        A Collection must have the items property.
+        Each item must be either a Collection or a Manifest.
+
+        Args:
+            item (Collection or Manifest): The item to be added.
+        """
+        add_to(self,'items',Canvas,item,(Collection,Manifest))
 
     def add_collection_to_items(self,collectionobj=None):
         return add_to(self,'items',Collection,collectionobj)
-        return checkitem(self, Collection, obj)
     
     def add_manifest_to_items(self,manifestobj=None):
         if isinstance(manifestobj, Manifest):
@@ -1657,7 +1573,7 @@ class Collection(CMRCattributes,plus.ViewingDirection):
                 manifestobj = newobj
         return add_to(self,'items',refManifest,manifestobj,(Manifest,refManifest))
 
-class Range(CMRCattributes,plus.ViewingDirection):
+class Range(CMRCattributes,ViewingDirection,Start):
     def __init__(self):
         super(Range, self).__init__()
         self.annotations = None
@@ -1671,34 +1587,29 @@ class Range(CMRCattributes,plus.ViewingDirection):
         return add_to(self,'annotations',Annotation,annotationobj)
 
     def add_item(self, item):
-        if unused(self.items):
-            self.items = []
-        self.items.append(item)
+        """Add an item (Range,Canvas,Specific Resource where the source is a 
+        Canvas) to the Manifest.
+        
+        This function does not return. Use:
+            `add_range_to_items`
+            `add_canvas_to_items`
+            `add_specificresource_to_items`
+
+
+        A Range must have the items property with at least one item. 
+        Each item must be a Range, a Canvas or a Specific Resource where the 
+        source is a Canvas.
+
+        Args:
+            item (Range,Canvas,SpecRes): The IIIF Object.
+        """
+        add_to(self,'items',Canvas,item,(Range,SpecificResource,Canvas))
 
     def add_range_to_items(self,rangeobj=None):
         return add_to(self,'items',Range,rangeobj)
     
     def add_specificresource_to_items(self,specificresourceobj=None):
         return add_to(self,'items',SpecificResource,specificresourceobj)
-
-    def set_start(self):
-        """This method add a start obejct at self.start.
-        IIIF: A Canvas, or part of a Canvas, which the client should show on 
-        initialization for the resource that has the start property.
-        The reference to part of a Canvas is handled in the same way that 
-        Ranges reference parts of Canvases. This property allows the client to
-        begin with the first Canvas that contains interesting content rather 
-        than requiring the user to manually navigate to find it.
-        
-        manifest.set_start()
-        manifest.start.set_type('Canvas')
-        manifest.start.set_id("https://example.org/iiif/1/canvas/1")
-
-        Returns:
-            start object: a reference to the start object to be used
-        """
-        self.start = start()
-        return self.start
 
     def set_supplementary(self, objid=None, extendbase_url=None):
         self.supplementary = supplementary()
@@ -1753,32 +1664,7 @@ class SpecificResource(CommonAttributes):
         self.selector = ss
         return ss
 
-
-class start(CoreAttributes):
-
-    def __init__(self):
-        super(start, self).__init__()
-        self.type = Required("Start object must have a type.")
-        self.profile = Recommended("Start object should have a profile.")
-        self.source = None
-        self.selector = None
-
-    def set_type(self, mtype):
-        if mtype != "Canvas":
-            self.source = Required(
-                "If you are not pointing to a Canvas please specify a source.")
-            self.selector = Required(
-                "If you are not pointing to a Canvas please specify a selector")
-        self.type = mtype
-
-    def set_source(self, source):
-        self.source = source
-
-    def set_selector(self, selector):
-        self.selector = selector
-
-
-class ImageApiSelector(object):
+class ImageApiSelector(Format,ImmutableType):
     def __init__(self):
         self.type = "ImageApiSelector"
         self.region = None
@@ -1786,9 +1672,6 @@ class ImageApiSelector(object):
         self.rotation = None
         self.quality = None
         self.fromat = None
-
-    def set_type(self, type):
-        print("Type should be kept ImageApiSelector")
 
     def set_region(self, region):
         self.region = region
@@ -1802,27 +1685,7 @@ class ImageApiSelector(object):
     def set_size(self, size):
         self.size = size
 
-    def set_format(self, format):
-        """Set the format of the IIIF type. IIIF: The specific media type
-        (often called a MIME type) for a content resource, for example
-        image/jpeg. This is important for distinguishing different formats of
-        the same overall type of resource, such as distinguishing text in XML
-        from plain text.
-
-        Args: format (str): the format of the IIIF type, usually is the MIME
-            e.g. image/jpg
-        """
-        msg = "Format should be a string in the form type/format e.g. image/jpg"
-        assert isinstance(format,str),msg
-        assert "/" in format, msg
-        assert format.split("/")[0].isalpha(), msg
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
-        assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
-        self.format = format
-
-
-class PointSelector(object):
+class PointSelector(ImmutableType):
     """
     There are common use cases in which a point, rather than a range or area,
     is the target of the Annotation. For example, putting a pin in a map should
@@ -1849,13 +1712,10 @@ class PointSelector(object):
     """
 
     def __init__(self):
-        self.type = None
+        self.type = "PointSelector"
         self.x = None
         self.y = None
         self.t = None
-
-    def set_type(self, type):
-        self.type = type
 
     def set_x(self, x):
         self.x = x
@@ -1867,13 +1727,10 @@ class PointSelector(object):
         self.t = t
 
 
-class FragmentSelector(object):
+class FragmentSelector(ImmutableType):
     def __init__(self):
         self.type = "FragmentSelector"
         self.value = Required("A fragment selector must have a value!")
-
-    def set_type(self, type):
-        print("Type should be kept FragmentSelector")
 
     def set_value(self, value):
         self.value = value
@@ -1881,16 +1738,13 @@ class FragmentSelector(object):
     def set_xywh(self, x, y, w, h):
         self.value = "xywh=%i,%i,%i,%i" % (x, y, w, h)
 
-class SvgSelector(object):
+class SvgSelector(ImmutableType):
     """The SvgSelector is used to select a non rectangualar region of an image.
     https://www.w3.org/TR/annotation-model/#svg-selector
     """
     def __init__(self):
         self.type = "SvgSelector"
         self.value = None
-
-    def set_type(self, type):
-        print("Type should be kept SvgSelector")
 
     def set_value(self, value):
         self.value = value

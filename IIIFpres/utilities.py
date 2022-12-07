@@ -128,13 +128,16 @@ def delete_object_byID(obj,id):
         pass
 
 def remove_and_insert_new(obj,id,newobj):
-    """Remove from any IIIF object (collection, manifest, canvas, etc) the 
+    """Remove inplace from any IIIF object (collection, manifest, canvas, etc) the 
     object with the given id and insert the new object.
 
     Args:
         obj (IIIFobject): The object to modify.
         id (str): The id of the object to remove.
         newobj (IIIFobject): The new object to insert.
+    
+    Returns:
+        counter (int): The number of objects removed. If 0, nothing was removed.
     """
     def remove_and_insert_new_rec(obj,id,newobj):
         nonlocal counter
