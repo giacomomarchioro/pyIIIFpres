@@ -105,7 +105,7 @@ class TestEmptyManifest(unittest.TestCase):
             self.manifest.json_save("errortest.json",save_errors=True)
         data = '{\n  "@context": "http://iiif.io/api/presentation/3/context.json",\n  "id": {\n    "Required": "A Manifest must have the ID property."\n  },\n  "type": "Manifest",\n  "label": {\n    "Required": "A Manifest must have the label property with at least one entry."\n  },\n  "metadata": {\n    "Recommended": "A Manifest should have the metadata property with at least one item."\n  },\n  "summary": {\n    "Recommended": "A Manifest should have the summary property with at least one entry."\n  },\n  "thumbnail": {\n    "Recommended": "A Manifest should have the thumbnail property with at least one item."\n  },\n  "provider": {\n    "Recommended": "A Manifest should have the provider property with at least one item."\n  },\n  "items": {\n    "Required": "The Manifest must have an items property"\n  }\n}'
         open_mock.return_value.write.assert_called_once_with(data)
-
+    
     def test_ORJSON_save(self):
         open_mock = unittest.mock.mock_open()
         with unittest.mock.patch("IIIFpres.iiifpapi3.open", open_mock, create=True):
@@ -739,6 +739,173 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.Manifest.add_behavior('no-repeat')
 
+    def test_behavior_unordered(self):
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('unordered')
+        self.Collection.add_behavior('unordered')
+        self.Manifest.add_behavior('unordered')
+        self.Range.add_behavior('unordered')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('individuals')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('continuous')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('paged')
+    
+    def test_behavior_individuals(self):
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('individuals')
+        self.Collection.add_behavior('individuals')
+        self.Manifest.add_behavior('individuals')
+        self.Range.add_behavior('individuals')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('unordered')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('continuous')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('paged')
+
+    def test_behavior_continuous(self):
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('continuous')
+        self.Collection.add_behavior('continuous')
+        self.Manifest.add_behavior('continuous')
+        self.Range.add_behavior('continuous')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('unordered')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('paged')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('individuals')
+
+    def test_behavior_paged(self):
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('paged')
+        self.Collection.add_behavior('paged')
+        self.Manifest.add_behavior('paged')
+        self.Range.add_behavior('paged')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('unordered')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('facing-pages')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('individuals')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('continuous')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('non-paged')
+
+    def test_behavior_facing_pages(self):
+        self.Canvas.add_behavior('facing-pages')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('facing-pages')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('facing-pages')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('facing-pages')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('paged')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('non-paged')
+
+    def test_behavior_non_paged(self):
+        self.Canvas.add_behavior('non-paged')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('non-paged')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('non-paged')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('non-paged')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('paged')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('facing-pages')
+
+    def test_behavior_multi_part(self):
+        self.Collection.add_behavior('multi-part')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('multi-part')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('multi-part')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('multi-part')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('together')
+
+    def test_behavior_together(self):
+        self.Collection.add_behavior('together')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('together')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('together')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('together')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('multi-part')
+
+    def test_behavior_sequence(self):
+        self.Range.add_behavior('sequence')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('sequence')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('sequence')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('sequence')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('thumbnail-nav')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('no-nav')
+    
+    def test_behavior_thumbnail_nav(self):
+        self.Range.add_behavior('thumbnail-nav')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('thumbnail-nav')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('thumbnail-nav')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('thumbnail-nav')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('sequence')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('no-nav')
+
+    def test_behavior_no_nav(self):
+        self.Range.add_behavior('no-nav')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('no-nav')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('no-nav')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('no-nav')
+        # test disjoint
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('sequence')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('thumbnail-nav')
+
+    def test_behavior_hidden(self):
+        self.AnnotationCollection.add_behavior('hidden')
+        self.AnnotationPage.add_behavior('hidden')
+        self.SpecificResource.add_behavior('hidden')
+        self.Annotation.add_behavior('hidden')
+        with self.assertRaises(AssertionError):
+            self.Range.add_behavior('hidden')
+        with self.assertRaises(AssertionError):
+            self.Canvas.add_behavior('hidden')
+        with self.assertRaises(AssertionError):
+            self.Manifest.add_behavior('hidden')
+        with self.assertRaises(AssertionError):
+            self.Collection.add_behavior('hidden')
 
 class Test_repr_and_print(unittest.TestCase):
     @classmethod

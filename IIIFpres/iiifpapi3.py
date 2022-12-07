@@ -984,46 +984,72 @@ class CommonAttributes(CoreAttributes,Thumbnail):
         """
         # TODO: should we assert if behaviour disjoint with others?
         assert behavior in BEHAVIOURS,f"{behavior} is not valid. See https://git.io/Jo7r9."
+        # this might leave an empty list if user fail the assertion
         if unused(self.behavior):
             self.behavior = []
-        if behavior == "auto-advance" or behavior == "no-auto-advance":
+        if behavior == "auto-advance":
             assert self.type in ["Collection","Manifest","Canvas","Range"], f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
             if self.type == "Range":
                 #TODO: Ranges that include or are Canvases with at least the duration dimension. 
                 pass
-            if behavior == "auto-advance":
-                assert "no-auto-advance" not in self.behavior,"Conflicts with no-auto-advance"
-            if behavior == "no-auto-advance":
-                assert "auto-advance" not in self.behavior,"Conflicts with auto-advance"
+            assert "no-auto-advance" not in self.behavior,"Conflicts with no-auto-advance"
 
-        elif behavior == "repeat" or behavior == "no-repeat":
+        elif behavior == "no-auto-advance":
+            assert self.type in ["Collection","Manifest","Canvas","Range"], f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
+            assert "auto-advance" not in self.behavior,"Conflicts with auto-advance"
+
+        elif behavior == "repeat":
             assert self.type in ["Collection","Manifest"],f"{behavior} behavior is valid only for Collection and Manifest"
             # TODO: assert any([True for i in self.items if i.type == "Canvas" and i.duration is not None]), "This behaviour should be used when canvas has duration property. Add it after the canvas definition."
+            assert "no-repeat" not in self.behavior,"Conflicts with no-repeat"
+
+        elif behavior == "no-repeat":
+            assert self.type in ["Collection","Manifest"],f"{behavior} behavior is valid only for Collection and Manifest"
+            assert "repeat" not in self.behavior,"Conflicts with repeat"
 
         elif behavior == "unordered" or behavior == "individuals":
             assert self.type in ["Collection","Manifest","Range"], f"{behavior} behavior is valid only for Collection, Manifest,Range"
+            dsjntbhv = ("individuals","continuous","paged")
+            assert not any(x in dsjntbhv for x in self.behavior),f"Conflicts with one of: {dsjntbhv}"
 
-        elif behavior == "continuous" or behavior == "paged":
+        elif behavior == "continuous":
             assert self.type in ["Collection","Manifest","Range"], f"{behavior} behavior is valid only for Collection, Manifest,Range"
             # TODO: assert any([True for i in self.items if i.type == "Canvas" and i.height is not None]), "This behaviour should be used when canvas has duration property. Add it after the canvas definition."
+            dsjntbhv = ("individuals","unordered","paged")
+            assert not any(x in dsjntbhv for x in self.behavior),f"Conflicts with one of: {dsjntbhv}"
+        
+        elif behavior == "paged":
+            assert self.type in ["Collection","Manifest","Range"], f"{behavior} behavior is valid only for Collection, Manifest,Range"
+            dsjntbhv = ("individuals","continuous","facing-pages","unordered","non-paged")
+            assert not any(x in dsjntbhv for x in self.behavior),f"Conflicts with one of: {dsjntbhv}"
 
         elif behavior == "facing-pages" or behavior == "non-paged":
             assert self.type == "Canvas", f"{behavior} behavior is valid only on on Canvases, where the Canvas has at least height and width dimensions."
             assert self.height is not None,f"with {behavior} behavior Canvas must have height property."
             assert self.width is not None, f"with {behavior} behavior Canvas must have width property."
+            if behavior == "facing-pages":
+                dsjntbhv = ("paged","non-paged")
+            else:
+                dsjntbhv = ("facing-pages","paged")
+            assert not any(x in dsjntbhv for x in self.behavior),f"Conflicts with one of: {dsjntbhv}"
 
         elif behavior == "multi-part" or behavior == "together":
             assert self.type == "Collection", f"{behavior} behavior is valid only on Collections."
-        
-        elif behavior == "sequence":
-            assert self.type == "Range", f"{behavior} behavior is valid only on Ranges, where the Range is referenced in the structures property of a Manifest"
-            #TODO: Valid only on Ranges, where the Range is referenced in the structures property of a Manifest
+            if behavior == "multi-part":
+                dsjntbhv = "together"
+            else:
+                dsjntbhv = "multi-part"
+            assert dsjntbhv not in self.behavior,f"Conflicts with {dsjntbhv}"
 
-        elif behavior == "thumbnail-nav" or behavior == "no-nav":
-            assert self.type == "Collection", f"{behavior} behavior is valid only on Collections."
-        
+        elif behavior in ["sequence","thumbnail-nav","no-nav"]:
+            assert self.type == "Range", f"{behavior} behavior is valid only on Ranges."
+                        #TODO: Valid only on Ranges, where the Range is referenced in the structures property of a Manifest
+            disjoint = ["sequence","thumbnail-nav","no-nav"]
+            assert not any(x in disjoint.remove(behavior) for x in self.behavior),f"Conflicts with one of: {disjoint}"
+
         elif behavior == "hidden":
-            assert self.type in ["Annotation","Collection","AnnotationPage","Annotations","SpecificResource","Choice"],f"{behavior} behavior is valid only on Annotation Collections, Annotation Pages, Annotations, Specific Resources and Choices."
+            vc = ["Annotation","AnnotationCollection","AnnotationPage","SpecificResource","Choice"]
+            assert self.type in vc,f"{behavior} behavior is valid only on {vc}."
 
         self.behavior.append(behavior)
 
@@ -1159,7 +1185,6 @@ class Annotation(CommonAttributes):
         else:
             if isinstance(specificresource, SpecificResource):
                 self.target = specificresource
-                return
             else:
                 raise ValueError(
                     "Trying to add wrong object to target in %s" %
@@ -1429,7 +1454,7 @@ class Start(object):
             self.start = startobj
         return self.start
 
-class Manifest(CMRCattributes, ViewingDirection,Start):
+class Manifest(CMRCattributes,ViewingDirection,Start,ServicesList):
     """
     The Manifest resource typically represents a single object and any
     intellectual work or works embodied within that object. In particular it
@@ -1483,9 +1508,8 @@ class Manifest(CMRCattributes, ViewingDirection,Start):
 
 
     def add_services(self, services=None):
-        if unused(self.services):
-            self.services = []
-        self.services.append(services)
+        warnings.warn('Please use `add_service_to_services` instead.', DeprecationWarning) 
+        add_to(self,'services',service,services,(service,dict))
 
     def add_annotation(self, annotation=None):
         return add_to(self,'annotations',Annotation,annotation,target=self.id)
@@ -1494,9 +1518,15 @@ class Manifest(CMRCattributes, ViewingDirection,Start):
         return add_to(self,'items',Canvas,canvasobj)
 
     def add_structure(self, structure):
-        if unused(self.structures):
-            self.structures = []
-        self.structures.append(structure)
+        """Add an already instatiated Range to structres without return.
+
+            This is equivalent to `add_range_to_structures` but does not
+            return. 
+
+        Args:
+            structure (Range): A Range object.
+        """
+        add_to(self,'structures',Range,structure)
 
     def add_range_to_structures(self, rangeobj=None):
         return add_to(self,'structures',Range,rangeobj)
@@ -1512,7 +1542,7 @@ class refManifest(CoreAttributes,Thumbnail):
         self.type = "Manifest"
         self.navDate = None
 
-class Collection(CMRCattributes,ViewingDirection):
+class Collection(CMRCattributes,ViewingDirection,ServicesList):
     def __init__(self):
         super(Collection, self).__init__()
         self.services = None
@@ -1525,9 +1555,6 @@ class Collection(CMRCattributes,ViewingDirection):
             "A collection object must have at least one item!")
         self.metadata = Recommended("A Collection should have the metadata property with at least one item.")
         self.viewingDirection = None
-
-    def add_service(self, serviceobj=None):
-        return add_to(self,'service',service,serviceobj,(service,dict))
 
     def add_annotation(self, annotationobj):
         return add_to(self,'annotations',Annotation,annotationobj,target=self.id)
