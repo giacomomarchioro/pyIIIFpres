@@ -1,4 +1,4 @@
-class text(object): 
+class text(object):
     _1d_interleaved_parityfec = 'text/1d-interleaved-parityfec'
     cache_manifest = 'text/cache-manifest'
     calendar = 'text/calendar'
@@ -81,7 +81,9 @@ class text(object):
     vtt = 'text/vtt'
     xml = 'text/xml'
     xml_external_parsed_entity = 'text/xml-external-parsed-entity'
-class image(object): 
+
+
+class image(object):
     aces = 'image/aces'
     avci = 'image/avci'
     avcs = 'image/avcs'
@@ -154,7 +156,9 @@ class image(object):
     vnd_xiff = 'image/vnd.xiff'
     vnd_zbrush_pcx = 'image/vnd.zbrush.pcx'
     wmf = 'image/wmf'
-class message(object): 
+
+
+class message(object):
     CPIM = 'message/CPIM'
     delivery_status = 'message/delivery-status'
     disposition_notification = 'message/disposition-notification'
@@ -171,14 +175,18 @@ class message(object):
     sipfrag = 'message/sipfrag'
     tracking_status = 'message/tracking-status'
     vnd_wfa_wsc = 'message/vnd.wfa.wsc'
-class font(object): 
+
+
+class font(object):
     collection = 'font/collection'
     otf = 'font/otf'
     sfnt = 'font/sfnt'
     ttf = 'font/ttf'
     woff = 'font/woff'
     woff2 = 'font/woff2'
-class audio(object): 
+
+
+class audio(object):
     _1d_interleaved_parityfec = 'audio/1d-interleaved-parityfec'
     _32kadpcm = 'audio/32kadpcm'
     _3gpp = 'audio/3gpp'
@@ -335,7 +343,9 @@ class audio(object):
     vnd_vmx_cvsd = 'audio/vnd.vmx.cvsd'
     vorbis = 'audio/vorbis'
     vorbis_config = 'audio/vorbis-config'
-class video(object): 
+
+
+class video(object):
     _1d_interleaved_parityfec = 'video/1d-interleaved-parityfec'
     _3gpp = 'video/3gpp'
     _3gpp2 = 'video/3gpp2'
@@ -422,7 +432,9 @@ class video(object):
     vnd_vivo = 'video/vnd.vivo'
     VP8 = 'video/VP8'
     VP9 = 'video/VP9'
-class model(object): 
+
+
+class model(object):
     _3mf = 'model/3mf'
     e57 = 'model/e57'
     example = 'model/example'
@@ -453,7 +465,9 @@ class model(object):
     x3d_vrml = 'model/x3d-vrml'
     x3dfastinfoset = 'model/x3d+fastinfoset'
     x3dxml = 'model/x3d+xml'
-class application(object): 
+
+
+class application(object):
     _1d_interleaved_parityfec = 'application/1d-interleaved-parityfec'
     _3gpdash_qoe_reportxml = 'application/3gpdash-qoe-report+xml'
     _3gppHaljson = 'application/3gppHal+json'
@@ -1889,7 +1903,9 @@ class application(object):
     zip = 'application/zip'
     zlib = 'application/zlib'
     zstd = 'application/zstd'
-class multipart(object): 
+
+
+class multipart(object):
     appledouble = 'multipart/appledouble'
     byteranges = 'multipart/byteranges'
     encrypted = 'multipart/encrypted'

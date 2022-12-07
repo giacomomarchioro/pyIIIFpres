@@ -8,35 +8,37 @@ import warnings
 import copy
 global BASE_URL
 BASE_URL = "https://"
-global LANGUAGES 
+global LANGUAGES
 LANGUAGES = lang_tags
 global MEDIATYPES
 MEDIATYPES = mediatypedict
-global CONTEXT 
+global CONTEXT
 CONTEXT = "http://iiif.io/api/presentation/3/context.json"
 global INVALID_URI_CHARACTERS
-INVALID_URI_CHARACTERS = r"""!"$%&'()*+ :;<=>?@[\]^`{|}~ """ #removed comma which is used by IIIF Image API and #
+# removed comma which is used by IIIF Image API and #
+INVALID_URI_CHARACTERS = r"""!"$%&'()*+ :;<=>?@[\]^`{|}~ """
 global BEHAVIOURS
 BEHAVIOURS = ["auto-advance",
-"no-auto-advance",
-"repeat",
-"no-repeat",
-"unordered",
-"individuals",
-"continuous",
-"paged",
-"facing-pages",
-"non-paged",
-"multi-part",
-"together",
-"sequence",
-"thumbnail-nav",
-"no-nav",
-"hidden"]
+              "no-auto-advance",
+              "repeat",
+              "no-repeat",
+              "unordered",
+              "individuals",
+              "continuous",
+              "paged",
+              "facing-pages",
+              "non-paged",
+              "multi-part",
+              "together",
+              "sequence",
+              "thumbnail-nav",
+              "no-nav",
+              "hidden"]
+
 
 class Required(object):
     """
-    This is not an IIIF object but a class used by this software to identify 
+    This is not an IIIF object but a class used by this software to identify
     required fields.
     This is equivalent to MUST statement in the guideline with the meaning
     of https://tools.ietf.org/html/rfc2119.
@@ -44,9 +46,9 @@ class Required(object):
 
     def __init__(self, description=None):
         self.Required = description
-    
-    def __eq__(self,o):
-        return True if isinstance(o,self.__class__) else False
+
+    def __eq__(self, o):
+        return True if isinstance(o, self.__class__) else False
 
     def __repr__(self):
         return 'Required attribute:%s' % self.Required
@@ -54,7 +56,7 @@ class Required(object):
 
 class Recommended(object):
     """
-    This is not an IIIF object but a class used by this software to identify 
+    This is not an IIIF object but a class used by this software to identify
     recommended fields.
     This is equivalent to SHOULD statement in the guideline with the meaning
     of https://tools.ietf.org/html/rfc2119.
@@ -63,8 +65,8 @@ class Recommended(object):
     def __init__(self, description=None):
         self.Recommended = description
 
-    def __eq__(self,o):
-        return True if isinstance(o,self.__class__) else False
+    def __eq__(self, o):
+        return True if isinstance(o, self.__class__) else False
 
     def __repr__(self):
         return 'Recommended attribute:%s' % self.Recommended
@@ -84,14 +86,18 @@ def unused(attr):
     else:
         return False
 
+
 # For performance optimization we can reduce the instantiation of Classes
 if not __debug__:
     def Recommended(msg=None):
         return None
+
     def Required(msg=None):
         return None
+
     def unused(attr):
-        return True if attr is None else False 
+        return True if attr is None else False
+
 
 def serializable(attr):
     """Check if attribute is Required and if so rise Value error.
@@ -106,13 +112,15 @@ def serializable(attr):
     else:
         return True
 
-def add_to(selfx,destination,classx, obj,acceptedclasses=None,target=None,):
+
+def add_to(selfx, destination, classx, obj, acceptedclasses=None, target=None):
     """Helper function used for adding IIIF object to to IIIF lists.
 
     Args:
         selfx (object): The class it-self
         destination (str): The class list attribute where the object will be stored.
-        classx (object): The IIIF class that will be used for instantiating the obejct.
+        classx (object): The IIIF class that will be used for instantiating the
+        obejct.
         obj (object): An already instantiated IIIF object.
         acceptedclasses (objects, optional): Accepted classes for obj. Defaults to None.
         target (str, optional): The target of an Annotation. Defaults to None.
@@ -148,6 +156,7 @@ def add_to(selfx,destination,classx, obj,acceptedclasses=None,target=None,):
             raise ValueError("%s object cannot be added to %s." %
                              (obj_name, class_name))
 
+
 def check_valid_URI(URI):
     """Check if it is a valid URI.
 
@@ -158,18 +167,19 @@ def check_valid_URI(URI):
         Bool: True if it is valid.
     """
     isvalid = True
-    URI = URI.replace("https:/","",1)
-    URI = URI.replace("http:/","",1)
+    URI = URI.replace("https:/", "", 1)
+    URI = URI.replace("http:/", "", 1)
     for indx, carat in enumerate(URI):
-        if carat in INVALID_URI_CHARACTERS: 
+        if carat in INVALID_URI_CHARACTERS:
             if carat == " ":
                 carat = "a space"
             arrow = " "*(indx) + "^"
             isvalid = False
-            print("I found: %s here. \n%s\n%s" %(carat,URI,arrow))
+            print("I found: %s here. \n%s\n%s" % (carat, URI, arrow))
     return isvalid
 
-def check_ID(self,extendbase_url,objid):
+
+def check_ID(self, extendbase_url, objid):
     """Function for creating and checking IDs.
 
     Args:
@@ -184,24 +194,20 @@ def check_ID(self,extendbase_url,objid):
             raise ValueError(
                 "Set id using extendbase_url or objid not both.")
 
-        assert BASE_URL.endswith("/") or extendbase_url.startswith("/"), "Add / to extandbase_url or BASE_URL"
+        assert BASE_URL.endswith("/") or extendbase_url.startswith("/"), \
+            "Add / to extandbase_url or BASE_URL"
         joined = "".join((BASE_URL, extendbase_url))
-        assert check_valid_URI(joined),"Special characters must be encoded"
+        assert check_valid_URI(joined), "Special characters must be encoded"
         return joined
-    
     else:
         assert objid.startswith("http"), "ID must start with http or https"
         if self.type == 'Canvas':
-            assert "#" not in (objid), "URI of the canvas must not contain a fragment: \#"
-        assert check_valid_URI(objid),"Special characters must be encoded"
+            assert "#" not in (objid), "URI of the canvas must not contain a fragment: #"
+        assert check_valid_URI(objid), "Special characters must be encoded"
         return objid
 
 
-# Let's group all the common arguments across the differnet types of collection
-
-
-
-
+# Let's group all the common arguments across the different types of collection
 class CoreAttributes(object):
     """
     Core attributes are the attributes in all the major
@@ -229,7 +235,7 @@ class CoreAttributes(object):
             extendbase_url (str , optional): A string containg the URL part
             to be joined with the iiifpapi3.BASE_URL . Defaults to None.
         """
-        self.id = check_ID(self,extendbase_url,objid)
+        self.id = check_ID(self, extendbase_url, objid)
 
     def add_label(self, language, text):
         """Add a label to the object
@@ -238,10 +244,10 @@ class CoreAttributes(object):
             language (str): The language of the label.
             text (str or list of str): The content of the label.
 
-        IIIF : A human readable label, name or title. The label property is 
+        IIIF : A human readable label, name or title. The label property is
         intended to be displayed as a short, textual surrogate for the resource
         if a human needs to make a distinction between it and similar resources,
-        for example between objects, pages, or options for a choice of images 
+        for example between objects, pages, or options for a choice of images
         to display. The label property can be fully internationalized, and each
         language can have multiple values.
         """
@@ -250,11 +256,13 @@ class CoreAttributes(object):
             self.label = {}
         if language is None:
             language = "none"
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty.. Please read https://git.io/JoQty."
-        assert isinstance(text,(str,list)),"text, can be a string or a list of string"
-        if isinstance(text,list):
+        assert language in LANGUAGES or language == "none", \
+            """Language must be a valid BCP47 language tag or none.
+            Please read https://git.io/JoQty. Please read https://git.io/JoQty."""
+        assert isinstance(text, (str, list)), "text can be a string or a list of string"
+        if isinstance(text, list):
             for i in text:
-                assert isinstance(i,str),"list in labels can contain only strings."
+                assert isinstance(i, str), "list in labels can contain only strings."
         else:
             text = [text]
         if language not in self.label:
@@ -272,7 +280,7 @@ class CoreAttributes(object):
         """Dumps the content of the object in JSON format.
 
         Args:
-            dumps_errors (bool, optional): If set true it shows any problem 
+            dumps_errors (bool, optional): If set true it shows any problem
             found directly on the JSON file with a Required or Recommended tag.
             Defaults to False.
 
@@ -308,7 +316,7 @@ class CoreAttributes(object):
                 ensure_ascii=ensure_ascii,
                 sort_keys=sort_keys)
         # little hack for fixing context first 3 chrs "{\n"
-        res = "".join(('{\n  "@context": %s,\n ' %json.dumps(context), res[3:]))
+        res = "".join(('{\n  "@context": %s,\n ' % json.dumps(context), res[3:]))
         return res
 
     def orjson_dumps(
@@ -318,7 +326,7 @@ class CoreAttributes(object):
         """Dumps the content of the object in JSON format.
 
         Args:
-            dumps_errors (bool, optional): If set true it shows any problem 
+            dumps_errors (bool, optional): If set true it shows any problem
             found directly on the JSON file with a Required or Recommended tag.
             Defaults to False.
 
@@ -345,15 +353,15 @@ class CoreAttributes(object):
             res = orjson.dumps(
                 self,
                 default=serializerwitherrors,
-                option = orjson.OPT_INDENT_2)
+                option=orjson.OPT_INDENT_2)
         else:
             res = orjson.dumps(
                 self,
                 default=serializer,
-                option = orjson.OPT_INDENT_2)
+                option=orjson.OPT_INDENT_2)
         # little hack for fixing context first 3 chrs "{\n"
-        res = "".join(('{\n  "@context": %s,\n ' %json.dumps(context),
-                         res[3:].decode("utf-8") ))
+        res = "".join(('{\n  "@context": %s,\n ' % json.dumps(context),
+                      res[3:].decode("utf-8")))
         return res
 
     def to_json(
@@ -368,26 +376,27 @@ class CoreAttributes(object):
             sort_keys=sort_keys,
             context=context))
         return res
-    
-    def json_save(self, filename, save_errors=False, ensure_ascii=False,context=None):
+
+    def json_save(self, filename, save_errors=False, ensure_ascii=False, context=None):
         with open(filename, 'w') as f:
             f.write(self.json_dumps(
-                dumps_errors=save_errors, ensure_ascii=ensure_ascii,context=context))
-    
-    def orjson_save(self, filename, save_errors=False,context=None):
+                dumps_errors=save_errors, ensure_ascii=ensure_ascii, context=context))
+
+    def orjson_save(self, filename, save_errors=False, context=None):
         with open(filename, 'w') as f:
             f.write(self.orjson_dumps(
-                dumps_errors=save_errors,context=context))
+                dumps_errors=save_errors, context=context))
 
     def inspect(self):
         jdump = self.json_dumps(dumps_errors=True)
         print(jdump)
-        print("Missing required field: %s." %jdump.count('"Required":') )
-        print("Missing recommended field: %s." %jdump.count('"Recommended":') )
+        print("Missing required field: %s." % jdump.count('"Required":'))
+        print("Missing recommended field: %s." % jdump.count('"Recommended":'))
         return True
-    
-    def show_errors_in_browser(self,getHTML=False):
-        HTML = visualization_html.show_error_in_browser(self.json_dumps(dumps_errors=True),getHTML=getHTML)
+
+    def show_errors_in_browser(self, getHTML=False):
+        jsonf = self.json_dumps(dumps_errors=True)
+        HTML = visualization_html.show_error_in_browser(jsonf, getHTML=getHTML)
         return HTML
 
     def __repr__(self):
@@ -399,37 +408,39 @@ class CoreAttributes(object):
             type_ = "Type Missing"
         else:
             type_ = self.type
-        return " id:".join((type_,id_))
+        return " id:".join((type_, id_))
+
 
 # Common helpers methods that will be used for constructing the IIIF objects.
-
 class Format(object):
-     def set_format(self, format):
+    def set_format(self, format):
         """Set the format of the IIIF type.
-        IIIF: The specific media type (often called a MIME type) for a content 
-        resource, for example image/jpeg. This is important for distinguishing 
-        different formats of the same overall type of resource, such as 
-        distinguishing text in XML from plain text. 
+        IIIF: The specific media type (often called a MIME type) for a content
+        resource, for example image/jpeg. This is important for distinguishing
+        different formats of the same overall type of resource, such as
+        distinguishing text in XML from plain text.
 
-        Args: format (str): the format of the IIIF type, usually is the MIME e.g. 
+        Args: format (str): the format of the IIIF type, usually is the MIME e.g.
         image/jpg """
         assert "/" in format, "Format should be in the form type/format e.g. image/jpeg"
         assert format.split("/")[0].isalpha(), "Format should be in the form type/format e.g. image/jpeg"
-        #assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        # assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
         assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
-        assert any(format  in sl for sl in MEDIATYPES.values()),"Not a IANA valid media type."
+        assert any(format in sl for sl in MEDIATYPES.values()), "Not a IANA valid media type."
         self.format = format
 
+
 class HeightWidth(object):
-    def set_width(self,width):
+    def set_width(self, width):
         self.width = int(width)
-    
-    def set_height(self,height):
+
+    def set_height(self, height):
         self.height = int(height)
-    
-    def set_hightwidth(self,height, width):
+
+    def set_hightwidth(self, height, width):
         self.set_width(width)
         self.set_height(height)
+
 
 class Duration(object):
     def set_duration(self, duration):
@@ -439,55 +450,61 @@ class Duration(object):
             self.width = None
         self.duration = float(duration)
 
+
 class ViewingDirection(object):
-    def set_viewingDirection(self,viewingDirection):
+    def set_viewingDirection(self, viewingDirection):
         """
-        left-to-right	The object is displayed from left to right. The default if not specified.
+        left-to-right	The object is displayed from left to right.
+                        The default if not specified.
         right-to-left	The object is displayed from right to left.
         top-to-bottom	The object is displayed from the top to the bottom.
         bottom-to-top	The object is displayed from the bottom to the top.
         """
         viewingDirections = ["left-to-right",
-        "right-to-left",
-        "bottom-to-top",
-        "top-to-bottom"]
-        msg = "viewingDirection must be one of these values %s" %viewingDirections
+                             "right-to-left",
+                             "bottom-to-top",
+                             "top-to-bottom"]
+        msg = "viewingDirection must be one of these values %s" % viewingDirections
         assert viewingDirection in viewingDirections, msg
         self.viewingDirection = viewingDirection
+
 
 class MutableType(object):
     """ In some IIIF objects the type can be changed.
     """
-    def set_type(self,mtype=None):
+    def set_type(self, mtype=None):
         assert not mtype[0].isdigit(), "First letter should not be a digit"
         self.type = mtype
+
 
 class ImmutableType(object):
     """ In some IIIF objects the type cannot be changed.
     """
-    def set_type(self,mtype=None):
-        classname = self.__class__.__name__
-        classtype = self.type
-        if mtype == classtype or mtype is None:
-            warnings.warn("%s type is by default %s, this set will be ingored." %(classname,classtype))
+    def set_type(self, mtype=None):
+        cnm = self.__class__.__name__
+        cty = self.type
+        if mtype == cty or mtype is None:
+            m = "%s type is by default %s, this set will be ingored." % (cnm, cty)
+            warnings.warn(m)
         else:
-            raise ValueError("The %s type must be set to '%s' you tried to set it to: %s " %(classname,classtype,mtype))
+            e = "The %s type must be set to '%s' was: %s " % (cnm, cty, mtype)
+            raise ValueError(e)
+
 
 # IIIF Objects:
-
-class seeAlso(CoreAttributes,Format,MutableType):
+class seeAlso(CoreAttributes, Format, MutableType):
     """
-    IIF: A machine-readable resource such as an XML or RDF description that is 
-    related to the current resource that has the seeAlso property. Properties 
-    of the resource should be given to help the client select between multiple 
-    descriptions (if provided), and to make appropriate use of the document. 
-    If the relationship between the resource and the document needs to be more 
-    specific, then the document should include that relationship rather than 
-    the IIIF resource. Other IIIF resources are also valid targets for 
-    seeAlso, for example to link to a Manifest that describes a related 
-    object. The URI of the document must identify a single representation of 
-    the data in a particular format. For example, if the same data exists in 
-    JSON and XML, then separate resources should be added for each 
+    IIF: A machine-readable resource such as an XML or RDF description that is
+    related to the current resource that has the seeAlso property. Properties
+    of the resource should be given to help the client select between multiple
+    descriptions (if provided), and to make appropriate use of the document.
+    If the relationship between the resource and the document needs to be more
+    specific, then the document should include that relationship rather than
+    the IIIF resource. Other IIIF resources are also valid targets for
+    seeAlso, for example to link to a Manifest that describes a related
+    object. The URI of the document must identify a single representation of
+    the data in a particular format. For example, if the same data exists in
+    JSON and XML, then separate resources should be added for each
     representation, with distinct id and format properties.
     """
 
@@ -496,13 +513,16 @@ class seeAlso(CoreAttributes,Format,MutableType):
         self.type = Required("SeeAlso type is required, e.g. dataset, Image")
         self.label = Recommended("SeeAlso label is recommended.")
         self.format = Recommended("SeeAlso type is recommended e.g. text/xml")
-        self.profile = Recommended("Resources referenced by the seeAlso or service properties should have the profile property.")
+        self.profile = Recommended("Resources referenced by the seeAlso or"
+                                   "service properties should have the profile"
+                                   "property.")
 
     def set_profile(self, profile):
         # TODO: add check
         self.profile = profile
 
-class partOf(MutableType,CoreAttributes):
+
+class partOf(MutableType, CoreAttributes):
     """
     A containing resource that includes the resource that has the partOf
     property. When a client encounters the partOf property, it might retrieve
@@ -519,45 +539,48 @@ class partOf(MutableType,CoreAttributes):
         self.type = Required("Each partOf item must have a type")
         self.label = Recommended("Each partOf item should have the label property.")
 
-class supplementary(ImmutableType,CoreAttributes):
+
+class supplementary(ImmutableType, CoreAttributes):
     """
-    IIIF: A link from this Range to an Annotation Collection that includes the 
-    supplementing Annotations of content resources for the Range. Clients 
-    might use this to present additional content to the user from a different 
-    Canvas when interacting with the Range, or to jump to the next part of the 
-    Range within the same Canvas. For example, the Range might represent a 
-    newspaper article that spans non-sequential pages, and then uses the 
-    supplementary property to reference an Annotation Collection that consists 
-    of the Annotations that record the text, split into Annotation Pages per 
-    newspaper page. Alternatively, the Range might represent the parts of a 
-    manuscript that have been transcribed or translated, when there are other 
-    parts that have yet to be worked on. The Annotation Collection would be 
+    IIIF: A link from this Range to an Annotation Collection that includes the
+    supplementing Annotations of content resources for the Range. Clients
+    might use this to present additional content to the user from a different
+    Canvas when interacting with the Range, or to jump to the next part of the
+    Range within the same Canvas. For example, the Range might represent a
+    newspaper article that spans non-sequential pages, and then uses the
+    supplementary property to reference an Annotation Collection that consists
+    of the Annotations that record the text, split into Annotation Pages per
+    newspaper page. Alternatively, the Range might represent the parts of a
+    manuscript that have been transcribed or translated, when there are other
+    parts that have yet to be worked on. The Annotation Collection would be
     the Annotations that transcribe or translate, respectively.
     """
 
     def __init__(self):
         super(supplementary, self).__init__()
         self.type = "AnnotationCollection"
-        self.label = Recommended("An Annotation Collection should have the label property with at least one entry.")
+        self.label = Recommended("An Annotation Collection should have the"
+                                 "label property with at least one entry.")
 
-class service(CoreAttributes,HeightWidth):
+
+class service(CoreAttributes, HeightWidth):
     """https://iiif.io/api/presentation/3.0/#service
-    IIIF:A service that the client might interact with directly and gain 
-    additional information or functionality for using the resource that has 
-    the service property, such as from an Image to the base URI of an 
-    associated IIIF Image API service. The service resource should have 
-    additional information associated with it in order to allow the client to 
-    determine how to make appropriate use of it. Please see the Service 
-    Registry document for the details of currently known service types. 
+    IIIF:A service that the client might interact with directly and gain
+    additional information or functionality for using the resource that has
+    the service property, such as from an Image to the base URI of an
+    associated IIIF Image API service. The service resource should have
+    additional information associated with it in order to allow the client to
+    determine how to make appropriate use of it. Please see the Service
+    Registry document for the details of currently known service types.
 
-    The value must be an array of JSON objects. Each object will have 
-    properties depending on the service’s definition, but must have either the 
-    id or @id and type or @type properties. Each object should have a profile 
-    property. 
+    The value must be an array of JSON objects. Each object will have
+    properties depending on the service’s definition, but must have either the
+    id or @id and type or @type properties. Each object should have a profile
+    property.
 
-    Any resource type may have the service property with at least one item. 
-    Clients may process service on any resource type, and should process the 
-    IIIF Image API service. 
+    Any resource type may have the service property with at least one item.
+    Clients may process service on any resource type, and should process the
+    IIIF Image API service.
     """
 
     def __init__(self):
@@ -567,7 +590,7 @@ class service(CoreAttributes,HeightWidth):
         )
         self.profile = Recommended(
             "Each object should have a profile property.")
-      
+
         self.width = None
         self.height = None
         self.service = None
@@ -594,21 +617,22 @@ class service(CoreAttributes,HeightWidth):
         self.profile = profile
 
     def add_service(self, serviceobj=None):
-        return add_to(self,'service',service,serviceobj,(service,dict))
+        return add_to(self, 'service', service, serviceobj, (service, dict))
 
-    def add_size(self,width,height):
+    def add_size(self, width, height):
         if unused(self.sizes):
             self.sizes = []
-        self.sizes.append({"width":width,"height":height})
+        self.sizes.append({"width": width, "height": height})
 
 
-class thumbnail(MutableType,CoreAttributes,Format,HeightWidth,Duration):
+class thumbnail(MutableType, CoreAttributes, Format, HeightWidth, Duration):
     def __init__(self):
         super(thumbnail, self).__init__()
         self.service = None
 
     def add_service(self, serviceobj=None):
-        return add_to(self,'service',service,serviceobj,(service,dict))
+        return add_to(self, 'service', service, serviceobj, (service, dict))
+
 
 class Thumbnail(object):
     """Helper class for adding thumbnail.
@@ -616,7 +640,7 @@ class Thumbnail(object):
     def add_thumbnail(self, thumbnailobj=None):
         """
         https://iiif.io/api/presentation/3.0/#thumbnail
-        IIF: A content resource, such as a small image or short audio clip, that
+        A content resource, such as a small image or short audio clip, that
         represents the resource that has the thumbnail property. A resource may
         have multiple thumbnail resources that have the same or different type
         and format.
@@ -628,17 +652,17 @@ class Thumbnail(object):
         Image API service be available for images to enable manipulations such
         as resizing.
         """
-        return add_to(self,'thumbnail',thumbnail,thumbnailobj)
+        return add_to(self, 'thumbnail', thumbnail, thumbnailobj)
 
 
-class provider(ImmutableType,CoreAttributes):
+class provider(ImmutableType, CoreAttributes):
     """
-    IIIF: An organization or person that contributed to providing the content 
-    of the resource. Clients can then display this information to the user to 
-    acknowledge the provider’s contributions. This differs from the 
-    requiredStatement property, in that the data is structured, allowing the 
-    client to do more than just present text but instead have richer 
-    information about the people and organizations to use in different 
+    IIIF: An organization or person that contributed to providing the content
+    of the resource. Clients can then display this information to the user to
+    acknowledge the provider’s contributions. This differs from the
+    requiredStatement property, in that the data is structured, allowing the
+    client to do more than just present text but instead have richer
+    information about the people and organizations to use in different
     interfaces.
 
       "provider": [
@@ -679,43 +703,46 @@ class provider(ImmutableType,CoreAttributes):
         super(provider, self).__init__()
         self.context = None
         self.type = "Agent"
-        self.label= Required(
-            "Agents must have the label property, and its value must be a JSON object as described in the languages section.")
+        self.label = Required(
+            "Agents must have the label property, and its value must be a"
+            "JSON object as described in the languages section.")
         self.homepage = Recommended(
-            "Agents should have the homepage property, and its value must be an array of JSON objects as described in the homepage section.")
+            "Agents should have the homepage property, and its value must be"
+            "an array of JSON objects as described in the homepage section.")
         self.logo = Recommended(
-            "Agents should have the logo property, and its value must be an array of JSON objects as described in the logo section.")
+            "Agents should have the logo property, and its value must be an"
+            "array of JSON objects as described in the logo section.")
         self.seeAlso = None
 
     def add_logo(self, logoobj=None):
-        return add_to(self,'logo',logo,logoobj)
+        return add_to(self, 'logo', logo, logoobj)
 
     def add_homepage(self, homepageobj=None):
         """
         """
-        return add_to(self,'homepage',homepage,homepageobj)
+        return add_to(self, 'homepage', homepage, homepageobj)
 
     def add_seeAlso(self, seeAlsoobj=None):
         """
         """
-        return add_to(self,'seeAlso',seeAlso,seeAlsoobj)
+        return add_to(self, 'seeAlso', seeAlso, seeAlsoobj)
 
 
-class homepage(MutableType,CoreAttributes,Format):
+class homepage(MutableType, CoreAttributes, Format):
     """https://iiif.io/api/presentation/3.0/#homepage
-    IIIF: A web page that is about the object represented by the resource that 
-    has the homepage property. The web page is usually published by the 
-    organization responsible for the object, and might be generated by a 
-    content management system or other cataloging system. The resource must be 
-    able to be displayed directly to the user. Resources that are related, but 
-    not home pages, must instead be added into the metadata property, with an 
+    IIIF: A web page that is about the object represented by the resource that
+    has the homepage property. The web page is usually published by the
+    organization responsible for the object, and might be generated by a
+    content management system or other cataloging system. The resource must be
+    able to be displayed directly to the user. Resources that are related, but
+    not home pages, must instead be added into the metadata property, with an
     appropriate label or value to describe the relationship.
     """
 
     def __init__(self):
         super(homepage, self).__init__()
         self.language = None
-        self.label = Required("Hompage must have a label")
+        self.label = Required("Homepage must have a label")
         self.type = Required("Homepage must have a type.")
         self.format = Recommended(
             "Hompage should have a format property e.g. Text.")
@@ -723,20 +750,23 @@ class homepage(MutableType,CoreAttributes,Format):
     def set_language(self, language):
         if unused(self.language):
             self.language = []
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        assert language in LANGUAGES or language == "none", \
+            "Language must be a valid BCP47 language tag or none."\
+            "Please read https://git.io/JoQty."
         self.language.append(language)
 
-class logo(ImmutableType,CoreAttributes,HeightWidth,Format):
+
+class logo(ImmutableType, CoreAttributes, HeightWidth, Format):
     """
-    A small image resource that represents the Agent resource it is associated 
-    with. The logo must be clearly rendered when the resource is displayed or 
-    used, without cropping, rotating or otherwise distorting the image. It is 
-    recommended that a IIIF Image API service be available for this image for 
+    A small image resource that represents the Agent resource it is associated
+    with. The logo must be clearly rendered when the resource is displayed or
+    used, without cropping, rotating or otherwise distorting the image. It is
+    recommended that a IIIF Image API service be available for this image for
     other manipulations such as resizing.
 
     When more than one logo is present, the client should pick only one of them,
-    based on the information in the logo properties. For example, the client 
-    could select a logo of appropriate aspect ratio based on the height and 
+    based on the information in the logo properties. For example, the client
+    could select a logo of appropriate aspect ratio based on the height and
     width properties of the available logos. The client may decide on the logo
     by inspecting properties defined as extensions.
 
@@ -758,17 +788,18 @@ class logo(ImmutableType,CoreAttributes,HeightWidth,Format):
         self.format = Recommended(
             "Logo should have a format attribute e.g. image/png")
         self.service = Recommended(
-            "Logo should have service attribute, you can add using srv = mylogo.add_service()")
+            "Logo should have service attribute,"
+            "you can add using srv = mylogo.add_service()")
 
     def add_label(self, language, text):
         raise ValueError("Label not permitted in logo.")
 
     def add_service(self, serviceobj=None):
-        return add_to(self,'service',service,serviceobj,(service,dict))
+        return add_to(self, 'service', service, serviceobj, (service, dict))
 
 
-class rendering(MutableType,CoreAttributes,Format):
-    """https://iiif.io/api/presentation/3.0/#rendering 
+class rendering(MutableType, CoreAttributes, Format):
+    """https://iiif.io/api/presentation/3.0/#rendering
     A resource that is an alternative, non-IIIF representation of the resource
     that has the rendering property. Such representations typically cannot be
     painted onto a single Canvas, as they either include too many views, have
@@ -795,17 +826,19 @@ class rendering(MutableType,CoreAttributes,Format):
         super(rendering, self).__init__()
         self.format = Recommended(
             "Rendering should have a format property e.g. application/pdf.")
-        self.label  = Required("Rendering object must have a label.")
+        self.label = Required("Rendering object must have a label.")
         self.type = Required("Rendering should have a type")
+
 
 class ServicesList(object):
     """
     This is helper method not a IIIF object.
-    services is just a list grouping Service objects inside Manifest and 
+    services is just a list grouping Service objects inside Manifest and
     Collection.
     """
     def add_service_to_services(self, serviceobj=None):
-        return add_to(self,'services',service,serviceobj,(service,dict))
+        return add_to(self, 'services', service, serviceobj, (service, dict))
+
 
 class languagemap(object):
     """This is not a IIIF type but is used for easing the construction of
@@ -820,17 +853,19 @@ class languagemap(object):
 
     def add_value(self, value, language="none"):
         if unused(self.value):
-            self.value = {} 
+            self.value = {}
         if not isinstance(value, list):
             value = [value]
-       
+
         # TODO: if html must begin with < and end with >
         # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
         # possible hack ignoring self-closing tags?
         #if any(['</' in i for i in value]):
         #    assert any([i.startswith('<') and i.endswith('>') for i in value]),\
         #        'if html must begin with < and end with >'
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        assert language in LANGUAGES or language == "none", \
+            "Language must be a valid BCP47 language tag or none."\
+            "Please read https://git.io/JoQty."
         self.value[language] = value
 
     def add_label(self, label, language="none"):
@@ -840,7 +875,9 @@ class languagemap(object):
             label = [label]
         # TODO: check that is not html
         # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        assert language in LANGUAGES or language == "none", \
+            "Language must be a valid BCP47 language tag or none." \
+            "Please read https://git.io/JoQty."
         self.label[language] = label
 
 
@@ -848,7 +885,7 @@ class languagemap(object):
 # COMMON ATTRIBUTES TO MAJOR CONTAINERS
 ##
 
-class CommonAttributes(CoreAttributes,Thumbnail):
+class CommonAttributes(CoreAttributes, Thumbnail):
     """
     Common attributes are the attributes that are in common with all the major
     classes/container of IIIF namely: Collection, Manifest, Canvas, Range and
@@ -894,11 +931,14 @@ class CommonAttributes(CoreAttributes,Thumbnail):
 
         if (label is not None or value is not None) and entry is not None:
             raise ValueError(
-                "Either use entry arguments or a combination of other arguments, NOT both.")
+                "Either use entry arguments or a combination "
+                "of other arguments, NOT both.")
 
         if not isinstance(value, list):
             value = [value]
-        assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        assert language_l in LANGUAGES or language_l == "none", \
+            "Language must be a valid BCP47 language tag or none." \
+            "Please read https://git.io/JoQty."
 
         if entry is None:
             entry = {"label": {language_l: [label]},
@@ -917,7 +957,9 @@ class CommonAttributes(CoreAttributes,Thumbnail):
         """
         if unused(self.summary):
             self.summary = {}
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        assert language in LANGUAGES or language == "none",\
+            "Language must be a valid BCP47 language tag or none."\
+            "Please read https://git.io/JoQty."
         self.summary[language] = [text]
 
     def set_requiredStatement(self, label=None, value=None, language_l=None,
@@ -933,11 +975,12 @@ class CommonAttributes(CoreAttributes,Thumbnail):
         client’s initial state. If initially hidden, clients must make the
         method of revealing it as obvious as possible.
 
-        If left empty returns a multilanguage object that you can use as in this example:
+        If left empty returns a multilanguage object that you can use as in
+        this example:
 
             reqst = manifest.set_requiredStatement()
-            reqst.add_label('Hosting','en') 
-            reqst.add_value('hosted by imagineRio','en') 
+            reqst.add_label('Hosting','en')
+            reqst.add_value('hosted by imagineRio','en')
             reqst.add_label('Hospedagem','pt-BR')
             reqst.add_value('Hospedado per imagineRio','pt-BR')
         """
@@ -951,13 +994,19 @@ class CommonAttributes(CoreAttributes,Thumbnail):
 
         if (label is not None or value is not None) and entry is not None:
             raise ValueError(
-                "Either use entry arguments or a combination of other arguments, NOT both.")
-        
+                "Either use entry arguments or a combination of other"
+                "arguments, NOT both.")
         if entry is None:
-            if language_l is None: language_l = "none"
-            if language_v is None: language_v = "none"
-            assert language_l in LANGUAGES or language_l == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
-            assert language_v in LANGUAGES or language_v == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+            if language_l is None:
+                language_l = "none"
+            if language_v is None:
+                language_v = "none"
+            assert language_l in LANGUAGES or language_l == "none",\
+                "Language must be a valid BCP47 language tag or none. "\
+                "Please read https://git.io/JoQty."
+            assert language_v in LANGUAGES or language_v == "none",\
+                "Language must be a valid BCP47 language tag or none. "\
+                "Please read https://git.io/JoQty."
             entry = {"label": {language_l: [label]},
                      "value": {language_v: [value]}}
         self.requiredStatement = entry
@@ -976,17 +1025,15 @@ class CommonAttributes(CoreAttributes,Thumbnail):
         """
         licenceurls = ["http://creativecommons.org/licenses/",
                        "http://creativecommons.org/publicdomain/mark/",
-                       "http://rightsstatements.org/vocab/",]
+                       "http://rightsstatements.org/vocab/"]
         assert any([rights.startswith(i) for i in licenceurls]
                    ), "Must start with:%s" % str(licenceurls)[1:-1]
         self.rights = rights
 
-
     def add_requiredStatement(self, label=None, value=None, language_l=None,
                               language_v=None, entry=None):
-        
-        warnings.warn('Please use set_requiredStatement instead.', DeprecationWarning) 
-        return self.set_requiredStatement(label,value,language_l,language_v,entry)
+        warnings.warn('Please use set_requiredStatement instead.', DeprecationWarning)
+        return self.set_requiredStatement(label, value, language_l, language_v, entry)
 
     def add_behavior(self, behavior):
         """
@@ -997,107 +1044,135 @@ class CommonAttributes(CoreAttributes,Thumbnail):
         defined externally as an extension.
         """
         # TODO: should we assert if behaviour disjoint with others?
-        assert behavior in BEHAVIOURS,f"{behavior} is not valid. See https://git.io/Jo7r9."
+        assert behavior in BEHAVIOURS, f"{behavior} is not valid. See https://git.io/Jo7r9."
         # this might leave an empty list if user fail the assertion
         if unused(self.behavior):
             self.behavior = []
         if behavior == "auto-advance":
-            assert self.type in ["Collection","Manifest","Canvas","Range"], f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
+            assert self.type in ["Collection", "Manifest", "Canvas", "Range"],\
+                f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
             if self.type == "Range":
-                #TODO: Ranges that include or are Canvases with at least the duration dimension. 
+                #TODO: Ranges that include or are Canvases with at least the duration dimension.
                 pass
-            assert "no-auto-advance" not in self.behavior,"Conflicts with no-auto-advance"
+            assert "no-auto-advance" not in self.behavior,\
+                "Conflicts with no-auto-advance"
 
         elif behavior == "no-auto-advance":
-            assert self.type in ["Collection","Manifest","Canvas","Range"], f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
-            assert "auto-advance" not in self.behavior,"Conflicts with auto-advance"
+            assert self.type in ["Collection", "Manifest", "Canvas", "Range"],\
+                f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
+            assert "auto-advance" not in self.behavior, "Conflicts with auto-advance"
 
         elif behavior == "repeat":
-            assert self.type in ["Collection","Manifest"],f"{behavior} behavior is valid only for Collection and Manifest"
+            assert self.type in ["Collection", "Manifest"],\
+                f"{behavior} behavior is valid only for Collection and Manifest"
             # TODO: assert any([True for i in self.items if i.type == "Canvas" and i.duration is not None]), "This behaviour should be used when canvas has duration property. Add it after the canvas definition."
-            assert "no-repeat" not in self.behavior,"Conflicts with no-repeat"
+            assert "no-repeat" not in self.behavior, "Conflicts with no-repeat"
 
         elif behavior == "no-repeat":
-            assert self.type in ["Collection","Manifest"],f"{behavior} behavior is valid only for Collection and Manifest"
-            assert "repeat" not in self.behavior,"Conflicts with repeat"
+            assert self.type in ["Collection", "Manifest"],\
+                f"{behavior} behavior is valid only for Collection and Manifest"
+            assert "repeat" not in self.behavior, "Conflicts with repeat"
 
         elif behavior == "unordered" or behavior == "individuals":
-            assert self.type in ["Collection","Manifest","Range"], f"{behavior} behavior is valid only for Collection, Manifest,Range"
-            dsjntbhv = ("individuals","continuous","paged")
-            assert not any(x in dsjntbhv for x in self.behavior),f"Conflicts with one of: {dsjntbhv}"
+            assert self.type in ["Collection", "Manifest", "Range"],\
+                f"{behavior} behavior is valid only for Collection, Manifest,Range"
+            dsjntbhv = ("individuals", "continuous", "paged")
+            assert not any(x in dsjntbhv for x in self.behavior),\
+                f"Conflicts with one of: {dsjntbhv}"
 
         elif behavior == "continuous":
-            assert self.type in ["Collection","Manifest","Range"], f"{behavior} behavior is valid only for Collection, Manifest,Range"
-            # TODO: assert any([True for i in self.items if i.type == "Canvas" and i.height is not None]), "This behaviour should be used when canvas has duration property. Add it after the canvas definition."
-            dsjntbhv = ("individuals","unordered","paged")
-            assert not any(x in dsjntbhv for x in self.behavior),f"Conflicts with one of: {dsjntbhv}"
-        
+            assert self.type in ["Collection", "Manifest", "Range"],\
+                f"{behavior} behavior is valid only for Collection, Manifest,Range"
+# TODO: assert any([True for i in self.items if i.type == "Canvas" and i.height is not None]), "This behaviour should be used when canvas has duration property. Add it after the canvas definition."
+            dsjntbhv = ("individuals", "unordered", "paged")
+            assert not any(x in dsjntbhv for x in self.behavior),\
+                f"Conflicts with one of: {dsjntbhv}"
+
         elif behavior == "paged":
-            assert self.type in ["Collection","Manifest","Range"], f"{behavior} behavior is valid only for Collection, Manifest,Range"
-            dsjntbhv = ("individuals","continuous","facing-pages","unordered","non-paged")
-            assert not any(x in dsjntbhv for x in self.behavior),f"Conflicts with one of: {dsjntbhv}"
+            assert self.type in ["Collection", "Manifest", "Range"],\
+                f"{behavior} behavior is valid only for Collection, Manifest,Range"
+            dsjntbhv = ("individuals",
+                        "continuous",
+                        "facing-pages",
+                        "unordered",
+                        "non-paged")
+            assert not any(x in dsjntbhv for x in self.behavior),\
+                f"Conflicts with one of: {dsjntbhv}"
 
         elif behavior == "facing-pages" or behavior == "non-paged":
-            assert self.type == "Canvas", f"{behavior} behavior is valid only on on Canvases, where the Canvas has at least height and width dimensions."
-            assert self.height is not None,f"with {behavior} behavior Canvas must have height property."
-            assert self.width is not None, f"with {behavior} behavior Canvas must have width property."
+            assert self.type == "Canvas",\
+                f"{behavior} behavior is valid only on on Canvases, where the "\
+                "Canvas has at least height and width dimensions."
+            assert self.height is not None,\
+                f"with {behavior} behavior Canvas must have height property."
+            assert self.width is not None,\
+                f"with {behavior} behavior Canvas must have width property."
             if behavior == "facing-pages":
-                dsjntbhv = ("paged","non-paged")
+                dsjntbhv = ("paged", "non-paged")
             else:
-                dsjntbhv = ("facing-pages","paged")
-            assert not any(x in dsjntbhv for x in self.behavior),f"Conflicts with one of: {dsjntbhv}"
+                dsjntbhv = ("facing-pages", "paged")
+            assert not any(x in dsjntbhv for x in self.behavior),\
+                f"Conflicts with one of: {dsjntbhv}"
 
         elif behavior == "multi-part" or behavior == "together":
-            assert self.type == "Collection", f"{behavior} behavior is valid only on Collections."
+            assert self.type == "Collection",\
+                f"{behavior} behavior is valid only on Collections."
             if behavior == "multi-part":
                 dsjntbhv = "together"
             else:
                 dsjntbhv = "multi-part"
-            assert dsjntbhv not in self.behavior,f"Conflicts with {dsjntbhv}"
+            assert dsjntbhv not in self.behavior,\
+                f"Conflicts with {dsjntbhv}"
 
-        elif behavior in ["sequence","thumbnail-nav","no-nav"]:
-            assert self.type == "Range", f"{behavior} behavior is valid only on Ranges."
-                        #TODO: Valid only on Ranges, where the Range is referenced in the structures property of a Manifest
-            disjoint = ["sequence","thumbnail-nav","no-nav"]
-            assert not any(x in disjoint.remove(behavior) for x in self.behavior),f"Conflicts with one of: {disjoint}"
+        elif behavior in ["sequence", "thumbnail-nav", "no-nav"]:
+            assert self.type == "Range",\
+                f"{behavior} behavior is valid only on Ranges."
+# TODO: Valid only on Ranges, where the Range is referenced in the structures property of a Manifest
+            disjoint = ["sequence", "thumbnail-nav", "no-nav"]
+            assert not any(x in disjoint.remove(behavior) for x in self.behavior),\
+                f"Conflicts with one of: {disjoint}"
 
         elif behavior == "hidden":
-            vc = ["Annotation","AnnotationCollection","AnnotationPage","SpecificResource","Choice"]
-            assert self.type in vc,f"{behavior} behavior is valid only on {vc}."
+            vc = ["Annotation",
+                  "AnnotationCollection",
+                  "AnnotationPage",
+                  "SpecificResource",
+                  "Choice"]
+            assert self.type in vc, f"{behavior} behavior is valid only on {vc}."
 
         self.behavior.append(behavior)
 
     def add_homepage(self, homepageobj=None):
         """
         """
-        return add_to(self,'homepage',homepage,homepageobj)
+        return add_to(self, 'homepage', homepage, homepageobj)
 
     def add_seeAlso(self, seeAlsoobj=None):
         """
         """
-        return add_to(self,'seeAlso',seeAlso,seeAlsoobj)
+        return add_to(self, 'seeAlso', seeAlso, seeAlsoobj)
 
     def add_partOf(self, partOfobj=None):
         """
         """
-        return add_to(self,'partOf',partOf,partOfobj)
+        return add_to(self, 'partOf', partOf, partOfobj)
 
     def add_rendering(self, renderingobj=None):
         """
         """
-        return add_to(self,'rendering',rendering,renderingobj)
+        return add_to(self, 'rendering', rendering, renderingobj)
 
     def add_provider(self, providerobj=None):
-        return add_to(self,'provider',provider,providerobj)
+        return add_to(self, 'provider', provider, providerobj)
 
     def add_service(self, serviceobj=None):
-        return add_to(self,'service',service,serviceobj,(service,dict))
+        return add_to(self, 'service', service, serviceobj, (service, dict))
 
 
 class Annotation(CommonAttributes):
     """
 
-    https://iiif.io/api/presentation/3.0/#56-annotation 
+    https://iiif.io/api/presentation/3.0/#56-annotation
     Annotations follow the Web Annotation data model. The description provided
     here is a summary plus any IIIF specific requirements. The W3C standard is
     the official documentation.
@@ -1129,8 +1204,8 @@ class Annotation(CommonAttributes):
 
     def __init__(self, target=Required()):
         super(Annotation, self).__init__()
-        self.motivation = None #TODO: Check if this is required
-        self.body = None #TODO: Check if this is required
+        self.motivation = None  # TODO: Check if this is required
+        self.body = None  # TODO: Check if this is required
         self.target = target
         self.metadata = None
 
@@ -1182,7 +1257,7 @@ class Annotation(CommonAttributes):
         text, or captions for what is
         """
 
-        motivations = ["painting", "supplementing","commenting","tagging"]
+        motivations = ["painting", "supplementing", "commenting", "tagging"]
         if motivation not in motivations:
             warnings.warn("Motivation not in %s" % motivations)
         if motivation == "painting":
@@ -1190,8 +1265,8 @@ class Annotation(CommonAttributes):
         if motivation == "commenting" or motivation == "tagging":
             self.body = bodycommenting()
         self.motivation = motivation
-    
-    def set_target_specific_resource(self, specificresource = None):
+
+    def set_target_specific_resource(self, specificresource=None):
         if specificresource is None:
             specificresource = SpecificResource()
             self.target = specificresource
@@ -1203,6 +1278,7 @@ class Annotation(CommonAttributes):
                 raise ValueError(
                     "Trying to add wrong object to target in %s" %
                     self.__class__.__name__)
+
 
 class AnnotationPage(CommonAttributes):
     """
@@ -1216,19 +1292,20 @@ class AnnotationPage(CommonAttributes):
 
     def add_item(self, item):
         """Add an item (Annotation) to the AnnotationPage.
-        
+
         Same as `add_annotation_to_items` but doesn't return.
 
-        An Annotation Page should have the items property with at least one 
+        An Annotation Page should have the items property with at least one
         item. Each item must be an Annotation.
 
         Args:
             item (Annotation): The Annotation
         """
-        add_to(self,'items',Annotation,item)
+        add_to(self, 'items', Annotation, item)
 
     def add_annotation_to_items(self, annotation=None, target=None):
-        return add_to(self,'items',Annotation,annotation,target=target)
+        return add_to(self, 'items', Annotation, annotation, target=target)
+
 
 class AnnotationCollection(CommonAttributes):
     """https://iiif.io/api/presentation/3.0/#58-annotation-collection
@@ -1243,21 +1320,23 @@ class AnnotationCollection(CommonAttributes):
     """
     def __init__(self):
         super(AnnotationCollection, self).__init__()
-        self.label = Recommended("An Annotation Collection should have the label property with at least one entry.")
+        self.label = Recommended("An Annotation Collection should have the"
+                                 "label property with at least one entry.")
 
     def set_id(self, objid, extendbase_url=None):
         """AnnotationCollection should have http(s) link.
         """
-        try:     
+        try:
             return super().set_id(objid=objid, extendbase_url=extendbase_url)
         except AssertionError:
             self.id = objid
+
 
 class AnnotationsList(object):
     """Some IIIF obejcts have a list of annotations. This list can contain
     only AnnotationPages.
     """
-    def add_annotationpage_to_annotations(self,annopageobj=None):
+    def add_annotationpage_to_annotations(self, annopageobj=None):
         """Add an AnnotationPage to the annotations list.
 
         Args:
@@ -1267,35 +1346,45 @@ class AnnotationsList(object):
         Returns:
             AnnotationPage: An AnnotationPage.
         """
-        return add_to(self,'annotations',AnnotationPage,annopageobj)
+        return add_to(self, 'annotations', AnnotationPage, annopageobj)
 
-class contentresources(MutableType,CommonAttributes,HeightWidth,Duration,AnnotationsList):
+
+class contentresources(MutableType, CommonAttributes, HeightWidth, Duration,
+                       AnnotationsList):
     """
-    IIIF: Content resources are external web resources that are referenced 
-    from within the Manifest or Collection. 
+    IIIF: Content resources are external web resources that are referenced
+    from within the Manifest or Collection.
     This includes images, video, audio, data, web pages or any other format.
     https://iiif.io/api/presentation/3.0/#57-content-resources
 
     """
     def __init__(self):
-        super(CommonAttributes,self).__init__()
+        super(CommonAttributes, self).__init__()
         self.annotations = None
-        self.type = Required("The type of the content resource must be included, and should be taken from the table listed under the definition of type.")
-        self.format = Recommended("The format of the resource should be included and, if so, should be the media type that is returned when the resource is dereferenced.")
-        self.profile = Recommended("The profile of the resource, if it has one, should also be included")
-    
-    def set_format(self,format):
+        self.type = Required("The type of the content resource must be "
+                             "included,and should be taken from the table"
+                             "listed under the definition of type.")
+        self.format = Recommended("The format of the resource should be"
+                                  "included and, if so, should be the media"
+                                  "type that is returned when the resource is"
+                                  "dereferenced.")
+        self.profile = Recommended("The profile of the resource, if it has one,"
+                                   "should also be included")
+
+    def set_format(self, format):
         self.format = format
 
     def add_annotation(self, annotation=None):
-        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
-        return add_to(self,'annotations',Annotation,annotation,target=self.id)
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.',
+                      DeprecationWarning)
+        return add_to(self, 'annotations', Annotation, annotation, target=self.id)
 
-    def add_annotationpage_to_items(self, annotationpageobj=None,target=None):
-        return add_to(self,'items',AnnotationPage,annotationpageobj,target=target)
+    def add_annotationpage_to_items(self, annotationpageobj=None, target=None):
+        return add_to(self, 'items', AnnotationPage, annotationpageobj, target=target)
 
     def add_annotationpage_to_annotations(self, annotationpageobj=None):
-        return add_to(self,'annotations',AnnotationPage,annotationpageobj)
+        return add_to(self, 'annotations', AnnotationPage, annotationpageobj)
+
 
 class bodycommenting(ImmutableType):
     def __init__(self):
@@ -1311,8 +1400,11 @@ class bodycommenting(ImmutableType):
         self.value = value
 
     def set_language(self, language):
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        assert language in LANGUAGES or language == "none",\
+            "Language must be a valid BCP47 language tag or none."\
+            "Please read https://git.io/JoQty."
         self.language = language
+
 
 class bodypainting(contentresources):
     def __init__(self):
@@ -1325,10 +1417,11 @@ class bodypainting(contentresources):
         self.items = None
 
     def add_service(self, serviceobj=None):
-        return add_to(self,'service',service,serviceobj,(service,dict))
+        return add_to(self, 'service', service, serviceobj, (service, dict))
 
-    def add_choice(self,choiceobj=None):
-        assert isinstance(self.type,Required) or self.type == "Choice", "Body type must be Choice"
+    def add_choice(self, choiceobj=None):
+        assert isinstance(self.type, Required) or self.type == "Choice",\
+            "Body type must be Choice"
         if unused(self.items):
             self.items = []
         if choiceobj is None:
@@ -1336,7 +1429,7 @@ class bodypainting(contentresources):
             self.format = None
             self.height = None
             self.width = None
-            #TODO: myabe assert these properties are not defined
+            # TODO: myabe assert these properties are not defined
             choice = bodypainting()
             self.type = "Choice"
             self.items.append(choice)
@@ -1349,14 +1442,17 @@ class bodypainting(contentresources):
                 raise ValueError(
                     "Trying to add wrong object to service in %s" %
                     self.__class__.__name__)
-        
-    def add_language(self,language):
+
+    def add_language(self, language):
         if unused(self.language):
             self.language = []
-        assert language in LANGUAGES or language == "none","Language must be a valid BCP47 language tag or none. Please read https://git.io/JoQty."
+        assert language in LANGUAGES or language == "none",\
+            "Language must be a valid BCP47 language tag or none."\
+            "Please read https://git.io/JoQty."
         self.language.append(language)
 
-class CMRCattributes(CommonAttributes,AnnotationsList,ImmutableType):
+
+class CMRCattributes(CommonAttributes, AnnotationsList, ImmutableType):
     """
     This is another class for grouping the attributes in common with
     Canvas, Manifest, Range and Collection.
@@ -1370,35 +1466,38 @@ class CMRCattributes(CommonAttributes,AnnotationsList,ImmutableType):
         self.placeholderCanvas = None
         self.accompanyingCanvas = None
         self.navDate = None
-    
+
     def set_placeholderCanvas(self):
-        if hasattr(self,'placeholderCanvas'):
+        if hasattr(self, 'placeholderCanvas'):
             phcnv = Canvas()
             delattr(phcnv, 'placeholderCanvas')
-            delattr(phcnv,'accompanyingCanvas')
+            delattr(phcnv, 'accompanyingCanvas')
             self.placeholderCanvas = phcnv
             return phcnv
         else:
-            raise AttributeError("A placeholder/accompanying Canvas can not have a placeholderCanvas")
-    
+            raise AttributeError("A placeholder/accompanying Canvas can not"
+                                 "have a placeholderCanvas")
+
     def set_accompanyingCanvas(self):
         """https://iiif.io/api/presentation/3.0/#accompanyingcanvas
         """
-        if hasattr(self,'accompanyingCanvas'):
+        if hasattr(self, 'accompanyingCanvas'):
             phcnv = Canvas()
             delattr(phcnv, 'placeholderCanvas')
-            delattr(phcnv,'accompanyingCanvas')
+            delattr(phcnv, 'accompanyingCanvas')
             self.accompanyingCanvas = phcnv
             return phcnv
         else:
-            raise AttributeError("A placeholder/accompanying Canvas can not have a accompanyingCanvas")
+            raise AttributeError("A placeholder/accompanying Canvas can not"
+                                 "have a accompanyingCanvas")
 
-    def set_navDate(self,navDate):
-        #TODO: check
+    def set_navDate(self, navDate):
+        # TODO: check
         self.navDate = navDate
 
-class Canvas(CMRCattributes,HeightWidth,Duration):
-    """https://iiif.io/api/presentation/3.0/#53-canvas 
+
+class Canvas(CMRCattributes, HeightWidth, Duration):
+    """https://iiif.io/api/presentation/3.0/#53-canvas
     The Canvas represents an individual page or view and acts as a central
     point for assembling the different content resources that make up the
     display. Canvases must be identified by a URI and it must be an HTTP(S)
@@ -1416,10 +1515,10 @@ class Canvas(CMRCattributes,HeightWidth,Duration):
         self.annotations = None
         self.placeholderCanvas = None
         self.accompanyingCanvas = None
-    
+
     def add_item(self, item):
         """Add an item (AnnotationPage) to the Canvas.
-        
+
         Same as `add_annotationpage_to_items` but doesn't return.
 
         A Canvas should have the items property with at least one item.
@@ -1428,14 +1527,15 @@ class Canvas(CMRCattributes,HeightWidth,Duration):
         Args:
             item (AnnotationPage): The AnnotationPage object.
         """
-        add_to(self,'items',AnnotationPage,item)
+        add_to(self, 'items', AnnotationPage, item)
 
     def add_annotation(self, annotation=None):
-        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
-        return add_to(self,'annotations',Annotation,annotation,target=self.id)
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning)
+        return add_to(self, 'annotations', Annotation, annotation, target=self.id)
 
     def add_annotationpage_to_items(self, annotationpageobj=None):
-        return add_to(self,'items',AnnotationPage,annotationpageobj)
+        return add_to(self, 'items', AnnotationPage, annotationpageobj)
+
 
 class start(CoreAttributes):
     def __init__(self):
@@ -1459,16 +1559,17 @@ class start(CoreAttributes):
     def set_selector(self, selector):
         self.selector = selector
 
+
 class Start(object):
-     def set_start(self,startobj=None):
+    def set_start(self, startobj=None):
         """This method set a start obejct at self.start.
-        IIIF: A Canvas, or part of a Canvas, which the client should show on 
+        IIIF: A Canvas, or part of a Canvas, which the client should show on
         initialization for the resource that has the start property.
-        The reference to part of a Canvas is handled in the same way that 
+        The reference to part of a Canvas is handled in the same way that
         Ranges reference parts of Canvases. This property allows the client to
-        begin with the first Canvas that contains interesting content rather 
+        begin with the first Canvas that contains interesting content rather
         than requiring the user to manually navigate to find it.
-        
+
         manifest.set_start()
         manifest.start.set_type('Canvas')
         manifest.start.set_id("https://example.org/iiif/1/canvas/1")
@@ -1483,7 +1584,7 @@ class Start(object):
         return self.start
 
 
-class Manifest(CMRCattributes,ViewingDirection,Start,ServicesList):
+class Manifest(CMRCattributes, ViewingDirection, Start, ServicesList):
     """
     The Manifest resource typically represents a single object and any
     intellectual work or works embodied within that object. In particular it
@@ -1523,58 +1624,61 @@ class Manifest(CMRCattributes,ViewingDirection,Start,ServicesList):
 
     def add_item(self, item):
         """Add an item (Canvas) to the Manifest.
-        
+
         Same as `add_canvas_to_items` but doesn't return.
 
-        A Manifest must have the items property with at least one item. 
+        A Manifest must have the items property with at least one item.
         Each item must be a Canvas.
         Clients must process items on a Manifest.
 
         Args:
             item (Canvas): The canvas
         """
-        add_to(self,'items',Canvas,item)
-
+        add_to(self, 'items', Canvas, item)
 
     def add_services(self, services=None):
-        warnings.warn('Please use `add_service_to_services` instead.', DeprecationWarning) 
-        add_to(self,'services',service,services,(service,dict))
+        warnings.warn('Please use `add_service_to_services` instead.', DeprecationWarning)
+        add_to(self, 'services', service, services, (service, dict))
 
     def add_annotation(self, annotation=None):
-        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
-        return add_to(self,'annotations',AnnotationPage,annotation)
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning)
+        return add_to(self, 'annotations', AnnotationPage, annotation)
 
     def add_canvas_to_items(self, canvasobj=None):
-        return add_to(self,'items',Canvas,canvasobj)
+        return add_to(self, 'items', Canvas, canvasobj)
 
     def add_structure(self, structure):
         """Add an already instatiated Range to structres without return.
 
             This is equivalent to `add_range_to_structures` but does not
-            return. 
+            return.
 
         Args:
             structure (Range): A Range object.
         """
-        add_to(self,'structures',Range,structure)
+        add_to(self, 'structures', Range, structure)
 
     def add_range_to_structures(self, rangeobj=None):
-        return add_to(self,'structures',Range,rangeobj)
+        return add_to(self, 'structures', Range, rangeobj)
 
-class refManifest(CoreAttributes,Thumbnail):
+
+class refManifest(CoreAttributes, Thumbnail):
     def __init__(self):
-        super(refManifest,self).__init__()
+        super(refManifest, self).__init__()
         self.thumbnail = Recommended("A Manifest reference should have the thumbnail property with at least one item.")
         self.type = "Manifest"
         self.navDate = None
 
-class Collection(CMRCattributes,ViewingDirection,ServicesList):
+
+class Collection(CMRCattributes, ViewingDirection, ServicesList):
     def __init__(self):
         super(Collection, self).__init__()
         self.services = None
         self.annotations = None
         self.thumbnail = Recommended("A Collection should have the thumbnail property with at least one item.")
-        self.summary = Recommended("A Collection should have the summary property with at least one entry.Clients should render summary on a Collection.")
+        self.summary = Recommended("A Collection should have the summary"
+                                   "property with at least one entry. Clients "
+                                   "should render summary on a Collection.")
         self.provider = Recommended("A Collection should have the provider property with at least one item.")
         self.label = Required("A Collection must have the label property with at least one entry.")
         self.items = Required(
@@ -1583,32 +1687,33 @@ class Collection(CMRCattributes,ViewingDirection,ServicesList):
         self.viewingDirection = None
 
     def add_annotation(self, annotationobj):
-        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
-        return add_to(self,'annotations',AnnotationPage,annotationobj)
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning)
+        return add_to(self, 'annotations', AnnotationPage, annotationobj)
 
     def add_item(self, item):
         """Add an item (Collection or Manifest) to the Manifest without returning.
-        
+
         A Collection must have the items property.
         Each item must be either a Collection or a Manifest.
 
         Args:
             item (Collection or Manifest): The item to be added.
         """
-        add_to(self,'items',Canvas,item,(Collection,Manifest))
+        add_to(self, 'items', Canvas, item, (Collection, Manifest))
 
-    def add_collection_to_items(self,collectionobj=None):
-        return add_to(self,'items',Collection,collectionobj)
-    
-    def add_manifest_to_items(self,manifestobj=None):
+    def add_collection_to_items(self, collectionobj=None):
+        return add_to(self, 'items', Collection, collectionobj)
+
+    def add_manifest_to_items(self, manifestobj=None):
         if isinstance(manifestobj, Manifest):
-                # Adding a Manifest only the references and thumbnail are passed
-                newobj = copy.copy(manifestobj)
-                delattr(newobj,'items')
-                manifestobj = newobj
-        return add_to(self,'items',refManifest,manifestobj,(Manifest,refManifest))
+            # Adding a Manifest only the references and thumbnail are passed
+            newobj = copy.copy(manifestobj)
+            delattr(newobj, 'items')
+            manifestobj = newobj
+        return add_to(self, 'items', refManifest, manifestobj, (Manifest, refManifest))
 
-class Range(CMRCattributes,ViewingDirection,Start):
+
+class Range(CMRCattributes, ViewingDirection, Start):
     def __init__(self):
         super(Range, self).__init__()
         self.annotations = None
@@ -1617,35 +1722,35 @@ class Range(CMRCattributes,ViewingDirection,Start):
         self.label = Recommended("A Range should have the label property with at least one entry")
         self.viewingDirection = None
         self.start = None
- 
+
     def add_annotation(self, annotationobj=None):
-        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning) 
-        return add_to(self,'annotations',AnnotationPage,annotationobj)
+        warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning)
+        return add_to(self, 'annotations', AnnotationPage, annotationobj)
 
     def add_item(self, item):
-        """Add an item (Range,Canvas,Specific Resource where the source is a 
+        """Add an item (Range,Canvas,Specific Resource where the source is a
         Canvas) to the Manifest.
-        
+
         This function does not return. Use:
             `add_range_to_items`
             `add_canvas_to_items`
             `add_specificresource_to_items`
 
 
-        A Range must have the items property with at least one item. 
-        Each item must be a Range, a Canvas or a Specific Resource where the 
+        A Range must have the items property with at least one item.
+        Each item must be a Range, a Canvas or a Specific Resource where the
         source is a Canvas.
 
         Args:
             item (Range,Canvas,SpecRes): The IIIF Object.
         """
-        add_to(self,'items',Canvas,item,(Range,SpecificResource,Canvas))
+        add_to(self, 'items', Canvas, item, (Range, SpecificResource, Canvas))
 
-    def add_range_to_items(self,rangeobj=None):
-        return add_to(self,'items',Range,rangeobj)
-    
-    def add_specificresource_to_items(self,specificresourceobj=None):
-        return add_to(self,'items',SpecificResource,specificresourceobj)
+    def add_range_to_items(self, rangeobj=None):
+        return add_to(self, 'items', Range, rangeobj)
+
+    def add_specificresource_to_items(self, specificresourceobj=None):
+        return add_to(self, 'items', SpecificResource, specificresourceobj)
 
     def set_supplementary(self, objid=None, extendbase_url=None):
         self.supplementary = supplementary()
@@ -1667,8 +1772,8 @@ class SpecificResource(CommonAttributes):
         self.id = Recommended("An ID is recommended.")
         self.source = None
 
-    def set_source(self,source,extendbase_url=None):
-        self.source = check_ID(self,extendbase_url=extendbase_url,objid=source)
+    def set_source(self, source, extendbase_url=None):
+        self.source = check_ID(self, extendbase_url=extendbase_url, objid=source)
 
     def set_selector(self, selector):
         self.selector = selector
@@ -1677,15 +1782,16 @@ class SpecificResource(CommonAttributes):
         ps = PointSelector()
         self.selector = ps
         return ps
-    
-    def set_selector_as_SvgSelector(self,value=None):
+
+    def set_selector_as_SvgSelector(self, value=None):
         ss = SvgSelector()
         if value is not None:
             ss.set_value(value)
         self.selector = ss
         return ss
 
-class ImageApiSelector(Format,ImmutableType):
+
+class ImageApiSelector(Format, ImmutableType):
     def __init__(self):
         self.type = "ImageApiSelector"
         self.region = None
@@ -1702,9 +1808,10 @@ class ImageApiSelector(Format,ImmutableType):
 
     def set_quality(self, quality):
         self.quality = quality
-    
+
     def set_size(self, size):
         self.size = size
+
 
 class PointSelector(ImmutableType):
     """
@@ -1724,9 +1831,9 @@ class PointSelector(ImmutableType):
 
     Property	Description
     type	Required. Must be the value “PointSelector”.
-    x	Optional. An integer giving the x coordinate of the point, relative to 
+    x	Optional. An integer giving the x coordinate of the point, relative to
         the dimensions of the target resource.
-    y	Optional. An integer giving the y coordinate of the point, relative to 
+    y	Optional. An integer giving the y coordinate of the point, relative to
         the dimensions of the target resource.
     t	Optional. A floating point number giving the time of the point in seconds,
         relative to the duration of the target resource
@@ -1759,6 +1866,7 @@ class FragmentSelector(ImmutableType):
     def set_xywh(self, x, y, w, h):
         self.value = "xywh=%i,%i,%i,%i" % (x, y, w, h)
 
+
 class SvgSelector(ImmutableType):
     """The SvgSelector is used to select a non rectangualar region of an image.
     https://www.w3.org/TR/annotation-model/#svg-selector
@@ -1770,5 +1878,5 @@ class SvgSelector(ImmutableType):
     def set_value(self, value):
         self.value = value
 
- # The motivation of the Annotations must not be painting, and the target of 
- # the Annotations must include this resource or part of it.
+# The motivation of the Annotations must not be painting, and the target of
+# the Annotations must include this resource or part of it.
