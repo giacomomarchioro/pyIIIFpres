@@ -1,5 +1,5 @@
 # pyIIIFpres
-[![Build Status](https://travis-ci.com/giacomomarchioro/pyIIIFpres.svg?branch=main)](https://travis-ci.com/giacomomarchioro/pyIIIFpres)
+[![Build Status](https://travis-ci.com/giacomomarchioro/pyIIIFpres.svg?branch=main)](https://travis-ci.com/giacomomarchioro/pyIIIFpres) [![Coverage Status](https://coveralls.io/repos/github/giacomomarchioro/pyIIIFpres/badge.svg?branch=main)](https://coveralls.io/github/giacomomarchioro/pyIIIFpres?branch=main)
 ----------------
 This is a Python module built for easing the construction of JSON manifests compliant with IIIF [API 3.0](https://iiif.io/api/presentation/3.0/) in a production environment, similarly to [iiif-prezi](https://github.com/iiif-prezi/iiif-prezi) for earlier versions of the protocol.
 
