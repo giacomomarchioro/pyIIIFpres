@@ -11,7 +11,7 @@ import csv
 version = pkg_resources.require("pyIIIFpres")[0].version   
 
 
-
+write = True
 infos = cpuinfo.get_cpu_info()
 
 # First test not optimized
@@ -22,9 +22,12 @@ times = result.stderr.split()
 fields=[times[0],times[2],times[4],version,datetime.datetime.now(),
 infos['python_version'],infos['arch_string_raw'],infos['vendor_id_raw'],
 infos['brand_raw'],infos['hz_advertised_friendly']]
-with open(r'performance_log_4000_canvas_40000_annotations.csv', 'a') as f:
-    writer = csv.writer(f)
-    writer.writerow(fields)
+if write:
+    with open(r'performance_log_4000_canvas_40000_annotations.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+else:
+    print(fields)
 
 
 # Second test optimized
@@ -35,9 +38,12 @@ times = result.stderr.split()
 fields=[times[0],times[2],times[4],version,datetime.datetime.now(),
 infos['python_version'],infos['arch_string_raw'],infos['vendor_id_raw'],
 infos['brand_raw'],infos['hz_advertised_friendly']]
-with open(r'performance_log_4000_canvas_40000_annotations_Optimized.csv', 'a') as f:
-    writer = csv.writer(f)
-    writer.writerow(fields)
+if write:
+    with open(r'performance_log_4000_canvas_40000_annotations_Optimized.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+else:
+    print(fields)
 
 # third test not optimized
 command = ["time","python","2000_canvas_2000_annotations.py"]
@@ -47,9 +53,12 @@ times = result.stderr.split()
 fields=[times[0],times[2],times[4],version,datetime.datetime.now(),
 infos['python_version'],infos['arch_string_raw'],infos['vendor_id_raw'],
 infos['brand_raw'],infos['hz_advertised_friendly']]
-with open(r'performance_log_2000_canvas_2000_annotations.csv', 'a') as f:
-    writer = csv.writer(f)
-    writer.writerow(fields)
+if write:
+    with open(r'performance_log_2000_canvas_2000_annotations.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+else: 
+    print(fields)
 
 
 # Forth test optimized
@@ -60,9 +69,12 @@ times = result.stderr.split()
 fields=[times[0],times[2],times[4],version,datetime.datetime.now(),
 infos['python_version'],infos['arch_string_raw'],infos['vendor_id_raw'],
 infos['brand_raw'],infos['hz_advertised_friendly']]
-with open(r'performance_log_2000_canvas_2000_annotations_Optimized.csv', 'a') as f:
-    writer = csv.writer(f)
-    writer.writerow(fields)
+if write:
+    with open(r'performance_log_2000_canvas_2000_annotations_Optimized.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+else: 
+    print(fields)
 
 # Fifth test not optimized orjson
 command = ["time","python","4000_canvas_40000_annotations_orjson.py"]
@@ -72,9 +84,12 @@ times = result.stderr.split()
 fields=[times[0],times[2],times[4],version,datetime.datetime.now(),
 infos['python_version'],infos['arch_string_raw'],infos['vendor_id_raw'],
 infos['brand_raw'],infos['hz_advertised_friendly']]
-with open(r'performance_log_4000_canvas_40000_annotations_orjson.csv', 'a') as f:
-    writer = csv.writer(f)
-    writer.writerow(fields)
+if write:
+    with open(r'performance_log_4000_canvas_40000_annotations_orjson.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+else:
+    print(fields)
 
 
 # Sixith test optimized orjson
@@ -85,6 +100,9 @@ times = result.stderr.split()
 fields=[times[0],times[2],times[4],version,datetime.datetime.now(),
 infos['python_version'],infos['arch_string_raw'],infos['vendor_id_raw'],
 infos['brand_raw'],infos['hz_advertised_friendly']]
-with open(r'performance_log_4000_canvas_40000_annotations_Optimized_orjson.csv', 'a') as f:
-    writer = csv.writer(f)
-    writer.writerow(fields)
+if write:
+    with open(r'performance_log_4000_canvas_40000_annotations_Optimized_orjson.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+else:
+    print(fields)

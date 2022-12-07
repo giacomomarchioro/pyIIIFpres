@@ -148,6 +148,24 @@ class TestEmptyManifest(unittest.TestCase):
             self.manifest.add_requiredStatement('date','1834')
         with self.assertWarns(Warning):
             self.manifest.add_services(iiifpapi3.service())
+        with self.assertWarns(Warning):
+            self.manifest.add_annotation()
+        with self.assertWarns(Warning):
+            g = iiifpapi3.Range()
+            a = iiifpapi3.AnnotationPage()
+            g.add_annotation(a)
+        with self.assertWarns(Warning):
+            g = iiifpapi3.Collection()
+            a = iiifpapi3.AnnotationPage()
+            g.add_annotation(a)
+        with self.assertWarns(Warning):
+            g = iiifpapi3.contentresources()
+            a = iiifpapi3.Annotation()
+            g.add_annotation(a)
+        with self.assertWarns(Warning):
+            g = iiifpapi3.Canvas()
+            a = iiifpapi3.Annotation()
+            g.add_annotation(a)
     
 class TestManifest(unittest.TestCase):
     @classmethod

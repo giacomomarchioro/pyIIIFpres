@@ -35,7 +35,7 @@ srv.set_type("ImageService3")
 # we add the NavPlace
 manifest.navPlace = extensions.navPlace()
 feature = manifest.navPlace.add_feature()
-feature.set_id(extendbase_url='geo.json')
+feature.set_id("https://preview.iiif.io/cookbook/0154-geo-extension/recipe/0154-geo-extension/geo.json")
 feature.set_label('en',"Photograph from Göttingen, Germany")
 feature.set_summary('en',"Wilhelmspl. 3, 37073 Göttingen, Germany")
 feature.set_geometry_as_point(longitude=9.9374867,latitude=51.53345)
