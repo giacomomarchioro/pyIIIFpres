@@ -1,0 +1,43 @@
+/* This file intentionally left blank. */
+
+.py.method {
+    margin-top: 30px;
+    padding: 10px;
+    background-color: rgb(248, 246, 246);
+}
+
+.py.method > dd{
+   font-size: smaller;
+}
+
+.py.method:hover{
+    background-color: rgb(245, 209, 209);
+    font-size: larger;
+    transition-delay:0.7s;
+}
+
+.py.function {
+    margin-top: 20px;
+    padding: 5px;
+    background-color: rgba(189, 249, 188, 0.687);
+}
+
+.py.function:hover{
+    background-color: rgb(245, 209, 209);
+    font-size: larger;
+}
+
+dl:target{
+    background-color: rgb(255, 255, 67);
+}
+
+
+.py.class {
+    margin-top: 60px;
+    background-color: antiquewhite;
+    padding: 20px;
+}
+
+.py.class > dt {
+    font-size: 20px;
+}

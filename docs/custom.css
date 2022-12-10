@@ -1,0 +1,26 @@
+/* This file intentionally left blank. */
+
+.py .method {
+    margin-top: 30px;
+    padding: 10px;
+    background-color: rgb(248, 246, 246);
+}
+
+.py .method:hover{
+    background-color: rgb(245, 209, 209);
+}
+
+dl:target{
+    background-color: rgb(255, 255, 0);
+}
+
+
+.py .class {
+    margin-top: 60px;
+    background-color: rgb(202, 240, 255);
+    padding: 20px;
+}
+
+.py .class .sig{
+    font-size: 22px;
+}
