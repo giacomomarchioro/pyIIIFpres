@@ -9,7 +9,8 @@ def modify_API3_json(path):
 
     It is faster compared to read read_API3_json.
 
-    NOTE: the method assumes the IIIF object is complaint to API 3.0.
+    Note:
+        the method assumes the IIIF object is complaint to API 3.0.
 
     Args:
         path (str): The path of the json file.
@@ -27,13 +28,17 @@ def modify_API3_json(path):
 
 
 def read_API3_json_dict(jsondict, extensions=None, save_context=False):
-    """Read an IIIF json file complaint with API 3.0 and map the IIIF types to classes.
+    """Read an IIIF json file complaint with API 3.0 and map iiifpapi3 objects.
 
-    This method parse the major IIIF types and map them to the iiifpapi3 classes.
-    NOTE: the method assumes the IIIF object is complaint to API 3.0.
+    This method parse the major IIIF types and map them to the iiifpapi3
+    classes.
+
+    Note:
+        the method assumes the IIIF object is complaint to API 3.0.
 
     Args:
         jsondict (dict): a dict representing the JSON file.
+        extensions
     """
 
     jsondict.pop('@context')
@@ -87,8 +92,11 @@ def read_API3_json(path, extensions=None, save_context=False):
     """Read an IIIF json file complaint with API 3.0 and map the IIIF types to
     classes.
 
-    This method parse the major IIIF types and map them to the iiifpapi3 classes.
-    NOTE: the method assumes the IIIF object is complaint to API 3.0.
+    This method parse the major IIIF types and map them to the iiifpapi3
+    classes.
+
+    Note:
+        the method assumes the IIIF object is complaint to API 3.0.
 
     Args:
         path (str): path of the jsonfile
@@ -102,7 +110,8 @@ def read_API3_json_file(path, extensions=None, save_context=False):
     """Read an IIIF json file complaint with API 3.0 and map the IIIF types to
     classes.
 
-    This method parse the major IIIF types and map them to the iiifpapi3 classes.
+    This method parse the major IIIF types and map them to the iiifpapi3
+    classes.
     NOTE: the method assumes the IIIF object is complaint to API 3.0.
 
     Args:
@@ -114,6 +123,15 @@ def read_API3_json_file(path, extensions=None, save_context=False):
 
 
 def delete_object_byID(obj, id):
+    """Deletes nested IIIF objects using the ID.
+
+    Args:
+        obj (dict): a dict representing the IIIF object.
+        id (str): the ID of the object to be delete.
+
+    Returns:
+        True: if the ID was found.
+    """
     if hasattr(obj, "__dict__"):
         obj = obj.__dict__
     if isinstance(obj, dict):
