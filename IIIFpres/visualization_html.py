@@ -1,9 +1,18 @@
 # -*- coding: UTF-8 -*-.
-import tempfile 
-import webbrowser 
+import tempfile
+import webbrowser
 import time
 
-def show_error_in_browser(myjson,getHTML=False):
+
+def show_error_in_browser(myjson, getHTML=False):
+    """Get display a dict in the browser highlighting Recommended and Required
+    fields.
+
+    Args:
+        myjson (dict): A dictionary representing the JSON object.
+        getHTML (bool, optional): if True returns the HTML as string.
+             Defaults to False.
+    """
     html_page = """
     <!DOCTYPE html>
     <html lang="en">
@@ -37,12 +46,12 @@ def show_error_in_browser(myjson,getHTML=False):
     </script>
     </body>
     </html>
-    """%myjson
+    """ % myjson
     if getHTML:
         return html_page
     else:
-        with tempfile.NamedTemporaryFile('r+', suffix = '.html') as f:
-            f.write(html_page) 
-            webbrowser.open('file://' + f.name) 
+        with tempfile.NamedTemporaryFile('r+', suffix='.html') as f:
+            f.write(html_page)
+            webbrowser.open('file://' + f.name)
             f.seek(0)
             time.sleep(1)
