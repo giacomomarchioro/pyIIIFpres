@@ -1,11 +1,72 @@
+"""Implementation of IIIF Presentation API 3.0
 
-# -*- coding: UTF-8 -*-.
+This module maps IIIF Presentation API 3.0 resources to Python classes.
+The user `set` resources with a single element, and `add` to the list of the
+resources multiple objects.
+
+Example:
+    >>> from IIIFpres import iiifpapi3
+    >>> iiifpapi3.BASE_URL = r"https://iiif.io/api/0001-mvm-image/"
+    >>> manifest = iiifpapi3.Manifest()
+    >>> manifest.set_id(extendbase_url="manifest.json")
+    >>> manifest.add_label("en", "Image 1")
+    >>> canvas = manifest.add_canvas_to_items()
+    >>> canvas.set_id(extendbase_url="canvas/p1")
+    >>> canvas.set_height(1800)
+    >>> canvas.set_width(1200)
+    >>> annopage = canvas.add_annotationpage_to_items()
+    >>> annopage.set_id(extendbase_url="page/p1/1")
+    >>> annotation = annopage.add_annotation_to_items(target=canvas.id)
+    >>> annotation.set_motivation("painting")
+    >>> annotation.set_id(extendbase_url="annotation/p0001-image")
+    >>> annotation.body.set_height(1800)
+    >>> annotation.body.set_width(1200)
+    >>> annotation.body.set_id("http://resources/page1-full.png")
+    >>> annotation.body.set_format("image/png")
+    >>> annotation.body.set_type("Image")
+    >>> manifest.to_json()
+
+Attributes:
+    BASE_URL (str): Module level variable containing the URL to be preappend
+        to iiifpapi3._CoreAttributes.set_id extend_baseurl
+
+    LANGUAGES (list[str]): Module level variable containing a list of accepted
+        languages. This variable is used for checking accepted languages, using
+        the `IANA sub tag registry`_
+
+    CONTEXT (str,list): Module level variable containing the context of the
+        JSONLD file. Can be set to a list in case of multiple contexts.
+
+    INVALID_URI_CHARACTERS (str): A list of charachters that are not accepted
+        in the URL.
+
+    BEHAVIOURS (list[str]): A list of accepted behaviours.
+
+Warning:
+    only language subtags are checked not variants or composite strings.
+    You can manually add a language if you need to use subtags:
+
+Example:
+    >>> from IIIFpres import iiifpapi3,BCP47lang
+    >>> iiifpapi3.LANGUAGES.append("de-DE-u-co-phonebk")
+
+Todo:
+    * The motivation of the Annotations must not be painting, and the target of
+      the Annotations must include this resource or part of it
+    * Annotations that do not have the motivation value painting must not be in
+      pages referenced in items, but instead in the annotations property.
+    * You have to also use ``sphinx.ext.todo`` extension
+
+.. _IANA sub tag registry:
+    https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
+"""
 from . import visualization_html
 from .BCP47_tags_list import lang_tags
 from .dictmediatype import mediatypedict
 import json
 import warnings
 import copy
+import re
 global BASE_URL
 BASE_URL = "https://"
 global LANGUAGES
@@ -37,11 +98,12 @@ BEHAVIOURS = ["auto-advance",
 
 
 class Required(object):
-    """
-    This is not an IIIF object but a class used by this software to identify
-    required fields.
-    This is equivalent to MUST statement in the guideline with the meaning
-    of https://tools.ietf.org/html/rfc2119.
+    """HELPER CLASS
+
+    Note:
+        This is not an IIIF object but a class used by this software to
+        identify required fields. This is equivalent to MUST statement in the
+        guideline with the meaning of https://tools.ietf.org/html/rfc2119 .
     """
 
     def __init__(self, description=None):
@@ -55,11 +117,12 @@ class Required(object):
 
 
 class Recommended(object):
-    """
-    This is not an IIIF object but a class used by this software to identify
-    recommended fields.
-    This is equivalent to SHOULD statement in the guideline with the meaning
-    of https://tools.ietf.org/html/rfc2119.
+    """HELPER CLASS
+
+    Note:
+        This is not an IIIF object but a class used by this software to
+        identify recommended fields. This is equivalent to SHOULD statement in
+        the guideline with the meaning of https://tools.ietf.org/html/rfc2119.
     """
 
     def __init__(self, description=None):
@@ -78,8 +141,7 @@ class Recommended(object):
 # The package is based on 4 main helper functions:
 
 def unused(attr):
-    """
-    This function checks if an attribute is not set (has no value in it).
+    """This function checks if an attribute is not set (has no value in it).
     """
     if isinstance(attr, (Required, Recommended)) or attr is None:
         return True
@@ -103,7 +165,7 @@ def serializable(attr):
     """Check if attribute is Required and if so rise Value error.
 
     Args:
-        attr : the value of the dictionary representing the attribute of the instance.
+        attr : the value of the dictionary of the attribute of the instance.
     """
     if isinstance(attr, Required):
         raise ValueError(attr)
@@ -208,12 +270,15 @@ def check_ID(self, extendbase_url, objid):
 
 
 # Let's group all the common arguments across the different types of collection
-class CoreAttributes(object):
-    """
-    Core attributes are the attributes in all the major
-    classes/containers of IIIF namely: Collection, Manifest, Canvas, Range and
-    Annotation Page, Annotation and Content and also in the minor classes such
-    as SeeAlso and partOf.
+class _CoreAttributes(object):
+    """HELPER CLASS
+
+    Core attributes are the attributes in all the major classes/containers of
+    IIIF namely: Collection, Manifest, Canvas, Range and Annotation Page,
+    Annotation and Content and also in the minor classes such as SeeAlso and
+    partOf.
+
+    The core attributes are: ID, Type, Label
 
     ID an type attributes are required. The other might vary.
     """
@@ -229,20 +294,33 @@ class CoreAttributes(object):
     def set_id(self, objid=None, extendbase_url=None):
         """Set the ID of the object
 
+        https://iiif.io/api/presentation/3.0/#id
+
+        IIIF: The URI that identifies the resource. If the resource is only
+        available embedded within another resource (see the terminology section
+        for an explanation of “embedded”), such as a Range within a Manifest,
+        then the URI may be the URI of the embedding resource with a unique
+        fragment on the end. This is not true for Canvases, which must have
+        their own URI without a fragment.
+
         Args:
-            objid (str, optional): A string corresponding to the ID of the object.
-            Defaults to None.
-            extendbase_url (str , optional): A string containg the URL part
-            to be joined with the iiifpapi3.BASE_URL . Defaults to None.
+            objid (str, optional): A string corresponding to the ID of the
+                object.Defaults to None.
+            extendbase_url (str , optional): A string containing the URL part
+                to be joined with the iiifpapi3.BASE_URL . Defaults to None.
         """
         self.id = check_ID(self, extendbase_url, objid)
 
     def add_label(self, language, text):
-        """Add a label to the object
+        """Add a label to the object.
 
         Args:
             language (str): The language of the label.
             text (str or list of str): The content of the label.
+
+        Example:
+            >>> iiifobj.add_label("en", "A painting")
+            >>> iiifobj.add_label("en", ["Canvas","Oil"])
 
         IIIF : A human readable label, name or title. The label property is
         intended to be displayed as a short, textual surrogate for the resource
@@ -259,10 +337,10 @@ class CoreAttributes(object):
         assert language in LANGUAGES or language == "none", \
             """Language must be a valid BCP47 language tag or none.
             Please read https://git.io/JoQty. Please read https://git.io/JoQty."""
-        assert isinstance(text, (str, list)), "text can be a string or a list of string"
+        assert isinstance(text, (str, list)), "text can be a string or a list of strings"
         if isinstance(text, list):
             for i in text:
-                assert isinstance(i, str), "list in labels can contain only strings."
+                assert isinstance(i, str), "list in labels can contain only strings"
         else:
             text = [text]
         if language not in self.label:
@@ -281,11 +359,15 @@ class CoreAttributes(object):
 
         Args:
             dumps_errors (bool, optional): If set true it shows any problem
-            found directly on the JSON file with a Required or Recommended tag.
-            Defaults to False.
+                found directly on the JSON file with a Required or Recommended
+                tag.Defaults to False.
+            ensure_ascii (bool, optional): Ensure ASCI are used.
+                Defaults to False.
+            sort_keys (bool, optional): Sort the keys. Defaults to False.
+            context (_type_, optional): Add additional context. Defaults to None.
 
         Returns:
-            str: The object in JSON format.
+            str: The JSON object as a string.
         """
         if context is None:
             context = CONTEXT
@@ -323,15 +405,19 @@ class CoreAttributes(object):
             self,
             dumps_errors=False,
             context=None):
-        """Dumps the content of the object in JSON format.
+        """Dumps the content of the object in JSON format using orJSON library.
 
         Args:
             dumps_errors (bool, optional): If set true it shows any problem
-            found directly on the JSON file with a Required or Recommended tag.
-            Defaults to False.
+                found, directly on the JSON file with a Required or Recommended
+                tag.Defaults to False.
+            ensure_ascii (bool, optional): Ensure ASCI are used.
+                Defaults to False.
+            sort_keys (bool, optional): Sort the keys. Defaults to False.
+            context (str,list, optional): Add additional context. Defaults to None.
 
         Returns:
-            str: The object in JSON format.
+            str: The JSON object as a string.
         """
         import orjson
         if context is None:
@@ -370,6 +456,19 @@ class CoreAttributes(object):
             ensure_ascii=False,
             sort_keys=False,
             context=None):
+        """Return the object with the JSON syntax.
+
+        Args:
+            filename (str): The filename.
+            save_errors (bool, optional): If True also the errors will be
+                dumped. Defaults to False.
+            ensure_ascii (bool, optional): If True only ASCI character will be
+                used. Defaults to False.
+            context (str,list, optional): Add additional contexts to the JSON.
+                Defaults to None.
+        Return:
+            dict: a JSON dump of the object as dict.
+        """
         res = json.loads(self.json_dumps(
             dumps_errors=dumps_errors,
             ensure_ascii=ensure_ascii,
@@ -378,16 +477,44 @@ class CoreAttributes(object):
         return res
 
     def json_save(self, filename, save_errors=False, ensure_ascii=False, context=None):
+        """Save the JSON object to file.
+
+        Args:
+            filename (str): The filename.
+            save_errors (bool, optional): If True also the errors will be
+                dumped. Defaults to False.
+            ensure_ascii (bool, optional): If True only ASCI character will be
+                used. Defaults to False.
+            context (str,list, optional): Add additional contexts to the JSON.
+                Defaults to None.
+        """
         with open(filename, 'w') as f:
             f.write(self.json_dumps(
                 dumps_errors=save_errors, ensure_ascii=ensure_ascii, context=context))
 
     def orjson_save(self, filename, save_errors=False, context=None):
+        """Save the JSON object to file.
+
+        Args:
+            filename (str): The filename.
+            save_errors (bool, optional): If True also the errors will be
+                dumped. Defaults to False.
+            ensure_ascii (bool, optional): If True only ASCI character will be
+                used. Defaults to False.
+            context (str,list, optional): Add additional contexts to the JSON.
+                Defaults to None.
+        """
         with open(filename, 'w') as f:
             f.write(self.orjson_dumps(
                 dumps_errors=save_errors, context=context))
 
     def inspect(self):
+        """Print the object in the derminal and show the missing required
+        and recomended fields.
+
+        Returns:
+            bool: True.
+        """
         jdump = self.json_dumps(dumps_errors=True)
         print(jdump)
         print("Missing required field: %s." % jdump.count('"Required":'))
@@ -395,6 +522,16 @@ class CoreAttributes(object):
         return True
 
     def show_errors_in_browser(self, getHTML=False):
+        """Opens a browser window showing the required and the reccomended
+        attributes.
+
+        Args:
+            getHTML (bool, optional): Returns the HTML to a variable.
+            Defaults to False.
+
+        Returns:
+            str: If getHTML is set to true returns the HTML as str.
+        """
         jsonf = self.json_dumps(dumps_errors=True)
         HTML = visualization_html.show_error_in_browser(jsonf, getHTML=getHTML)
         return HTML
@@ -412,19 +549,26 @@ class CoreAttributes(object):
 
 
 # Common helpers methods that will be used for constructing the IIIF objects.
-class Format(object):
+class _Format(object):
+    """HELPER CLASS for setting the Format.
+    """
     def set_format(self, format):
-        """Set the format of the IIIF type.
+        """Set the format of the resource.
+
+        https://iiif.io/api/presentation/3.0/#format
+
         IIIF: The specific media type (often called a MIME type) for a content
         resource, for example image/jpeg. This is important for distinguishing
         different formats of the same overall type of resource, such as
         distinguishing text in XML from plain text.
 
-        Args: format (str): the format of the IIIF type, usually is the MIME e.g.
-        image/jpg """
+        Args:
+            format (str): Usually  is the MIME e.g. image/jpeg.
+        """
+
         assert "/" in format, "Format should be in the form type/format e.g. image/jpeg"
         assert format.split("/")[0].isalpha(), "Format should be in the form type/format e.g. image/jpeg"
-        # assert not format == 'image/jpg',"Correct media type for jpeg should be image/jpeg"
+        assert not format == 'image/jpg', "Correct media type for jpeg should be image/jpeg not image/jpg"
         assert not format == 'image/tif', "Correct media type  for tiff should be image/tiff"
         assert any(format in sl for sl in MEDIATYPES.values()), "Not a IANA valid media type."
         self.format = format
@@ -483,8 +627,17 @@ class _HeightWidth(object):
         self.set_height(height)
 
 
-class Duration(object):
+class _Duration(object):
+    """HELPER CLASS for setting Duration.
+    """
     def set_duration(self, duration):
+        """Set the duration of the resource.
+
+        https://iiif.io/api/presentation/3.0/#duration
+
+        Args:
+            duration (float): The duration of the resource in seconds.
+        """
         if unused(self.height):
             self.height = None
         if unused(self.width):
@@ -492,14 +645,23 @@ class Duration(object):
         self.duration = float(duration)
 
 
-class ViewingDirection(object):
+class _ViewingDirection(object):
+    """HELPER CLASS for adding ViewingDirection obejcts.
+    """
     def set_viewingDirection(self, viewingDirection):
-        """
+        """Set the viewing direction of the object.
+
+        The viewing direction can be one of these:
         left-to-right	The object is displayed from left to right.
                         The default if not specified.
         right-to-left	The object is displayed from right to left.
         top-to-bottom	The object is displayed from the top to the bottom.
         bottom-to-top	The object is displayed from the bottom to the top.
+
+        https://iiif.io/api/presentation/3.0/#viewingdirection
+
+        Args:
+            viewingDirection (str): The viewing direction.
         """
         viewingDirections = ["left-to-right",
                              "right-to-left",
@@ -510,18 +672,40 @@ class ViewingDirection(object):
         self.viewingDirection = viewingDirection
 
 
-class MutableType(object):
-    """ In some IIIF objects the type can be changed.
+class _MutableType(object):
+    """HELPER CLASS In some IIIF objects the type can be changed.
     """
-    def set_type(self, mtype=None):
+    def set_type(self, mtype):
+        """Set the type or class of the resource.
+
+        https://iiif.io/api/presentation/3.0/#type
+
+        IIIF: For content resources, the value of type is drawn from other
+        specifications.
+
+        Args:
+            mtype (str): the type of the object e.g. Image or Dataset.
+        """
         assert not mtype[0].isdigit(), "First letter should not be a digit"
         self.type = mtype
 
 
-class ImmutableType(object):
-    """ In some IIIF objects the type cannot be changed.
+class _ImmutableType(object):
+    """HELPER CLASS In some IIIF objects the type cannot be changed.
     """
     def set_type(self, mtype=None):
+        """In case of IIIF objects with predefined type this function won't
+        change the type but will rise an error if you try to change it.
+
+        https://iiif.io/api/presentation/3.0/#type
+
+        Args:
+            mtype (str, optional): the type of the object.
+                Defaults to None.
+
+        Raises:
+            ValueError: In case you are trying to set a type.
+        """
         cnm = self.__class__.__name__
         cty = self.type
         if mtype == cty or mtype is None:
@@ -533,9 +717,35 @@ class ImmutableType(object):
 
 
 # IIIF Objects:
-class seeAlso(CoreAttributes, Format, MutableType):
+
+# Some object have an helper method for adding them.
+class _SeeAlso(object):
+    """HELPER CLASS for adding SeeAlso objects.
     """
-    IIF: A machine-readable resource such as an XML or RDF description that is
+    def add_seeAlso(self, seeAlsoobj=None):
+        """Add a seeAlso object to the resource.
+
+        IIIF: A machine-readable resource such as an XML or RDF description
+        that is related to the current resource that has the seeAlso property.
+
+        https://iiif.io/api/presentation/3.0/#seealso
+
+        Args:
+            seeAlsoobj (iiifpapi3.seeAlso, optional): a iiifpapi3.seeAlso
+            object. Defaults to None.
+
+        Returns:
+            iiifpapi3.seeAlso: if seeAlsoobj is None a iiifpapi3.seeAlso
+        """
+        return add_to(self, 'seeAlso', seeAlso, seeAlsoobj)
+
+
+class seeAlso(_MutableType, _CoreAttributes, _Format):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#seealso
+
+    IIIF: A machine-readable resource such as an XML or RDF description that is
     related to the current resource that has the seeAlso property. Properties
     of the resource should be given to help the client select between multiple
     descriptions (if provided), and to make appropriate use of the document.
@@ -563,9 +773,12 @@ class seeAlso(CoreAttributes, Format, MutableType):
         self.profile = profile
 
 
-class partOf(MutableType, CoreAttributes):
-    """
-    A containing resource that includes the resource that has the partOf
+class partOf(_MutableType, _CoreAttributes):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#partof
+
+    IIIF: A containing resource that includes the resource that has the partOf
     property. When a client encounters the partOf property, it might retrieve
     the referenced containing resource, if it is not embedded in the current
     representation, in order to contribute to the processing of the contained
@@ -581,8 +794,11 @@ class partOf(MutableType, CoreAttributes):
         self.label = Recommended("Each partOf item should have the label property.")
 
 
-class supplementary(ImmutableType, CoreAttributes):
-    """
+class supplementary(_ImmutableType, _CoreAttributes):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#supplementary
+
     IIIF: A link from this Range to an Annotation Collection that includes the
     supplementing Annotations of content resources for the Range. Clients
     might use this to present additional content to the user from a different
@@ -604,8 +820,35 @@ class supplementary(ImmutableType, CoreAttributes):
                                  "label property with at least one entry.")
 
 
-class service(CoreAttributes, HeightWidth):
-    """https://iiif.io/api/presentation/3.0/#service
+class _Service(object):
+    """HELPER CLASS for adding services.
+    """
+    def add_service(self, serviceobj=None):
+        """Add a service to the resource.
+
+        https://iiif.io/api/presentation/3.0/#service
+
+        IIIF: A service that the client might interact with directly and gain
+        additional information or functionality for using the resource that
+        has the service property, such as from an Image to the base URI of an
+        associated IIIF Image API service.
+
+        Args:
+            serviceobj (serviceobj, optional): A `iiifpapi3.service` object or
+            a dict representing the service in case of older service.
+            Defaults to None.
+
+        Returns:
+            iiifpapi3.service: In case serviceobj is None a iiifpapi3.service.
+        """
+        return add_to(self, 'service', service, serviceobj, (service, dict))
+
+
+class service(_CoreAttributes, _HeightWidth, _Service):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#service
+
     IIIF:A service that the client might interact with directly and gain
     additional information or functionality for using the resource that has
     the service property, such as from an Image to the base URI of an
@@ -638,9 +881,16 @@ class service(CoreAttributes, HeightWidth):
         self.sizes = None
 
     def set_type(self, mytype):
-        """
-        The type of the service, for instance if the image is served
-        using IIIF Image API 3.0 then use "ImageService3".
+        """Set the type of the service.
+
+        https://iiif.io/api/presentation/3.0/#service
+
+        IIIF: For content resources, the value of type is drawn from other
+        specifications. Please see the Service Registry document for the
+        details of currently known service types.
+
+        Args:
+            mtype (str): the type of the object e.g. Image or Dataset.
         """
         values = [
             "ImageService",
@@ -655,49 +905,197 @@ class service(CoreAttributes, HeightWidth):
         self.type = mytype
 
     def set_profile(self, profile):
+        """Set the profile of the resource.
+
+        https://iiif.io/api/presentation/3.0/#profile
+
+        IIIF: The value must be a string, either taken from the profiles
+        registry or a URI.
+
+        Args:
+            profile (str): A schema or named set of functionality available
+            from the resource.
+        """
         self.profile = profile
 
-    def add_service(self, serviceobj=None):
-        return add_to(self, 'service', service, serviceobj, (service, dict))
-
     def add_size(self, width, height):
+        """Add size to the sizes list of the service.
+
+        This methods does not return an handler.
+
+        Args:
+            width (int,str): The width of the resource.
+            height (int,str): The height of the resource.
+        """
         if unused(self.sizes):
             self.sizes = []
-        self.sizes.append({"width": width, "height": height})
+        self.sizes.append({"width": int(width), "height": int(height)})
 
 
-class thumbnail(MutableType, CoreAttributes, Format, HeightWidth, Duration):
+class thumbnail(_MutableType, _CoreAttributes, _Format, _HeightWidth,
+                _Duration, _Service):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#thumbnail
+    https://iiif.io/api/cookbook/recipe/0065-opera-multiple-canvases/
+
+    IIIF: A content resource, such as a small image or short audio clip, that
+    represents the resource that has the thumbnail property. A resource may
+    have multiple thumbnail resources that have the same or different type
+    and format.
+
+    The value must be an array of JSON objects, each of which must have the
+    id and type properties, and should have the format property. Images and
+    videos should have the width and height properties, and time-based
+    media should have the duration property. It is recommended that a IIIF
+    Image API service be available for images to enable manipulations such
+    as resizing.
+
+    Example:
+        >>> tmb = canvas.add_thumbnail()
+        >>> tmb.set_id("https://act1-thumbnail.png")
+        >>> tmb.set_type("Image")
+    """
     def __init__(self):
         super(thumbnail, self).__init__()
         self.service = None
 
-    def add_service(self, serviceobj=None):
-        return add_to(self, 'service', service, serviceobj, (service, dict))
 
-
-class Thumbnail(object):
-    """Helper class for adding thumbnail.
+class _Thumbnail(object):
+    """HELPER CLASS for adding thumbnail.
     """
     def add_thumbnail(self, thumbnailobj=None):
-        """
+        """Add a thumbnail object to the resource.
+
         https://iiif.io/api/presentation/3.0/#thumbnail
-        A content resource, such as a small image or short audio clip, that
+
+        IIIF: A content resource, such as a small image or short audio clip, that
         represents the resource that has the thumbnail property. A resource may
         have multiple thumbnail resources that have the same or different type
         and format.
 
-        The value must be an array of JSON objects, each of which must have the
-        id and type properties, and should have the format property. Images and
-        videos should have the width and height properties, and time-based
-        media should have the duration property. It is recommended that a IIIF
-        Image API service be available for images to enable manipulations such
-        as resizing.
+        Args:
+            thumbnailobj (iiifpapi3.thumbnail, optional): A iiifpapi3.thumbnail
+             object. Defaults to None.
+
+        Returns:
+            iiifpapi3.thumbnail: a iiifpapi3.thumbnail object if thumnailobj is
+            None.
         """
         return add_to(self, 'thumbnail', thumbnail, thumbnailobj)
 
 
-class provider(ImmutableType, CoreAttributes):
+class _AddLanguage(object):
+    """HELPER CLASS for adding languages.
     """
+    def add_language(self, language):
+        """add a language to the language list of the resource.
+
+        https://iiif.io/api/presentation/3.0/#language-of-property-values
+
+        Example:
+            >>> manifest.add_language('en')
+
+        Note:
+            pyIIIFpres accept only single tag, in case you need subtags you
+            need to add them to iiifpapi3.LANGUAGES::
+
+            >>> from IIIFpres import iiifpapi3,BCP47lang
+            >>> iiifpapi3.LANGUAGES.append("de-DE-u-co-phonebk")
+
+            Please read https://git.io/JoQty.
+
+        Args:
+            language (str): A BCP 47 language tag e.g. en, it, es.
+        """
+        if unused(self.language):
+            self.language = []
+        assert language in LANGUAGES or language == "none", \
+            "Language must be a valid BCP47 language tag or none."\
+            "Please read https://git.io/JoQty."
+        self.language.append(language)
+
+
+class homepage(_MutableType, _CoreAttributes, _Format, _AddLanguage):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#homepage
+    https://iiif.io/api/cookbook/recipe/0234-provider/
+
+    IIIF: A web page that is about the object represented by the resource that
+    has the homepage property. The web page is usually published by the
+    organization responsible for the object, and might be generated by a
+    content management system or other cataloging system. The resource must be
+    able to be displayed directly to the user. Resources that are related, but
+    not home pages, must instead be added into the metadata property, with an
+    appropriate label or value to describe the relationship.
+
+    Example:
+        >>> homp = provider.add_homepage()
+        >>> homp.set_id("https://digital.library.ucla.edu/")
+        >>> homp.set_type("Text")
+        >>> homp.add_label("en","UCLA Library Digital Collections")
+        >>> homp.set_format("text/html")
+        >>> homp.set_language("en")
+    """
+
+    def __init__(self):
+        super(homepage, self).__init__()
+        self.language = None
+        self.label = Required("Homepage must have a label")
+        self.type = Required("Homepage must have a type.")
+        self.format = Recommended(
+            "Hompage should have a format property e.g. Text.")
+
+    def set_language(self, language):
+        """ Deprecated method use `add_language` instead."""
+        warnings.warn('Please use `add_language` instead.', DeprecationWarning)
+        self.add_language(language=language)
+
+
+class _Hompage(object):
+    """HELPER CLASS for adding homepages.
+    """
+
+    def add_homepage(self, homepageobj=None):
+        """add an homepage object to the resource.
+
+        https://iiif.io/api/presentation/3.0/#homepage
+        https://iiif.io/api/cookbook/recipe/0234-provider/
+
+        IIIF: A web page that is about the object represented by the resource that
+        has the homepage property. The web page is usually published by the
+        organization responsible for the object, and might be generated by a
+        content management system or other cataloging system. The resource must be
+        able to be displayed directly to the user. Resources that are related, but
+        not home pages, must instead be added into the metadata property, with an
+        appropriate label or value to describe the relationship.
+
+        Example:
+            >>> homp = provider.add_homepage()
+            >>> homp.set_id("https://digital.library.ucla.edu/")
+            >>> homp.set_type("Text")
+            >>> homp.add_label("en","UCLA Library Digital Collections")
+            >>> homp.set_format("text/html")
+            >>> homp.set_language("en")
+
+        Args:
+            homepageobj (iiifpapi3.homepage, optional): a iiifpapi3.homepage
+            object. Defaults to None.
+
+        Returns:
+            iiifpapi3.homepage: If homepage is None a iiifpapi3.homepage object
+            handler.
+        """
+        return add_to(self, 'homepage', homepage, homepageobj)
+
+
+class provider(_ImmutableType, _CoreAttributes, _Hompage, _SeeAlso):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#provider
+    https://iiif.io/api/cookbook/recipe/0234-provider/
+
     IIIF: An organization or person that contributed to providing the content
     of the resource. Clients can then display this information to the user to
     acknowledge the provider’s contributions. This differs from the
@@ -706,38 +1104,12 @@ class provider(ImmutableType, CoreAttributes):
     information about the people and organizations to use in different
     interfaces.
 
-      "provider": [
-    {
-      "id": "https://example.org/about",
-      "type": "Agent",
-      "label": { "en": [ "Example Organization" ] },
-      "homepage": [
-        {
-          "id": "https://example.org/",
-          "type": "Text",
-          "label": { "en": [ "Example Organization Homepage" ] },
-          "format": "text/html"
-        }
-      ],
-      "logo": [
-        {
-          "id": "https://example.org/images/logo.png",
-          "type": "Image",
-          "format": "image/png",
-          "height": 100,
-          "width": 120
-        }
-      ],
-      "seeAlso": [
-        {
-          "id": "https://data.example.org/about/us.jsonld",
-          "type": "Dataset",
-          "format": "application/ld+json",
-          "profile": "https://schema.org/"
-        }
-      ]
-    }
-    ]
+    Examples:
+        >>> prov = manifest.add_provider()
+        >>> prov.set_id("https://id.loc.gov/authorities/n79055331")
+        >>> prov.add_label(language='en', text="UCLA Library")
+        >>> homp = prov.add_homepage()
+        >>> homp.set_id("https://digital.library.ucla.edu/")
     """
 
     def __init__(self):
@@ -756,49 +1128,33 @@ class provider(ImmutableType, CoreAttributes):
         self.seeAlso = None
 
     def add_logo(self, logoobj=None):
+        """add a logo object to the resource
+
+        https://iiif.io/api/presentation/3.0/#logo
+        https://iiif.io/api/cookbook/recipe/0234-provider/
+
+        Examples:
+            >>> logo = prov.add_logo()
+            >>> logo.set_id("https://UCLA-Library-Logo/full/full/0/default.png")
+            >>> serv = logo.add_service()
+            >>> serv.set_id("https://UCLA-Library-Logo")
+
+        Args:
+            logoobj (iiifpapi3.logo, optional): If logoobj is None a i
+                iiifpapi3.logo object handler. Defaults to None.
+
+        Returns:
+            iiifpapi3.logo: iiifpapi3.logo if logoobj is None.
+        """
         return add_to(self, 'logo', logo, logoobj)
 
-    def add_homepage(self, homepageobj=None):
-        """
-        """
-        return add_to(self, 'homepage', homepage, homepageobj)
 
-    def add_seeAlso(self, seeAlsoobj=None):
-        """
-        """
-        return add_to(self, 'seeAlso', seeAlso, seeAlsoobj)
+class logo(_ImmutableType, _CoreAttributes, _HeightWidth, _Format, _Service):
+    """IIIF resource
 
+    https://iiif.io/api/presentation/3.0/#logo
+    https://iiif.io/api/cookbook/recipe/0234-provider/
 
-class homepage(MutableType, CoreAttributes, Format):
-    """https://iiif.io/api/presentation/3.0/#homepage
-    IIIF: A web page that is about the object represented by the resource that
-    has the homepage property. The web page is usually published by the
-    organization responsible for the object, and might be generated by a
-    content management system or other cataloging system. The resource must be
-    able to be displayed directly to the user. Resources that are related, but
-    not home pages, must instead be added into the metadata property, with an
-    appropriate label or value to describe the relationship.
-    """
-
-    def __init__(self):
-        super(homepage, self).__init__()
-        self.language = None
-        self.label = Required("Homepage must have a label")
-        self.type = Required("Homepage must have a type.")
-        self.format = Recommended(
-            "Hompage should have a format property e.g. Text.")
-
-    def set_language(self, language):
-        if unused(self.language):
-            self.language = []
-        assert language in LANGUAGES or language == "none", \
-            "Language must be a valid BCP47 language tag or none."\
-            "Please read https://git.io/JoQty."
-        self.language.append(language)
-
-
-class logo(ImmutableType, CoreAttributes, HeightWidth, Format):
-    """
     A small image resource that represents the Agent resource it is associated
     with. The logo must be clearly rendered when the resource is displayed or
     used, without cropping, rotating or otherwise distorting the image. It is
@@ -811,16 +1167,11 @@ class logo(ImmutableType, CoreAttributes, HeightWidth, Format):
     width properties of the available logos. The client may decide on the logo
     by inspecting properties defined as extensions.
 
-    "logo": [
-    {
-      "id": "https://example.org/img/logo.jpg",
-      "type": "Image",
-      "format": "image/jpeg",
-      "height": 100,
-      "width": 120
-    }
-    ]
-    #TODO Duration should not be included
+    Examples:
+        >>> logo = prov.add_logo()
+        >>> logo.set_id("https://UCLA-Library-Logo/full/full/0/default.png")
+        >>> serv = logo.add_service()
+        >>> serv.set_id("https://UCLA-Library-Logo")
     """
 
     def __init__(self):
@@ -833,14 +1184,16 @@ class logo(ImmutableType, CoreAttributes, HeightWidth, Format):
             "you can add using srv = mylogo.add_service()")
 
     def add_label(self, language, text):
+        """Label not permitted in logo."""
         raise ValueError("Label not permitted in logo.")
 
-    def add_service(self, serviceobj=None):
-        return add_to(self, 'service', service, serviceobj, (service, dict))
 
+class rendering(_MutableType, _CoreAttributes, _Format):
+    """IIIF resource
 
-class rendering(MutableType, CoreAttributes, Format):
-    """https://iiif.io/api/presentation/3.0/#rendering
+    https://iiif.io/api/presentation/3.0/#rendering
+    https://iiif.io/api/cookbook/recipe/0046-rendering/
+
     A resource that is an alternative, non-IIIF representation of the resource
     that has the rendering property. Such representations typically cannot be
     painted onto a single Canvas, as they either include too many views, have
@@ -853,14 +1206,12 @@ class rendering(MutableType, CoreAttributes, Format):
     include a rendering of a book as a PDF or EPUB, a slide deck with images of
     a building, or a 3D model of a statue.
 
-    "rendering": [
-    {
-      "id": "https://example.org/1.pdf",
-      "type": "Text",
-      "label": { "en": [ "PDF Rendering of Book" ] },
-      "format": "application/pdf"
-    }
-    ]
+    Example:
+        >>> rendering = manifest.add_rendering()
+        >>> rendering.set_id("https://fixtures.iiif.io/other/UCLA/kabuki.pdf")
+        >>> rendering.set_type("Text")
+        >>> rendering.add_label("en","PDF version")
+        >>> rendering.set_format("application/pdf")
     """
 
     def __init__(self):
@@ -871,19 +1222,45 @@ class rendering(MutableType, CoreAttributes, Format):
         self.type = Required("Rendering should have a type")
 
 
-class ServicesList(object):
-    """
-    This is helper method not a IIIF object.
+class _ServicesList(object):
+    """HELPER CLASS for adding service to service list.
+
     services is just a list grouping Service objects inside Manifest and
     Collection.
+
     """
     def add_service_to_services(self, serviceobj=None):
+        """Add a service to the services list of the resource.
+
+        https://iiif.io/api/presentation/3.0/#services
+
+        IIIF: A list of one or more service definitions on the top-most
+        resource of the document, that are typically shared by more than one
+        subsequent resource. This allows for these shared services to be
+        collected together in a single place, rather than either having their
+        information duplicated potentially many times throughout the document,
+        or requiring a consuming client to traverse the entire document
+        structure to find the information.
+
+        Args:
+            serviceobj (iiifpapi3.service, optional): a iiifpapi3.service to be
+            added. Defaults to None.
+
+        Returns:
+            iiifpapi3.service: If serviceobj is None a iiifpapi3.service object
+            handler.
+        """
         return add_to(self, 'services', service, serviceobj, (service, dict))
 
 
 class languagemap(object):
-    """This is not a IIIF type but is used for easing the construction of
+    """HELPER CLASS
+    This is not a IIIF type but is used for easing the construction of
     multilingual metadata and requiredstatements.
+
+    Examples:
+        >>> languagemap.add_label('Hosting','en')
+        >>> languagemap.add_value('hosted by imagineRio','en')
     """
 
     def __init__(self):
@@ -893,6 +1270,13 @@ class languagemap(object):
             "The metadata/requiredstatements must have at least a value")
 
     def add_value(self, value, language="none"):
+        """Add the value of the language map.
+
+        Args:
+            value (str): The value of the language map e.g. Author:
+            language (str, optional): The language of the value e.g. en.
+            Defaults to "none".
+        """
         if unused(self.value):
             self.value = {}
         if not isinstance(value, list):
@@ -901,7 +1285,7 @@ class languagemap(object):
         # TODO: if html must begin with < and end with >
         # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
         # possible hack ignoring self-closing tags?
-        #if any(['</' in i for i in value]):
+        # if any(['</' in i for i in value]):
         #    assert any([i.startswith('<') and i.endswith('>') for i in value]),\
         #        'if html must begin with < and end with >'
         assert language in LANGUAGES or language == "none", \
@@ -910,6 +1294,18 @@ class languagemap(object):
         self.value[language] = value
 
     def add_label(self, label, language="none"):
+        """Add the label of the language map.
+
+        Example:
+            >>> iiifobj.add_label("A painting","en")
+            >>> iiifobj.add_label(["Canvas","Oil"],"en")
+
+        Args:
+            label (str): The value of the language map e.g. Dante Alighieri:
+            language (str, optional): The language of the value e.g. it.
+            Defaults to "none".
+
+        """
         if unused(self.label):
             self.label = {}
         if not isinstance(label, list):
@@ -926,8 +1322,9 @@ class languagemap(object):
 # COMMON ATTRIBUTES TO MAJOR CONTAINERS
 ##
 
-class CommonAttributes(CoreAttributes, Thumbnail):
-    """
+class _CommonAttributes(_CoreAttributes, _Thumbnail, _Service, _Hompage,
+                        _SeeAlso):
+    """HELPER CLASS
     Common attributes are the attributes that are in common with all the major
     classes/container of IIIF namely: Collection, Manifest, Canvas, Range and
     Annotation Page, Annotation and Content.
@@ -936,7 +1333,7 @@ class CommonAttributes(CoreAttributes, Thumbnail):
     """
 
     def __init__(self):
-        super(CommonAttributes, self).__init__()
+        super(_CommonAttributes, self).__init__()
         self.metadata = None
         self.summary = None
         self.requiredStatement = None
@@ -953,14 +1350,40 @@ class CommonAttributes(CoreAttributes, Thumbnail):
 
     def add_metadata(self, label=None, value=None, language_l="none",
                      language_v="none", entry=None):
-        """
-        An ordered list of descriptions to be displayed to the user when they
-        interact with the resource, given as pairs of human readable label and
-        value entries. The content of these entries is intended for
-        presentation only; descriptive semantics should not be inferred. An
-        entry might be used to convey information about the creation of the
-        object, a physical description, ownership information, or other
-        purposes.
+        """Add a metadata object to the resource and returns a languge map.
+
+        https://iiif.io/api/presentation/3.0/#metadata
+        https://iiif.io/api/cookbook/recipe/0029-metadata-anywhere/
+
+        IIIF: An ordered list of descriptions to be displayed to the user when
+        they interact with the resource, given as pairs of human readable label
+        and value entries. The content of these entries is intended for
+        presentation only; descriptive semantics should not be inferred.
+        An entry might be used to convey information about the creation of the
+        object, a physical description, ownership information, or other purposes.
+
+        Args:
+            label (str, optional): The label e.g. `Author:`. Defaults to None.
+            value (str, optional): The value e.g. `Herman Melville`.
+                Defaults to None.
+            language_l (str, optional): the language of the label e.g. `en`.
+                Defaults to "none".
+            language_v (str, optional): the langugage of the value e.g. `none`
+                or `en`. Defaults to "none".
+            entry (dict, optional): A metadata dict. Defaults to None.
+
+        Examples:
+            >>> iiifobj.add_metadata("Author:","Herman Melville","en","en")
+            >>> md = canvas.add_metadata()
+            >>> md.add_label("Author:","en")
+            >>> md.add_value("Herman Meliville","en")
+
+        Raises:
+            ValueError: If an entry is provided toghether with other arguments.
+
+        Returns:
+            iiifpapi3.languagemap: If no arguments are passed a language map
+            is return as handler so that the user can fill the fields.
         """
         if unused(self.metadata):
             self.metadata = []
@@ -987,14 +1410,20 @@ class CommonAttributes(CoreAttributes, Thumbnail):
         self.metadata.append(entry)
 
     def add_summary(self, language, text):
-        """
-        An ordered list of descriptions to be displayed to the user when they
-        interact with the resource, given as pairs of human readable label and
-        value entries. The content of these entries is intended for
-        presentation only; descriptive semantics should not be inferred. An
-        entry might be used to convey information about the creation of the
-        object, a physical description, ownership information, or other
-        purposes.
+        """Add directly an entry in the summary dict without returning handler.
+
+        https://iiif.io/api/presentation/3.0/#summary
+        https://iiif.io/api/cookbook/recipe/0006-text-language
+
+        IIIF: A short textual summary intended to be conveyed to the user when
+        the metadata entries for the resource are not being displayed.
+        This could be used as a brief description for item level search results,
+        for small-screen environments, or as an alternative user interface when
+        the metadata property is not currently being rendered.
+
+        Args:
+            language (str): The language of the summary.
+            text (str): The text of the summary.
         """
         if unused(self.summary):
             self.summary = {}
@@ -1005,25 +1434,39 @@ class CommonAttributes(CoreAttributes, Thumbnail):
 
     def set_requiredStatement(self, label=None, value=None, language_l=None,
                               language_v=None, entry=None):
-        """
-        IIIF: Text that must be displayed when the resource is displayed or
-        used. For example, the requiredStatement property could be used to
+        """Set/add a requiredStatement to the resource and returns a languge map.
+
+        https://iiif.io/api/presentation/3.0/#requiredstatement
+        https://iiif.io/api/cookbook/recipe/0006-text-language/
+
+        IIIF: For example, the requiredStatement property could be used to
         present copyright or ownership statements, an acknowledgement of the
         owning and/or publishing institution, or any other text that the
-        publishing organization deems critical to display to the user. Given
-        the wide variation of potential client user interfaces, it will not
-        always be possible to display this statement to the user in the
-        client’s initial state. If initially hidden, clients must make the
-        method of revealing it as obvious as possible.
+        publishing organization deems critical to display to the user.
 
-        If left empty returns a multilanguage object that you can use as in
-        this example:
+        Args:
+            label (str, optional): The label e.g. `Attribution:`. Defaults to None.
+            value (str, optional): The value e.g. `Provided courtesy of Example
+            Institution`.
+            Defaults to None.
+            language_l (str, optional): the language of the label e.g. `en`.
+            Defaults to "none".
+            language_v (str, optional): the langugage of the value e.g. `none`
+            or `en`. Defaults to "none".
+            entry (dict, optional): A metadata dict. Defaults to None.
 
-            reqst = manifest.set_requiredStatement()
-            reqst.add_label('Hosting','en')
-            reqst.add_value('hosted by imagineRio','en')
-            reqst.add_label('Hospedagem','pt-BR')
-            reqst.add_value('Hospedado per imagineRio','pt-BR')
+        Raises:
+            ValueError: If an entry is provided toghether with other arguments.
+
+        Returns:
+            iiifpapi3.languagemap: If no arguments are passed a language map
+            is returned as handler so that the user can fill the fields.
+
+        Examples:
+            >>> reqstat = manifest.set_requiredStatement()
+            >>> reqstat.add_label(language="en", label="Held By")
+            >>> reqstat.add_label(language="fr", label="Détenu par")
+            >>> reqstat.add_value(value="Musée d'Orsay, Paris, France")
         """
         if label is None and value is None and entry is None:
             languagemapobj = languagemap()
@@ -1053,16 +1496,20 @@ class CommonAttributes(CoreAttributes, Thumbnail):
         self.requiredStatement = entry
 
     def set_rights(self, rights):
-        """
-        A string that identifies a license or rights statement that applies to
-        the content of the resource, such as the JSON of a Manifest or the
-        pixels of an image. The value must be drawn from the set of Creative
-        Commons license URIs, the RightsStatements.org rights statement URIs,
-        or those added via the extension mechanism. The inclusion of this
-        property is informative, and for example could be used to display an
-        icon representing the rights assertions.
+        """set the rights of the resources.
 
-        Not sure if it is suggested or mandatory.
+        https://iiif.io/api/presentation/3.0/#rights
+
+        IIIF: A string that identifies a license or rights statement that
+        applies to the content of the resource, such as the JSON of a Manifest
+        or the pixels of an image. The value must be drawn from the set of
+        Creative Commons license URIs, the RightsStatements.org rights
+        statement URIs, or those added via the extension mechanism.
+        The inclusion of this property is informative, and for example could be
+        used to display an icon representing the rights assertions.
+
+        Args:
+            rights (str): an URL pointing to a licence.
         """
         licenceurls = ["http://creativecommons.org/licenses/",
                        "http://creativecommons.org/publicdomain/mark/",
@@ -1077,12 +1524,28 @@ class CommonAttributes(CoreAttributes, Thumbnail):
         return self.set_requiredStatement(label, value, language_l, language_v, entry)
 
     def add_behavior(self, behavior):
-        """
+        """add a one ore more behaviours to the resource without returning.
+
         https://iiif.io/api/presentation/3.0/#behavior
-        A set of user experience features that the publisher of the content
-        would prefer the client to use when presenting the resource. This
-        specification defines the values in the table below. Others may be
+        https://iiif.io/api/cookbook/recipe/0009-book-1/
+
+        IIIF: A set of user experience features that the publisher of the
+        content would prefer the client to use when presenting the resource.
+        This specification defines the values below. Others may be
         defined externally as an extension.
+
+        `auto-advance`, `no-auto-advance`, `repeat`, `no-repeat`, `unordered`,
+        `individuals`, `continuous`, `multi-part`, `facing-pages`, `non-paged`,
+        `together`, `paged`, `sequence`, `thumbnail-nav`, `no-nav`, `hidden`,
+
+        Examples:
+            >>> iiifobj.add_behavior("thumbnail-nav")
+
+        Warnings:
+            This function does not test disjoints with inherited behaviours.
+
+        Args:
+            behavior (str): the behaviour to be added.
         """
         # TODO: should we assert if behaviour disjoint with others?
         assert behavior in BEHAVIOURS, f"{behavior} is not valid. See https://git.io/Jo7r9."
@@ -1093,7 +1556,7 @@ class CommonAttributes(CoreAttributes, Thumbnail):
             assert self.type in ["Collection", "Manifest", "Canvas", "Range"],\
                 f"{behavior} behavior is valid only for Collection, Manifest, Canvas, Range"
             if self.type == "Range":
-                #TODO: Ranges that include or are Canvases with at least the duration dimension.
+                #  TODO: Ranges that include or are Canvases with at least the duration dimension.
                 pass
             assert "no-auto-advance" not in self.behavior,\
                 "Conflicts with no-auto-advance"
@@ -1183,40 +1646,83 @@ class CommonAttributes(CoreAttributes, Thumbnail):
 
         self.behavior.append(behavior)
 
-    def add_homepage(self, homepageobj=None):
-        """
-        """
-        return add_to(self, 'homepage', homepage, homepageobj)
-
-    def add_seeAlso(self, seeAlsoobj=None):
-        """
-        """
-        return add_to(self, 'seeAlso', seeAlso, seeAlsoobj)
-
     def add_partOf(self, partOfobj=None):
-        """
+        """Add a partOf to the partOfs list of the resource.
+
+        https://iiif.io/api/presentation/3.0/#partof
+
+        IIIF: A containing resource that includes the resource that has the
+        partOf property.
+
+        Args:
+            partOfobj (iiifpapi3.partOf, optional): a iiifpapi3.partOf to be
+                added. Defaults to None.
+
+        Returns:
+            iifpapi3.partOf: If partOfobj is None a iiifpapi3.partOf object
+                handler.
         """
         return add_to(self, 'partOf', partOf, partOfobj)
 
     def add_rendering(self, renderingobj=None):
-        """
+        """Add a rendering to the renderings list of the resource.
+
+        https://iiif.io/api/presentation/3.0/#rendering
+        https://iiif.io/api/cookbook/recipe/0046-rendering/
+
+        IIIF: A resource that is an alternative, non-IIIF representation of the
+        resource that has the rendering property.
+
+        Example:
+            >>> rendering = manifest.add_rendering()
+            >>> rendering.set_id("https://fixtures.iiif.io/other/UCLA/kab.pdf")
+            >>> rendering.set_type("Text")
+            >>> rendering.add_label("en", "PDF version")
+            >>> rendering.set_format("application/pdf")
+
+        Args:
+            renderingobj (iiifpapi3.rendering, optional): a iiifpapi3.rendering
+            to be added. Defaults to None.
+
+        Returns:
+            iiifpapi3.rendering: If renderingobj is None a iiifpapi3.rendering
+            object handler.
         """
         return add_to(self, 'rendering', rendering, renderingobj)
 
     def add_provider(self, providerobj=None):
+        """Add a provider to the provider list of the resource.
+
+        https://iiif.io/api/presentation/3.0/#provider
+        https://iiif.io/api/cookbook/recipe/0234-provider/
+
+        IIIF: An organization or person that contributed to providing the
+        content of the resource.
+
+        Example:
+            >>> prov = manifest.add_provider()
+            >>> prov.set_id("https://id.loc.gov/authorities/n79055331")
+            >>> prov.add_label(language='en', text="UCLA Library")
+            >>> homp = prov.add_homepage()
+            >>> homp.set_id("https://digital.library.ucla.edu/")
+
+        Args:
+            providerobj (iiifpapi3.provider, optional): a iiifpapi3.provider
+            to beadded. Defaults to None.
+
+        Returns:
+            iiifpapi3.provider: If providerobj is None a iiifpapi3.provider
+            object handler.
+        """
         return add_to(self, 'provider', provider, providerobj)
 
-    def add_service(self, serviceobj=None):
-        return add_to(self, 'service', service, serviceobj, (service, dict))
 
-
-class Annotation(CommonAttributes):
-    """
+class Annotation(_CommonAttributes):
+    """IIIF resource
 
     https://iiif.io/api/presentation/3.0/#56-annotation
-    Annotations follow the Web Annotation data model. The description provided
-    here is a summary plus any IIIF specific requirements. The W3C standard is
-    the official documentation.
+
+    Annotations follow the Web Annotation data model.
 
     Annotations must have their own HTTP(S) URIs, conveyed in the id property.
     The JSON-LD description of the Annotation should be returned if the URI is
@@ -1241,7 +1747,6 @@ class Annotation(CommonAttributes):
     object. Implementations should check the type of the resource and not
     assume that it is always content to be rendered.
     """
-    # https://iiif.io/api/presentation/3.0/#56-annotation
 
     def __init__(self, target=Required()):
         super(Annotation, self).__init__()
@@ -1251,53 +1756,38 @@ class Annotation(CommonAttributes):
         self.metadata = None
 
     def set_motivation(self, motivation):
-        """
-        https://iiif.io/api/presentation/3.0/#values-for-motivation
-        Values for motivation This specification defines two values for the Web
-        Annotation property of motivation, or purpose when used on a Specific
-        Resource or Textual Body.
+        """set the motivation of the annotation.
 
-        While any resource may be the target of an Annotation, this
-        specification defines only motivations for Annotations that target
-        Canvases. These motivations allow clients to determine how the
+        https://iiif.io/api/presentation/3.0/#values-for-motivation
+
+        Args:
+            motivation (str): the motivation of the annotation usually is
+            `painting`, `supplementing`, `commenting`, `tagging`
+
+        IIIF: this specification defines only motivations for Annotations that
+        target Canvases. These motivations allow clients to determine how the
         Annotation should be rendered, by distinguishing between Annotations
         that provide the content of the Canvas, from ones with externally
         defined motivations which are typically comments about the Canvas.
 
         Additional motivations may be added to the Annotation to further
-        clarify the intent, drawn from extensions or other sources. Clients
-        must ignore motivation values that they do not understand. Other
+        clarify the intent, drawn from extensions or other sources. Other
         motivation values given in the Web Annotation specification should be
         used where appropriate, and examples are given in the Presentation API
         Cookbook.
 
-        painting    Resources associated with a Canvas by
-        an Annotation that has the motivation value painting must be presented
-        to the user as the representation of the Canvas. The content can be
-        thought of as being of the Canvas. The use of this motivation with
-        target resources other than Canvases is undefined. For example, an
-        Annotation that has the motivation value painting, a body of an Image
-        and the target of the Canvas is an instruction to present that Image as
-        (part of) the visual representation of the Canvas. Similarly, a textual
-        body is to be presented as (part of) the visual representation of the
-        Canvas and not positioned in some other part of the user interface.
+        painting - Resources associated with a Canvas by an Annotation that has
+        the motivation value painting must be presented to the user as the
+        representation of the Canvas. The content can be thought of as being of
+        the Canvas.
 
-        supplementing   Resources associated with a Canvas by an Annotation
+        supplementing - Resources associated with a Canvas by an Annotation
         that has the motivation value supplementing may be presented to the
-        user as part of the representation of t he Canvas, or may be presented
+        user as part of the representation of the Canvas, or may be presented
         in a different part of the user interface. The content can be thought
-        of as being from the Canvas. The use of this motivation with target
-        resources other than Canvases is undefined. For example, an Annotation
-        that has the motivation value supplementing, a body of an Image and the
-        target of part of the Canvas is an instruction to present that Image to
-        the user either in the Canvas’s rendering area or somewhere associated
-        with it, and could be used to present an easier to read representation
-        of a diagram. Similarly, a textual body is to be presented either in
-        the targeted region of the Canvas or otherwise associated with it, and
-        might be OCR, a manual transcription or a translation of handwritten
-        text, or captions for what is
-        """
+        of as being from the Canvas.
 
+        """
         motivations = ["painting", "supplementing", "commenting", "tagging"]
         if motivation not in motivations:
             warnings.warn("Motivation not in %s" % motivations)
@@ -1308,6 +1798,28 @@ class Annotation(CommonAttributes):
         self.motivation = motivation
 
     def set_target_specific_resource(self, specificresource=None):
+        """Set a specific resource as the target of the annotation.
+
+        This function will set the target of the specific resource as an
+        object.
+
+        Examples:
+            https://iiif.io/api/cookbook/recipe/0261-non-rectangular-commenting/
+            >>> annotation.set_target_specific_resource()
+            >>> annotation.target.set_source(canvas.id)
+            >>> svg ="<svg xmlns='http://www.w3.org/2000/svg' ... > ... </svg>"
+            >>> annotation.target.set_selector_as_SvgSelector(value=svg)
+
+        Args:
+            specificresource (`iiifpapi3.sepcificreosurce`, optional): a
+             `iiifpapi3.sepcificreosurce` object. Defaults to None.
+
+        Raises:
+            ValueError: if you add the wrong object.
+
+        Returns:
+            `iiifpapi3.sepcificreosurce` : A reference to the object.
+        """
         if specificresource is None:
             specificresource = SpecificResource()
             self.target = specificresource
@@ -1321,8 +1833,16 @@ class Annotation(CommonAttributes):
                     self.__class__.__name__)
 
 
-class AnnotationPage(CommonAttributes):
-    """
+class AnnotationPage(_CommonAttributes):
+    """IIIF resource.
+
+    https://iiif.io/api/presentation/3.0/#55-annotation-page
+
+    IIIF: Annotations are collected together in Annotation Page resources,
+    which are included in the items property from the Canvas. Each Annotation
+    Page can be embedded in its entirety, if the Annotations should be
+    processed as soon as possible when the user navigates to that Canvas, or a
+    reference to an external page.
 
     """
     # TODO: AnnotationPage type MUST be AnnotationPage?
@@ -1348,8 +1868,11 @@ class AnnotationPage(CommonAttributes):
         return add_to(self, 'items', Annotation, annotation, target=target)
 
 
-class AnnotationCollection(CommonAttributes):
-    """https://iiif.io/api/presentation/3.0/#58-annotation-collection
+class AnnotationCollection(_CommonAttributes):
+    """IIIF resource.
+
+    https://iiif.io/api/presentation/3.0/#58-annotation-collection
+
     Annotation Collections represent groupings of Annotation Pages that should
     be managed as a single whole, regardless of which Canvas or resource they
     target. This allows, for example, all of the Annotations that make up a
@@ -1365,42 +1888,98 @@ class AnnotationCollection(CommonAttributes):
                                  "label property with at least one entry.")
 
     def set_id(self, objid, extendbase_url=None):
-        """AnnotationCollection should have http(s) link.
+        """Set the ID of the object
+
+        https://iiif.io/api/presentation/3.0/#id
+        https://iiif.io/api/presentation/3.0/#58-annotation-collection
+
+        IIIF: Annotation Collections must have a URI, and it should be an
+        HTTP(S) URI.
+
+        Note:
+            Usually ID must be HTTP(S) in this case it seems not.
+
+        Args:
+            objid (str, optional): A string corresponding to the ID of the
+            object.
+            Defaults to None.
+            extendbase_url (str , optional): A string containing the URL part
+            to be joined with the iiifpapi3.BASE_URL . Defaults to None.
         """
         try:
             return super().set_id(objid=objid, extendbase_url=extendbase_url)
         except AssertionError:
+            warnings.warn("%s is not an http, AnnotationCollections should use HTTP(S) URI")
             self.id = objid
 
 
-class AnnotationsList(object):
-    """Some IIIF obejcts have a list of annotations. This list can contain
+class _AnnotationsList(object):
+    """HELPER CLASS
+    Some IIIF obejcts have a list of annotations. This list can contain
     only AnnotationPages.
     """
     def add_annotationpage_to_annotations(self, annopageobj=None):
         """Add an AnnotationPage to the annotations list.
 
+        https://iiif.io/api/presentation/3.0/#55-annotation-page
+
+        IIIF: Annotations are collected together in Annotation Page resources,
+        which are included in the items property from the Canvas. Each
+        Annotation Page can be embedded in its entirety, if the Annotations
+        should be processed as soon as possible when the user navigates to that
+        Canvas, or a reference to an external page.
+
+        https://iiif.io/api/presentation/3.0/#annotations
+
+        IIIF: An ordered list of Annotation Pages that contain commentary or
+        other Annotations about this resource, separate from the Annotations
+        that are used to paint content on to a Canvas.
+
         Args:
-            annopageobj (AnnnotationPage, optional): An AnnotationPage object.
-             Defaults to None.
+            annopageobj (AnnnotationPage, optional): An `AnnotationPage`
+            object. Defaults to None.
 
         Returns:
-            AnnotationPage: An AnnotationPage.
+            AnnotationPage: An `AnnotationPage` if `annopageobj` is `None`.
         """
         return add_to(self, 'annotations', AnnotationPage, annopageobj)
 
 
-class contentresources(MutableType, CommonAttributes, HeightWidth, Duration,
-                       AnnotationsList):
+class _AddAnnoP2Items(object):
+    """HELPER CLASS for adding annotationpage to items.
     """
+
+    def add_annotationpage_to_items(self, annotationpageobj=None, target=None):
+        """Add an annotation page to the items list of the object.
+
+        Args:
+            annotationpageobj (`iiifpapi3.AnnotationPage, optional): An object
+            instance of `iiifpapi3.AnnotationPage`. Defaults to None.
+            target (str, optional): The `target`of the annotation.
+            Defaults to None.
+
+        Returns:
+            iiifpapi3.AnnotationPage(): if `annotationpageobj` is None.
+        """
+        return add_to(self,
+                      'items',
+                      AnnotationPage,
+                      annotationpageobj,
+                      target=target)
+
+
+class contentresources(_MutableType, _CommonAttributes, _HeightWidth,
+                       _Duration, _AnnotationsList, _Format, _AddAnnoP2Items):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#57-content-resources
+
     IIIF: Content resources are external web resources that are referenced
     from within the Manifest or Collection.
     This includes images, video, audio, data, web pages or any other format.
-    https://iiif.io/api/presentation/3.0/#57-content-resources
-
     """
     def __init__(self):
-        super(CommonAttributes, self).__init__()
+        super(_CommonAttributes, self).__init__()
         self.annotations = None
         self.type = Required("The type of the content resource must be "
                              "included,and should be taken from the table"
@@ -1412,42 +1991,69 @@ class contentresources(MutableType, CommonAttributes, HeightWidth, Duration,
         self.profile = Recommended("The profile of the resource, if it has one,"
                                    "should also be included")
 
-    def set_format(self, format):
-        self.format = format
-
     def add_annotation(self, annotation=None):
+        """Please use `add_annotationpage_to_annotations` instead."""
         warnings.warn('Please use `add_annotationpage_to_annotations` instead.',
                       DeprecationWarning)
         return add_to(self, 'annotations', Annotation, annotation, target=self.id)
 
-    def add_annotationpage_to_items(self, annotationpageobj=None, target=None):
-        return add_to(self, 'items', AnnotationPage, annotationpageobj, target=target)
 
-    def add_annotationpage_to_annotations(self, annotationpageobj=None):
-        return add_to(self, 'annotations', AnnotationPage, annotationpageobj)
-
-
-class bodycommenting(ImmutableType):
+class bodycommenting(_ImmutableType):
     def __init__(self):
         self.type = "TextualBody"
         self.value = None
         self.language = None
 
     def set_format(self, format):
-        # TODO: what format are allowed?
+        """Set the format of the resource.
+
+        https://iiif.io/api/presentation/3.0/#format
+
+        IIIF: The specific media type (often called a MIME type) for a content
+        resource, for example image/jpeg. This is important for distinguishing
+        different formats of the same overall type of resource, such as
+        distinguishing text in XML from plain text.
+
+        Note:
+            pyIIIFpres will check that the format is in `MEDIATYPES['text']`
+            If you are confident with the format you are using set the format
+            using `obj.format = ...` or run the script with -O flag.
+            or append your format to the MEDIATYPES:
+            >>> MEDIATYPES['text'].append('myformat')
+
+        Args:
+            format (str): Usually  is the MIME e.g. text/plain.
+        """
+        assert format in MEDIATYPES['text'], "Not a valid MEDIATYPE for text"
         self.format = format
 
     def set_value(self, value):
-        self.value = value
+        """Set the value of the TextualBody e.g. `"Comment text"`
+
+        Args:
+            value (str): The value of the TextualBody
+        """
+        self.value = str(value)
 
     def set_language(self, language):
+        """Set the language of the TextualBody value.
+
+        Args:
+            language (str): The language of the TextualBody value e.g. "en"
+        """
         assert language in LANGUAGES or language == "none",\
             "Language must be a valid BCP47 language tag or none."\
             "Please read https://git.io/JoQty."
         self.language = language
 
 
-class bodypainting(contentresources):
+class bodypainting(contentresources, _Service, _AddLanguage):
+    """Pseudo-IIIF resource
+
+    IIIF: the content associated with a Canvas (and therefore the content of a
+    Manifest) is provided by the body property of Annotations with the painting
+    motivation.
+    """
     def __init__(self):
         super(bodypainting, self).__init__()
         self.height = None
@@ -1457,10 +2063,21 @@ class bodypainting(contentresources):
         self.language = None
         self.items = None
 
-    def add_service(self, serviceobj=None):
-        return add_to(self, 'service', service, serviceobj, (service, dict))
-
     def add_choice(self, choiceobj=None):
+        """Add a Choice to the body of the annotation.
+
+        https://preview.iiif.io/cookbook/3333-choice/recipe/0033-choice/
+
+        Args:
+            choiceobj (dict, optional): A dictionary representing the Choice.
+            Defaults to None.
+
+        Raises:
+            ValueError: if you try to add the wrong object type.
+
+        Returns:
+            iiifpapi3.bodypainting(): A `bodypainting` instance.
+        """
         assert isinstance(self.type, Required) or self.type == "Choice",\
             "Body type must be Choice"
         if unused(self.items):
@@ -1484,61 +2101,125 @@ class bodypainting(contentresources):
                     "Trying to add wrong object to service in %s" %
                     self.__class__.__name__)
 
-    def add_language(self, language):
-        if unused(self.language):
-            self.language = []
-        assert language in LANGUAGES or language == "none",\
-            "Language must be a valid BCP47 language tag or none."\
-            "Please read https://git.io/JoQty."
-        self.language.append(language)
 
-
-class CMRCattributes(CommonAttributes, AnnotationsList, ImmutableType):
-    """
+class _CMRCattributes(_CommonAttributes, _AnnotationsList, _ImmutableType):
+    """HELPER CLASS
     This is another class for grouping the attributes in common with
     Canvas, Manifest, Range and Collection.
 
-    Namely: placeholderCanvas,accompanyingCanvas,NavDate
+    Namely: `placeholderCanvas`, `accompanyingCanvas`, `NavDate`
 
     All these values are optional.
     """
     def __init__(self):
-        super(CMRCattributes, self).__init__()
+        super(_CMRCattributes, self).__init__()
         self.placeholderCanvas = None
         self.accompanyingCanvas = None
         self.navDate = None
 
-    def set_placeholderCanvas(self):
-        if hasattr(self, 'placeholderCanvas'):
-            phcnv = Canvas()
+    def _apcanvas(self, canvastype, canvas):
+        """An helper method for setting placeholder and accompany Canvas.
+
+        Args:
+            canvastype (str): The canvas type.
+            canvas (iiifpapi3.Canvas): A canvas object.
+
+        Returns:
+            iiifpapi3.Canvas: A modified Canvas to be used as  Canvas.
+        """
+        if hasattr(self, canvastype):
+            if canvas is None:
+                phcnv = Canvas()
+            else:
+                assert isinstance(canvas, Canvas), "Use a valid iiifpapi3.Canvas"
+                phcnv = copy.copy(canvas)
             delattr(phcnv, 'placeholderCanvas')
             delattr(phcnv, 'accompanyingCanvas')
             self.placeholderCanvas = phcnv
             return phcnv
         else:
-            raise AttributeError("A placeholder/accompanying Canvas can not"
-                                 "have a placeholderCanvas")
+            raise AttributeError("A %s can not have a %s" % (canvastype, canvastype))
 
-    def set_accompanyingCanvas(self):
-        """https://iiif.io/api/presentation/3.0/#accompanyingcanvas
+    def set_placeholderCanvas(self, canvas=None):
+        """set a placeholderCanvas to the object.
+
+        https://iiif.io/api/presentation/3.0/#placeholdercanvas
+
+        IIIF: A single Canvas that provides additional content for use before
+        the main content of the resource that has the placeholderCanvas
+        property is rendered, or as an advertisement or stand-in for that
+        content.
+
+        Args:
+            phcnv (iiifpapi3.Canvas, optional): A Canvas to be used as
+            placeholderCanvas.
+
+        Raises:
+            AttributeError: if you are tyring to ad a placeholder Canvas to a
+            placeholder Canvas.
+
+        Returns:
+            iiifpapi3.Canvas: A modified Canvas to be used as placeholder
+            Canvas.
         """
-        if hasattr(self, 'accompanyingCanvas'):
-            phcnv = Canvas()
-            delattr(phcnv, 'placeholderCanvas')
-            delattr(phcnv, 'accompanyingCanvas')
-            self.accompanyingCanvas = phcnv
-            return phcnv
-        else:
-            raise AttributeError("A placeholder/accompanying Canvas can not"
-                                 "have a accompanyingCanvas")
+        return self._apcanvas('placeholderCanvas', canvas=canvas)
+
+    def set_accompanyingCanvas(self, canvas=None):
+        """set a accompanyingCanvas to the object.
+
+        https://iiif.io/api/presentation/3.0/#accompanyingcanvas
+
+        IIIF: A single Canvas that provides additional content for use while
+        rendering the resource that has the accompanyingCanvas property.
+
+        Args:
+            phcnv (iiifpapi3.Canvas, optional): A Canvas to be used as
+            accompanyingCanvas.
+
+        Raises:
+            AttributeError: if you are tyring to ad a accompanying Canvas to a
+            accompanying Canvas.
+
+        Returns:
+            iiifpapi3.Canvas: A modified Canvas to be used as accompanying
+            Canvas.
+        """
+        return self._apcanvas('accompanyingCanvas', canvas=canvas)
 
     def set_navDate(self, navDate):
-        # TODO: check
+        """set the navDate of the object.
+
+        https://iiif.io/api/presentation/3.0/#navdate
+        https://iiif.io/api/cookbook/recipe/0230-navdate/
+
+        IIIF: A date that clients may use for navigation purposes when
+        presenting the resource to the user in a date-based user interface,
+        such as a calendar or timeline. More descriptive date ranges, intended
+        for display directly to the user, should be included in the metadata
+        property for human consumption.
+
+        Args:
+            navDate (str): A date in UTC in the format "2010-01-01T00:00:00Z"
+        """
+        # check using a modified regex from www.w3.org
+        # https://www.w3.org/TR/xmlschema11-2/#dateTime
+        r = (r"-?([1-9][0-9]{3,}|0[0-9]{3})"
+             r"-(0[1-9]|1[0-2])"
+             r"-(0[1-9]|[12][0-9]|3[01])"
+             r"T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))"
+             r"(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))")
+        assert re.match(r, navDate), "The value must be an XSD dateTime"\
+            "literal with a timezone. It was: %s" % navDate
+        if navDate[-1] != "Z":
+            warnings.warn(f"The value should be given in UTC with the Z was {navDate}")
         self.navDate = navDate
 
 
-class Canvas(CMRCattributes, HeightWidth, Duration):
-    """https://iiif.io/api/presentation/3.0/#53-canvas
+class Canvas(_CMRCattributes, _HeightWidth, _Duration, _AddAnnoP2Items):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#53-canvas
+
     The Canvas represents an individual page or view and acts as a central
     point for assembling the different content resources that make up the
     display. Canvases must be identified by a URI and it must be an HTTP(S)
@@ -1560,7 +2241,7 @@ class Canvas(CMRCattributes, HeightWidth, Duration):
     def add_item(self, item):
         """Add an item (AnnotationPage) to the Canvas.
 
-        Same as `add_annotationpage_to_items` but doesn't return.
+        Same as add_annotationpage_to_items but doesn't return.
 
         A Canvas should have the items property with at least one item.
         Each item must be an Annotation Page.
@@ -1571,14 +2252,31 @@ class Canvas(CMRCattributes, HeightWidth, Duration):
         add_to(self, 'items', AnnotationPage, item)
 
     def add_annotation(self, annotation=None):
+        """
+        Danger:
+            From 0.4 use iiifpapi3.Canvas.add_annotationpage_to_annotations
+        """
         warnings.warn('Please use `add_annotationpage_to_annotations` instead.', DeprecationWarning)
         return add_to(self, 'annotations', Annotation, annotation, target=self.id)
 
-    def add_annotationpage_to_items(self, annotationpageobj=None):
-        return add_to(self, 'items', AnnotationPage, annotationpageobj)
 
+class start(_CoreAttributes):
+    """IIIF resource
 
-class start(CoreAttributes):
+    https://iiif.io/api/presentation/3.0/#start
+    https://iiif.io/api/cookbook/recipe/0009-book-1/
+
+    A Canvas, or part of a Canvas, which the client should show on
+    initialization for the resource that has the start property.
+    This property allows the client to begin with the first Canvas that
+    contains interesting content rather than requiring the user to manually
+    navigate to find it.
+
+    Examples:
+        >>> manifest.set_start()
+        >>> manifest.start.set_type("Canvas")
+        >>> manifest.start.set_id("0202-start-canvas/canvas/p2")
+    """
     def __init__(self):
         super(start, self).__init__()
         self.type = Required("Start object must have a type.")
@@ -1587,11 +2285,18 @@ class start(CoreAttributes):
         self.selector = None
 
     def set_type(self, mtype):
-        if mtype != "Canvas":
+        """Set the type of the resource: Canvas or SpecificResource.
+
+        Args:
+            mtype (str): The type of the resource that must be Canvas or
+            SpecificResource.
+        """
+        if mtype != "Canvas" and self.source is None:
             self.source = Required(
-                "If you are not pointing to a Canvas please specify a source.")
+                    "If you are not pointing to a Canvas please specify a source.")
+        if mtype != "Canvas" and self.selector is None:
             self.selector = Required(
-                "If you are not pointing to a Canvas please specify a selector")
+                    "If you are not pointing to a Canvas please specify a selector")
         self.type = mtype
 
     def set_source(self, source):
@@ -1601,7 +2306,7 @@ class start(CoreAttributes):
         self.selector = selector
 
 
-class Start(object):
+class _Start(object):
     def set_start(self, startobj=None):
         """This method set a start obejct at self.start.
         IIIF: A Canvas, or part of a Canvas, which the client should show on
@@ -1611,9 +2316,14 @@ class Start(object):
         begin with the first Canvas that contains interesting content rather
         than requiring the user to manually navigate to find it.
 
-        manifest.set_start()
-        manifest.start.set_type('Canvas')
-        manifest.start.set_id("https://example.org/iiif/1/canvas/1")
+        Notes:
+            `set_start` self assign start attribute to a iiifpapi3.start
+            handler see example below on how to use it.
+
+        Examples:
+            manifest.set_start()
+            manifest.start.set_type('Canvas')
+            manifest.start.set_id("https://example.org/iiif/1/canvas/1")
 
         Returns:
             start object: a reference to the start object to be used
@@ -1625,9 +2335,13 @@ class Start(object):
         return self.start
 
 
-class Manifest(CMRCattributes, ViewingDirection, Start, ServicesList):
-    """
-    The Manifest resource typically represents a single object and any
+class Manifest(_CMRCattributes, _ViewingDirection, _Start, _ServicesList):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#52-manifest
+    https://iiif.io/api/cookbook/recipe/0009-book-1/
+
+    IIIF: The Manifest resource typically represents a single object and any
     intellectual work or works embodied within that object. In particular it
     includes descriptive, rights and linking information for the object. The
     Manifest embeds the Canvases that should be rendered as views of the object
@@ -1645,6 +2359,12 @@ class Manifest(CMRCattributes, ViewingDirection, Start, ServicesList):
     annotations property, which includes Annotation Page resources where the
     Annotations have the Manifest as their target. These will typically be
     comment style Annotations, and must not have painting as their motivation.
+
+    Example:
+        >>> manifest = iiifpapi3.Manifest()
+        >>> manifest.set_id(extendbase_url="manifest.json")
+        >>> manifest.add_label("en", "Image 1")
+        >>> canvas = manifest.add_canvas_to_items()
     """
 
     def __init__(self):
@@ -1657,7 +2377,7 @@ class Manifest(CMRCattributes, ViewingDirection, Start, ServicesList):
         self.thumbnail = Recommended("A Manifest should have the thumbnail property with at least one item.")
         self.summary = Recommended("A Manifest should have the summary property with at least one entry.")
         self.metadata = Recommended("A Manifest should have the metadata property with at least one item.")
-        self.items = Required("The Manifest must have an items property")
+        self.items = Required("The Manifest must have an items property with at least one item")
         self.annotations = None
         self.provider = Recommended("A Manifest should have the provider property with at least one item.")
         self.structures = None
@@ -1666,11 +2386,18 @@ class Manifest(CMRCattributes, ViewingDirection, Start, ServicesList):
     def add_item(self, item):
         """Add an item (Canvas) to the Manifest.
 
-        Same as `add_canvas_to_items` but doesn't return.
+        Same as iiifpapi3.Manifest.add_canvas_to_items but doesn't return.
 
         A Manifest must have the items property with at least one item.
         Each item must be a Canvas.
         Clients must process items on a Manifest.
+
+        Example:
+            >>> manifest = iiifpapi3.Manifest()
+            >>> manifest.set_id(extendbase_url="manifest.json")
+            >>> manifest.add_label("en", "Image 1")
+            >>> canvas = iiifpapi3.Canvas()
+            >>> manifest.add_item(canvas)
 
         Args:
             item (Canvas): The canvas
@@ -1686,13 +2413,40 @@ class Manifest(CMRCattributes, ViewingDirection, Start, ServicesList):
         return add_to(self, 'annotations', AnnotationPage, annotation)
 
     def add_canvas_to_items(self, canvasobj=None):
+        """Add a Canvas object to the items list.
+
+        https://iiif.io/api/presentation/3.0/#canvas
+        https://iiif.io/api/cookbook/recipe/0009-book-1/
+
+        Args:
+            canvasobj (iiifpapi3.Canvas, optional): A iiifpapi3.Canvas to be
+                added to the Manifest.items list. Defaults to None.
+
+        Example:
+            >>> canvas = manifest.add_canvas_to_items()
+            >>> canvas.set_height(1800)
+            >>> canvas.set_width(1200)
+
+        Returns:
+            iiifpapi3.Canvas: if canvasobj is None an empty iiifpapi3.
+            Canvas obj
+        """
         return add_to(self, 'items', Canvas, canvasobj)
 
     def add_structure(self, structure):
         """Add an already instatiated Range to structres without return.
 
-            This is equivalent to `add_range_to_structures` but does not
-            return.
+        Note:
+            This is equivalent to iiifpapi3.Manifest.add_range_to_structures
+            but does not return.
+
+        Example:
+            >>> manifest = iiifpapi3.Manifest()
+            >>> manifest.set_id(extendbase_url="manifest.json")
+            >>> manifest.add_label("en", "Image 1")
+            >>> range = iiifpapi3.Range()
+            >>> range.set_id('https//test')
+            >>> manifest.add_item(range)
 
         Args:
             structure (Range): A Range object.
@@ -1700,10 +2454,39 @@ class Manifest(CMRCattributes, ViewingDirection, Start, ServicesList):
         add_to(self, 'structures', Range, structure)
 
     def add_range_to_structures(self, rangeobj=None):
+        """Add a Range object to the structures list.
+
+        https://iiif.io/api/presentation/3.0/#range
+        https://iiif.io/api/cookbook/recipe/0024-book-4-toc
+
+        Args:
+            rangeobj (iiifpapi3.Range, optional): A iiifpapi3.Range to be
+                added to the Manifest.structures list. Defaults to None.
+
+        Example:
+            >>> rng = manifest.add_range_to_structures()
+            >>> rng.set_id(extendbase_url="range/r0")
+            >>> rng.add_label('en',"Table of Contents")
+            >>> r1  = rng.add_range_to_items()
+            >>> r1.set_id(extendbase_url="range/r1")
+
+        Returns:
+            iiifpapi3.Range: if rangeobj is None an empty iiifpapi3.Range obj
+        """
         return add_to(self, 'structures', Range, rangeobj)
 
 
-class refManifest(CoreAttributes, Thumbnail):
+class refManifest(_CoreAttributes, _Thumbnail):
+    """pseudo-IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#51-collection
+
+    This class is used for creating references to Manifest:
+
+    IIIF: Collections or Manifests referenced in the items property must have
+    the id, type and label properties. They should have the thumbnail property.
+
+    """
     def __init__(self):
         super(refManifest, self).__init__()
         self.thumbnail = Recommended("A Manifest reference should have the thumbnail property with at least one item.")
@@ -1711,7 +2494,27 @@ class refManifest(CoreAttributes, Thumbnail):
         self.navDate = None
 
 
-class Collection(CMRCattributes, ViewingDirection, ServicesList):
+class Collection(_CMRCattributes, _ViewingDirection, _ServicesList):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#51-collection
+    https://iiif.io/api/cookbook/recipe/0230-navdate/navdate-collection.json
+
+    IIIF: Collections are used to list the Manifests available for viewing.
+    Collections may include both other Collections and Manifests, in order to
+    form a tree-structured hierarchy. Collections might align with the curated
+    management of cultural heritage resources in sets, also called
+    “collections”, but may have absolutely no such similarity.
+
+    Example:
+        >>> collection = iiifpapi3.Collection()
+        >>> collection.set_id("0230-navdate/navdate-collection.json")
+        >>> collection.add_label(language='en',text="Chesapeake and Ohio")
+        >>> tbn = collection.add_thumbnail()
+        >>> collection.add_manifest_to_items(manifest_2)
+        >>> collection.add_manifest_to_items(manifest_1)
+
+    """
     def __init__(self):
         super(Collection, self).__init__()
         self.services = None
@@ -1743,9 +2546,41 @@ class Collection(CMRCattributes, ViewingDirection, ServicesList):
         add_to(self, 'items', Canvas, item, (Collection, Manifest))
 
     def add_collection_to_items(self, collectionobj=None):
+        """Add a Collection object to the items list.
+
+        https://iiif.io/api/presentation/3.0/#51-collection
+        https://iiif.io/api/cookbook/recipe/0009-book-1/
+
+        Args:
+            collectionobj (iiifpapi3.Canvas, optional): A iiifpapi3.Canvas to be
+                added to the Manifest.items list. Defaults to None.
+
+        Example:
+            >>> subcollection = collection.add_collection_to_items()
+
+        Returns:
+            iiifpapi3.Collection: if collectionobj is None an empty
+            iiifpapi3.Collection obj
+        """
         return add_to(self, 'items', Collection, collectionobj)
 
     def add_manifest_to_items(self, manifestobj=None):
+        """Add a Manifest object to the items list.
+
+        https://iiif.io/api/presentation/3.0/#51-collection
+        https://iiif.io/api/cookbook/recipe/0009-book-1/
+
+        Args:
+            manifestobj (iiifpapi3.Manifest, optional): A iiifpapi3.Manifest to
+                be added to the Collection.items list. Defaults to None.
+
+        Example:
+            >>> subcollection = collection.add_collection_to_items()
+
+        Returns:
+            iiifpapi3.Manifest: if manifestobj is None an empty
+            iiifpapi3.Manifest obj
+        """
         if isinstance(manifestobj, Manifest):
             # Adding a Manifest only the references and thumbnail are passed
             newobj = copy.copy(manifestobj)
@@ -1754,7 +2589,27 @@ class Collection(CMRCattributes, ViewingDirection, ServicesList):
         return add_to(self, 'items', refManifest, manifestobj, (Manifest, refManifest))
 
 
-class Range(CMRCattributes, ViewingDirection, Start):
+class Range(_CMRCattributes, _ViewingDirection, _Start):
+    """IIIF resource
+
+    https://iiif.io/api/presentation/3.0/#54-range
+    https://iiif.io/api/cookbook/recipe/0024-book-4-toc
+
+    IIIF: Ranges are used to represent structure within an object beyond the
+    default order of the Canvases in the items property of the Manifest, such
+    as newspaper sections or articles, chapters within a book, or movements
+    within a piece of music. Ranges can include Canvases, parts of Canvases,
+    or other Ranges, creating a tree structure like a table of contents.
+
+    Example:
+        >>> rng = manifest.add_range_to_structures()
+        >>> rng.set_id(extendbase_url="range/r0")
+        >>> rng.add_label('en',"Table of Contents")
+        >>> r1  = rng.add_range_to_items()
+        >>> r1.set_id(extendbase_url="range/r1")
+        >>> r1.add_label('gez',"Tabiba Tabiban [ጠቢበ ጠቢባን]")
+
+    """
     def __init__(self):
         super(Range, self).__init__()
         self.annotations = None
@@ -1770,12 +2625,12 @@ class Range(CMRCattributes, ViewingDirection, Start):
 
     def add_item(self, item):
         """Add an item (Range,Canvas,Specific Resource where the source is a
-        Canvas) to the Manifest.
+        Canvas) to the Range.
 
-        This function does not return. Use:
-            `add_range_to_items`
-            `add_canvas_to_items`
-            `add_specificresource_to_items`
+        This function does not return. Use::
+
+            iiifpapi3.Range.add_range_to_items
+            iiifpapi3.Range.add_specificresource_to_items
 
 
         A Range must have the items property with at least one item.
@@ -1788,17 +2643,74 @@ class Range(CMRCattributes, ViewingDirection, Start):
         add_to(self, 'items', Canvas, item, (Range, SpecificResource, Canvas))
 
     def add_range_to_items(self, rangeobj=None):
+        """Add a Range object to the items list.
+
+        https://iiif.io/api/presentation/3.0/#54-range
+        https://iiif.io/api/cookbook/recipe/0024-book-4-toc
+
+        Args:
+            rangeobj (iiifpapi3.Range, optional): A iiifpapi3.Range to
+                be added to the Range.items list. Defaults to None.
+
+        Example:
+            >>> subrange  = range.add_range_to_items()
+            >>> subrange.set_id(extendbase_url="range/r1")
+            >>> subrange.add_label('gez',"Tabiba Tabiban [ጠቢበ ጠቢባን]")
+
+        Returns:
+            iiifpapi3.Range: if rangeobj is None an empty
+            iiifpapi3.Range obj
+        """
         return add_to(self, 'items', Range, rangeobj)
 
     def add_specificresource_to_items(self, specificresourceobj=None):
+        """Add a SpecificResource object to the items list.
+
+        https://iiif.io/api/presentation/3.0/#54-range
+        https://iiif.io/api/cookbook/recipe/0024-book-4-toc
+
+        Args:
+            rangeobj (iiifpapi3.SpecificResource, optional): A
+                iiifpapi3.SpecificResource to be added to the Range.items list.
+                Defaults to None.
+
+        Example:
+            >>> subrange  = range.add_range_to_items()
+            >>> subrange.set_id(extendbase_url="range/r1")
+            >>> subrange.add_label('gez',"Tabiba Tabiban [ጠቢበ ጠቢባን]")
+
+        Returns:
+            iiifpapi3.SpecificResource: if rangeobj is None an empty
+            iiifpapi3.SpecificResource obj
+        """
         return add_to(self, 'items', SpecificResource, specificresourceobj)
 
     def set_supplementary(self, objid=None, extendbase_url=None):
+        """Set a supplementary resource to the range
+
+        A link from this Range to an Annotation Collection that includes the
+        supplementing Annotations of content resources for the Range.
+
+        https://iiif.io/api/presentation/3.0/#supplementary
+
+        Args:
+            objid (str, optional): The ID of the supplementary resource.
+                Defaults to None.
+            extendbase_url (str, optional): part of the URL to be appended at
+                the IIIFpapi3.BASE_URL global variable to create the ID.
+                Defaults to None.
+        """
         self.supplementary = supplementary()
         self.supplementary.set_id(objid, extendbase_url)
 
     def add_canvas_to_items(self, canvas_id):
-        """Add a canvas to items by id of the canvas
+        """Ad a reference to a Canvas to the items.
+
+        To do:
+            Might be useful to add canvasobj removing attributes.
+
+        Args:
+            canvas_id (str): The ID of the Canvas.
         """
         if unused(self.items):
             self.items = []
@@ -1807,24 +2719,54 @@ class Range(CMRCattributes, ViewingDirection, Start):
         self.items.append(entry)
 
 
-class SpecificResource(CommonAttributes):
+class SpecificResource(_CommonAttributes):
+    """IIIF Web Annotation Data Model resource
+
+    https://www.w3.org/TR/annotation-model/#specific-resources
+    """
     def __init__(self):
         super(SpecificResource, self).__init__()
         self.id = Recommended("An ID is recommended.")
         self.source = None
 
     def set_source(self, source, extendbase_url=None):
+        """Set the source of the SpecificResource
+
+        Args:
+            source (str): The source is usually an URL.
+            extendbase_url (str, optional): For extending the BASE_URL and
+            using it as a source. Defaults to None.
+        """
         self.source = check_ID(self, extendbase_url=extendbase_url, objid=source)
 
     def set_selector(self, selector):
+        """Set the selector of the specifc resource.
+
+        Args:
+            selector (any): The selector of the specific resource.
+        """
         self.selector = selector
 
     def set_selector_as_PointSelector(self):
+        """Set the selectof of the SpecificReource as a PointSelector.
+
+        Returns:
+            iiifpapi3.PointSelector: A reference to an empty
+                iiifpapi3.PointSelector
+        """
         ps = PointSelector()
         self.selector = ps
         return ps
 
     def set_selector_as_SvgSelector(self, value=None):
+        """Set the selector to an SvgSelector or to a SVG string.
+
+        Args:
+            value (str, optional): An SVG as a string. Defaults to None.
+
+        Returns:
+            iiifpapi3.SvgSelector: An instance of iiifpapi3.SvgSelector
+        """
         ss = SvgSelector()
         if value is not None:
             ss.set_value(value)
@@ -1832,7 +2774,20 @@ class SpecificResource(CommonAttributes):
         return ss
 
 
-class ImageApiSelector(Format, ImmutableType):
+class ImageApiSelector(_Format, _ImmutableType):
+    """IIIF Resource
+
+    https://iiif.io/api/annex/openannotation/#iiif-image-api-selector
+
+    IIIF: The Image API Selector is used to describe the operations available
+    via the Image API in order to retrieve a particular image representation.
+    In this case the resource is the abstract image as identified by the IIIF
+    Image API base URI plus identifier, and the retrieval process involves
+    adding the correct parameters after that base URI. For example, the top
+    left hand quadrant of an image has the region parameter of pct:0,0,50,50
+    which must be put into the requested URI to obtain the appropriate
+    representation.
+    """
     def __init__(self):
         self.type = "ImageApiSelector"
         self.region = None
@@ -1842,20 +2797,43 @@ class ImageApiSelector(Format, ImmutableType):
         self.fromat = None
 
     def set_region(self, region):
+        """Set the region of the image API selector.
+
+        Args:
+            region (str): The region of the ImageAPI selector.
+        """
         self.region = region
 
     def set_rotation(self, rotation):
+        """Set the rotation of the image API selector.
+
+        Args:
+            rotation (str,int): The rotation to be applied to the image.
+        """
         self.rotation = rotation
 
     def set_quality(self, quality):
+        """Set the quality to to the ImageAPI  selector.
+
+        Args:
+            quality (str): e.g. default
+        """
         self.quality = quality
 
     def set_size(self, size):
+        """Set the size parameter of the ImageAPI selector.
+
+        Args:
+            size (str): The requested size of the image.
+        """
         self.size = size
 
 
-class PointSelector(ImmutableType):
+class PointSelector(_ImmutableType):
     """
+
+    https://iiif.io/api/annex/openannotation/#point-selector
+
     There are common use cases in which a point, rather than a range or area,
     is the target of the Annotation. For example, putting a pin in a map should
     result in an exact point, not a very small rectangle. Points in time are
@@ -1887,28 +2865,64 @@ class PointSelector(ImmutableType):
         self.t = None
 
     def set_x(self, x):
+        """Set the x coordinate.
+
+        Args:
+            x (int): The x coordinate.
+        """
         self.x = x
 
     def set_y(self, y):
+        """Set the y coordiante.
+
+        Args:
+            y (int): The y coordinate.
+        """
         self.y = y
 
     def set_t(self, t):
+        """Set the time time of the point in seconds.
+
+        Args:
+            t (float): The time of the point in seconds relative to the duration.
+        """
         self.t = t
 
 
-class FragmentSelector(ImmutableType):
+class FragmentSelector(_ImmutableType):
+    """
+    W3C: As the most well understood mechanism for selecting a Segment is to
+    use the fragment part of an IRI defined by the representation's media type,
+    it is useful to allow this as a description mechanism via a Selector.
+
+    https://www.w3.org/TR/annotation-model/#fragment-selector
+
+    """
     def __init__(self):
         self.type = "FragmentSelector"
         self.value = Required("A fragment selector must have a value!")
 
     def set_value(self, value):
+        """Set the value of the FragmentSelector
+
+        Args:
+            value (int): The
+        """
         self.value = value
 
     def set_xywh(self, x, y, w, h):
+        """Set the starting x and y point and the widht and height.
+
+        Args:
+            x (int): The x coordinate.
+            y (int): The y coordinate.
+            w (int): The width coordinate.
+            h (int): The hieght coordinate.
+        """
         self.value = "xywh=%i,%i,%i,%i" % (x, y, w, h)
 
 
-class SvgSelector(ImmutableType):
+class SvgSelector(_ImmutableType):
     """The SvgSelector is used to select a non rectangualar region of an image.
     https://www.w3.org/TR/annotation-model/#svg-selector
     """
@@ -1917,7 +2931,9 @@ class SvgSelector(ImmutableType):
         self.value = None
 
     def set_value(self, value):
-        self.value = value
+        """Set the value of the SVG Selector
 
-# The motivation of the Annotations must not be painting, and the target of
-# the Annotations must include this resource or part of it.
+        Args:
+            value (str): A string containing the SVG element.
+        """
+        self.value = value
