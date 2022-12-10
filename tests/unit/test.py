@@ -1,22 +1,23 @@
 import unittest
 import json
 from IIIFpres import iiifpapi3
-from IIIFpres.iiifpapi3 import Collection, Required,Recommended
+from IIIFpres.iiifpapi3 import Required, Recommended
 # for print statements
 import io
 import unittest.mock
+
 
 class TestEmptyManifest(unittest.TestCase):
     @classmethod
     def setUp(self):
         iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0004-canvas-size/"
         self.manifest = iiifpapi3.Manifest()
-    
+
     def test_add_created_canvas(self):
         mycnv = iiifpapi3.Canvas()
         mycnv.set_id(extendbase_url="canvas/p1/123121231")
         self.manifest.add_canvas_to_items(mycnv)
-        self.assertEqual(self.manifest.items[0],mycnv)
+        self.assertEqual(self.manifest.items[0], mycnv)
 
     def test_adding_worng_object(self):
         """Test if I add annotation to manifest items using
@@ -31,71 +32,60 @@ class TestEmptyManifest(unittest.TestCase):
             self.manifest.set_rights("creativecommons.org/licenses/by-sa/3.0/")
         with self.assertRaises(AssertionError):
             self.manifest.set_rights("https://creativecommons.org/licenses/by/4.0/")
-    
+
     def test_accompanyingCanvas(self):
         """Test if an accompanyingCanvas rise attribute error when try to set a
         nested accompanyingCanvas."""
         ac = self.manifest.set_accompanyingCanvas()
         with self.assertRaises(AttributeError):
             ac.set_accompanyingCanvas()
-    
+
     def test_id_assertion(self):
         """Test ID should be in form."""
         with self.assertRaises(AssertionError):
             self.manifest.set_id("creativecommons.org/licenses/by-sa/3.0/")
         with self.assertRaises(AssertionError):
             self.manifest.set_id("//creativecommons.org/licenses/by/4.0/")
-        
+
     def test_id_http(self):
         """http is valid URI."""
         url = "http://example.org/iiif/book1/canvas/p1"
-        test = iiifpapi3.CoreAttributes()
+        test = iiifpapi3._CoreAttributes()
         test.set_id(url)
-        self.assertEqual(test.id,url)
-    
+        self.assertEqual(test.id, url)
+
     def test_id_https(self):
         """https is valid URI."""
         url = "https://example.org/iiif/book1/canvas/p1"
-        test = iiifpapi3.CoreAttributes()
+        test = iiifpapi3._CoreAttributes()
         test.set_id(url)
-        self.assertEqual(test.id,url)
-    
+        self.assertEqual(test.id, url)
+
     def test_label_none(self):
         """If language set to None must be "none" in JSON."""
-        self.manifest.add_label(None,['test3'])
-        self.assertEqual(self.manifest.label['none'],['test3'])
+        self.manifest.add_label(None, ['test3'])
+        self.assertEqual(self.manifest.label['none'], ['test3'])
 
     def test_adding_multiple_lables_not_overwrite(self):
         """If we add multiple label they should concatenate."""
-        self.manifest.add_label('it',['test1'])
-        self.manifest.add_label('it','test2')
-        self.assertEqual(self.manifest.label,{'it': ['test2', 'test1']})
-         
-    def test_raising_error_when_attribute_required(self):
-        """This should rise a value error bevause ID is required and not
-        set."""
-        with self.assertRaises(ValueError):
-            self.manifest.to_json()
-    
+        self.manifest.add_label('it', ['test1'])
+        self.manifest.add_label('it', 'test2')
+        self.assertEqual(self.manifest.label, {'it': ['test2', 'test1']})
+
     def test_raising_error_objid_and_extendbaseURL(self):
         """User try to set ID using both objid and extendbaseURL."""
         with self.assertRaises(ValueError):
-            self.manifest.set_id(objid=iiifpapi3.BASE_URL,extendbase_url=iiifpapi3.BASE_URL)
-    
+            self.manifest.set_id(objid=iiifpapi3.BASE_URL,
+                                 extendbase_url=iiifpapi3.BASE_URL)
+
     def test_raising_error_when_attribute_required(self):
         """This should rise a value error bevause ID is required and not set.
         """
         with self.assertRaises(ValueError):
             self.manifest.to_json()
-    
-    def test_raising_error_objid_and_extendbaseURL(self):
-        """User try to set ID using both objid and extendbaseURL
-        """
-        with self.assertRaises(ValueError):
-            self.manifest.set_id(objid=iiifpapi3.BASE_URL,extendbase_url=iiifpapi3.BASE_URL)
-    
+
     def test_serialize_with_error(self):
-        out =  self.manifest.to_json(dumps_errors=True) 
+        out =  self.manifest.to_json(dumps_errors=True)
         e = {'Required': 'A Manifest must have the ID property.'}
         self.assertEqual(out['id'],e)
 
@@ -103,14 +93,14 @@ class TestEmptyManifest(unittest.TestCase):
         open_mock = unittest.mock.mock_open()
         with unittest.mock.patch("IIIFpres.iiifpapi3.open", open_mock, create=True):
             self.manifest.json_save("errortest.json",save_errors=True)
-        data = '{\n  "@context": "http://iiif.io/api/presentation/3/context.json",\n  "id": {\n    "Required": "A Manifest must have the ID property."\n  },\n  "type": "Manifest",\n  "label": {\n    "Required": "A Manifest must have the label property with at least one entry."\n  },\n  "metadata": {\n    "Recommended": "A Manifest should have the metadata property with at least one item."\n  },\n  "summary": {\n    "Recommended": "A Manifest should have the summary property with at least one entry."\n  },\n  "thumbnail": {\n    "Recommended": "A Manifest should have the thumbnail property with at least one item."\n  },\n  "provider": {\n    "Recommended": "A Manifest should have the provider property with at least one item."\n  },\n  "items": {\n    "Required": "The Manifest must have an items property"\n  }\n}'
+        data = '{\n  "@context": "http://iiif.io/api/presentation/3/context.json",\n  "id": {\n    "Required": "A Manifest must have the ID property."\n  },\n  "type": "Manifest",\n  "label": {\n    "Required": "A Manifest must have the label property with at least one entry."\n  },\n  "metadata": {\n    "Recommended": "A Manifest should have the metadata property with at least one item."\n  },\n  "summary": {\n    "Recommended": "A Manifest should have the summary property with at least one entry."\n  },\n  "thumbnail": {\n    "Recommended": "A Manifest should have the thumbnail property with at least one item."\n  },\n  "provider": {\n    "Recommended": "A Manifest should have the provider property with at least one item."\n  },\n  "items": {\n    "Required": "The Manifest must have an items property with at least one item"\n  }\n}'
         open_mock.return_value.write.assert_called_once_with(data)
-    
+
     def test_ORJSON_save(self):
         open_mock = unittest.mock.mock_open()
         with unittest.mock.patch("IIIFpres.iiifpapi3.open", open_mock, create=True):
-            self.manifest.orjson_save("errortest.json",save_errors=True)
-        data = '{\n  "@context": "http://iiif.io/api/presentation/3/context.json",\n  "id": {\n    "Required": "A Manifest must have the ID property."\n  },\n  "type": "Manifest",\n  "label": {\n    "Required": "A Manifest must have the label property with at least one entry."\n  },\n  "metadata": {\n    "Recommended": "A Manifest should have the metadata property with at least one item."\n  },\n  "summary": {\n    "Recommended": "A Manifest should have the summary property with at least one entry."\n  },\n  "thumbnail": {\n    "Recommended": "A Manifest should have the thumbnail property with at least one item."\n  },\n  "provider": {\n    "Recommended": "A Manifest should have the provider property with at least one item."\n  },\n  "items": {\n    "Required": "The Manifest must have an items property"\n  }\n}'
+            self.manifest.orjson_save("errortest.json", save_errors=True)
+        data = '{\n  "@context": "http://iiif.io/api/presentation/3/context.json",\n  "id": {\n    "Required": "A Manifest must have the ID property."\n  },\n  "type": "Manifest",\n  "label": {\n    "Required": "A Manifest must have the label property with at least one entry."\n  },\n  "metadata": {\n    "Recommended": "A Manifest should have the metadata property with at least one item."\n  },\n  "summary": {\n    "Recommended": "A Manifest should have the summary property with at least one entry."\n  },\n  "thumbnail": {\n    "Recommended": "A Manifest should have the thumbnail property with at least one item."\n  },\n  "provider": {\n    "Recommended": "A Manifest should have the provider property with at least one item."\n  },\n  "items": {\n    "Required": "The Manifest must have an items property with at least one item"\n  }\n}'
         open_mock.return_value.write.assert_called_once_with(data)
 
     def test_type_is_immutable(self):
@@ -118,10 +108,10 @@ class TestEmptyManifest(unittest.TestCase):
         type."""
         with self.assertRaises(ValueError):
             self.manifest.set_type('Collection')
-    
+
     def test_inspect(self):
         self.assertTrue(self.manifest.inspect())
-    
+
     def test_show_errors_in_browser(self):
         HTML = self.manifest.show_errors_in_browser(getHTML=True)
         text = '"Recommended": "A Manifest should have the metadata property with at least one item."'
@@ -132,12 +122,12 @@ class TestEmptyManifest(unittest.TestCase):
         """
         with self.assertRaises(ValueError):
             self.manifest.set_type('Collection')
-    
+
     def test_metadata(self):
         with self.assertRaises(ValueError):
             entry = {'date':1231}
             self.manifest.add_metadata('date','1834',entry=entry)
-    
+
     def test_requiredStatement(self):
         with self.assertRaises(ValueError):
             entry = {'en':1231}
@@ -166,7 +156,7 @@ class TestEmptyManifest(unittest.TestCase):
             g = iiifpapi3.Canvas()
             a = iiifpapi3.Annotation()
             g.add_annotation(a)
-    
+
 class TestManifest(unittest.TestCase):
     @classmethod
     def setUp(self):
@@ -184,12 +174,12 @@ class TestManifest(unittest.TestCase):
         self.assertEqual(self.canvas.width,self.width)
 
     def test_unicodeiswrittentojson(self):
-        """Test unicode is written correctly.""" 
+        """Test unicode is written correctly."""
         unicodestring = "Picture of Göttingen "
         self.manifest.add_label("en",unicodestring)
         reloaded = json.loads(self.manifest.json_dumps())
         self.assertEqual(reloaded['label']['en'][0] ,unicodestring)
-    
+
     def test_correctHW(self):
         self.assertEqual(self.canvas.height,self.height)
         self.assertEqual(self.canvas.width,self.width)
@@ -197,36 +187,32 @@ class TestManifest(unittest.TestCase):
     def test_unicodeiswrittentojson(self):
         """
         Test unicode is written correctly.
-        """ 
+        """
         unicodestring = "Picture of Göttingen "
         self.manifest.add_label("en",unicodestring)
         reloaded = json.loads(self.manifest.json_dumps())
         self.assertEqual(reloaded['label']['en'][0] ,unicodestring)
-    
-    def test_fragment_in_ID(self):    
+
+    def test_fragment_in_ID(self):
         with self.assertRaises(AssertionError):
             self.canvas.set_id("http://thishasafragment#xyx")
-    
+
     def test_repr(self):
         self.assertEqual(repr(self.manifest),"Manifest id:https://iiif.io/api/cookbook/recipe/0004-canvas-size/manifest.json")
 
     def test_annotation_motivation(self):
         with self.assertWarns(Warning):
             self.annotation.set_motivation("My Strange Motivation")
-        
-    def test_set_target_specific_resource_to_annotation(self):
-        with self.assertRaises(ValueError):
-            self.annotation.set_target_specific_resource(self.manifest)
-    
+
     def test_set_target_specific_resource_to_annotation(self):
         sr = iiifpapi3.SpecificResource()
         self.annotation.set_target_specific_resource(sr)
-        self.assertEqual(self.annotation.target,sr)
+        self.assertEqual(self.annotation.target, sr)
 
-    def test_set_target_specific_resource_to_annotation(self):
+    def test_raise_set_target_specific_resource_to_annotation(self):
         with self.assertRaises(ValueError):
-             self.annotation.set_target_specific_resource(self.manifest)
-    
+            self.annotation.set_target_specific_resource(self.manifest)
+
     def test_nested_placehoder_canvases(self):
         self.manifest.set_placeholderCanvas()
         with self.assertRaises(AttributeError):
@@ -268,7 +254,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.AnnotationCollection.label,Recommended('https://iiif.io/api/presentation/3.0/#label'))
         self.assertEqual(self.AnnotationPage.label,None)
         self.assertEqual(self.Annotation.label,None)
-        
+
 
     def test_metadata(self):
         self.assertEqual(self.Collection.metadata,Recommended('https://iiif.io/api/presentation/3.0/#metadata'))
@@ -313,7 +299,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.AnnotationCollection.thumbnail,None)
         self.assertEqual(self.AnnotationPage.thumbnail,None)
         self.assertEqual(self.Annotation.thumbnail,None)
-    
+
     def test_navDate(self):
         self.assertEqual(self.Collection.navDate,None)
         self.assertEqual(self.Manifest.navDate,None)
@@ -322,7 +308,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertFalse(hasattr(self.AnnotationCollection,"navDate"))
         self.assertFalse(hasattr(self.AnnotationPage,"navDate"))
         self.assertFalse(hasattr(self.Annotation,"navDate"))
-    
+
     def test_placeholderCanvas(self):
         self.assertEqual(self.Collection.placeholderCanvas,None)
         self.assertEqual(self.Manifest.placeholderCanvas,None)
@@ -331,7 +317,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertFalse(hasattr(self.AnnotationCollection,"placeholderCanvas"))
         self.assertFalse(hasattr(self.AnnotationPage,"placeholderCanvas"))
         self.assertFalse(hasattr(self.Annotation,"placeholderCanvas"))
-    
+
     def test_accompanyingCanvas(self):
         self.assertEqual(self.Collection.accompanyingCanvas,None)
         self.assertEqual(self.Manifest.accompanyingCanvas,None)
@@ -340,7 +326,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertFalse(hasattr(self.AnnotationCollection,"accompanyingCanvas"))
         self.assertFalse(hasattr(self.AnnotationPage,"accompanyingCanvas"))
         self.assertFalse(hasattr(self.Annotation,"accompanyingCanvas"))
-    
+
     def test_type(self):
         self.assertEqual(self.Collection.type,'Collection')
         self.assertEqual(self.Manifest.type,'Manifest')
@@ -349,7 +335,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.AnnotationCollection.type,'AnnotationCollection')
         self.assertEqual(self.AnnotationPage.type,'AnnotationPage')
         self.assertEqual(self.Annotation.type,'Annotation')
-    
+
     def test_height(self):
         self.assertFalse(hasattr(self.Collection,"height"))
         self.assertFalse(hasattr(self.Manifest,"height"))
@@ -361,7 +347,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         mycnv = iiifpapi3.Canvas()
         mycnv.set_height(223)
         self.assertEqual(mycnv.width,Required())
-    
+
     def test_width(self):
         self.assertFalse(hasattr(self.Collection,"width"))
         self.assertFalse(hasattr(self.Manifest,"width"))
@@ -386,7 +372,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         mycnv.set_duration(223.5)
         self.assertEqual(mycnv.height,None)
         self.assertEqual(mycnv.width,None)
-    
+
     def test_viewingDirection(self):
         self.assertEqual(self.Collection.viewingDirection,None)
         self.assertEqual(self.Manifest.viewingDirection,None)
@@ -395,7 +381,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertFalse(hasattr(self.AnnotationCollection,"viewingDirection"))
         self.assertFalse(hasattr(self.AnnotationPage,"viewingDirection"))
         self.assertFalse(hasattr(self.Annotation,"viewingDirection"))
-    
+
     def test_behavior(self):
         self.assertEqual(self.Collection.behavior,None)
         self.assertEqual(self.Manifest.behavior,None)
@@ -404,27 +390,27 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.AnnotationCollection.behavior,None)
         self.assertEqual(self.AnnotationPage.behavior,None)
         self.assertEqual(self.Annotation.behavior,None)
-    
+
     def test_homepage_args(self):
         self.assertEqual(self.homepage.id,Required())
         self.assertEqual(self.homepage.type,Required())
         self.assertEqual(self.homepage.label,Required())
         self.assertEqual(self.homepage.format,Recommended())
         self.assertEqual(self.homepage.language,None)
-    
+
     def test_logo_args(self):
         self.assertEqual(self.logo.id,Required())
         self.assertEqual(self.logo.type,'Image')
         self.assertEqual(self.logo.format,Recommended())
         with self.assertRaises(ValueError):
             self.logo.add_label('en','test')
-    
+
     def test_rendering_args(self):
         self.assertEqual(self.rendering.id,Required())
         self.assertEqual(self.rendering.type,Required())
         self.assertEqual(self.rendering.label,Required())
         self.assertEqual(self.rendering.format,Recommended())
-    
+
     def test_service(self):
         # Any resource type may have the service property with at least one item.
         self.assertEqual(self.Collection.service,None)
@@ -475,14 +461,14 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.AnnotationCollection.seeAlso,None)
         self.assertEqual(self.AnnotationPage.seeAlso,None)
         self.assertEqual(self.Annotation.seeAlso,None)
-    
+
     def test_seeAlso_args(self):
         self.assertEqual(self.seeAlso.id,Required())
         self.assertEqual(self.seeAlso.type,Required())
         self.assertEqual(self.seeAlso.label,Recommended())
         self.assertEqual(self.seeAlso.format,Recommended())
         self.assertEqual(self.seeAlso.profile,Recommended())
-    
+
     def test_partOf(self):
         self.assertEqual(self.Collection.partOf,None)
         self.assertEqual(self.Manifest.partOf,None)
@@ -491,12 +477,12 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.AnnotationCollection.partOf,None)
         self.assertEqual(self.AnnotationPage.partOf,None)
         self.assertEqual(self.Annotation.partOf,None)
-    
+
     def test_partOf_args(self):
         self.assertEqual(self.partOf.id,Required())
         self.assertEqual(self.partOf.type,Required())
         self.assertEqual(self.partOf.label,Recommended())
-    
+
     def test_start(self):
         self.assertEqual(self.Range.start,None)
         self.assertEqual(self.Manifest.start,None)
@@ -505,11 +491,11 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertFalse(hasattr(self.AnnotationCollection,"start"))
         self.assertFalse(hasattr(self.AnnotationPage,"start"))
         self.assertFalse(hasattr(self.Annotation,"start"))
-    
+
     def test_start_args(self):
         self.assertEqual(self.start.id,Required())
         self.assertEqual(self.start.type,Required())
-    
+
     def test_supplementary(self):
         self.assertEqual(self.Range.supplementary,None)
         self.assertFalse(hasattr(self.Manifest,"supplementary"))
@@ -518,11 +504,11 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertFalse(hasattr(self.AnnotationCollection,"supplementary"))
         self.assertFalse(hasattr(self.AnnotationPage,"supplementary"))
         self.assertFalse(hasattr(self.Annotation,"supplementary"))
-    
+
     def test_supplementary_args(self):
         self.assertEqual(self.supplementary.id,Required())
         self.assertEqual(self.supplementary.type,"AnnotationCollection")
-    
+
     def test_items(self):
         self.assertEqual(self.Collection.items,Required())
         self.assertEqual(self.Manifest.items,Required())
@@ -579,7 +565,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.Range.add_canvas_to_items(canvas_id="http")
         self.assertTrue(self.Range.items[0]['type'] == 'Canvas')
         self.assertTrue(isinstance(self.Range.add_range_to_items(),iiifpapi3.Range))
-    
+
     def test_structures(self):
         self.assertEqual(self.Manifest.structures,None)
         self.assertFalse(hasattr(self.Range,"structures"))
@@ -603,7 +589,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertFalse(hasattr(self.AnnotationPage,"annotations"))
         self.assertFalse(hasattr(self.Annotation,"annotations"))
         # TODO: The motivation of the Annotations must not be painting
-    
+
     def test_collection(self):
         colMan = self.Collection.add_manifest_to_items()
         # check that manifest is referenced not embedded
@@ -617,36 +603,36 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.Manifest.id,Required())
         self.assertEqual(self.Manifest.items,Required())
         self.assertEqual(self.Manifest.structures,None)
-        # These will typically be comment style Annotations, and must not have 
+        # These will typically be comment style Annotations, and must not have
         # painting as their motivation.
         self.assertEqual(self.Manifest.annotations,None)
         # TODO: These will typically be comment style Annotations, and must not have
         # painting as their motivation
-    
+
     def test_canvas(self):
         # check that manifest is referenced not embedded
         self.assertEqual(self.Manifest.id,Required())
         self.assertEqual(self.Manifest.items,Required())
         self.assertEqual(self.Manifest.structures,None)
-        # These will typically be comment style Annotations, and must not have 
+        # These will typically be comment style Annotations, and must not have
         # painting as their motivation.
         self.assertEqual(self.Manifest.annotations,None)
         # TODO: These will typically be comment style Annotations, and must not have
         # painting as their motivation
-        # TODO: Content must not be associated with space or time outside of 
+        # TODO: Content must not be associated with space or time outside of
         # the Canvas’s dimensions
 
     def test_ranges(self):
         self.assertEqual(self.Range.id,Required())
         self.assertEqual(self.Range.type,'Range')
-        # TODO:Ranges that have the behavior value sequence must be directly within 
-        # the structures property of the Manifest, 
-        # and must not be embedded or referenced within other Ranges. 
-    
+        # TODO:Ranges that have the behavior value sequence must be directly within
+        # the structures property of the Manifest,
+        # and must not be embedded or referenced within other Ranges.
+
     def test_annotationpage(self):
         self.assertEqual(self.AnnotationPage.id,Required())
         self.assertEqual(self.AnnotationPage.type,'AnnotationPage')
-    
+
     def test_annotation(self):
         self.assertEqual(self.Annotation.id,Required())
         self.assertEqual(self.Annotation.type,'Annotation')
@@ -665,7 +651,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         #self.assertEqual(self.bodypainting.height,Required()) # or may
         #self.assertEqual(self.bodypainting.width,Required()) # or may
         self.assertEqual(self.bodypainting.duration,None)
-    
+
     def test_annotationcollection(self):
         self.assertEqual(self.AnnotationCollection.id,Required())
         self.assertEqual(self.AnnotationCollection.label,Recommended())
@@ -675,7 +661,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         t = self.Canvas
         self.Manifest.add_item(t)
         self.assertEqual(self.Manifest.items[0],t)
-    
+
     def test_add_item_canvas(self):
         t = self.AnnotationPage
         self.Canvas.add_item(t)
@@ -712,7 +698,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
             self.Manifest.add_behavior('no-auto-advance')
         with self.assertRaises(AssertionError):
             self.Range.add_behavior('no-auto-advance')
-    
+
     def test_behavior_no_auto_advance(self):
         self.Canvas.add_behavior('no-auto-advance')
         self.Collection.add_behavior('no-auto-advance')
@@ -770,7 +756,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
             self.Collection.add_behavior('continuous')
         with self.assertRaises(AssertionError):
             self.Manifest.add_behavior('paged')
-    
+
     def test_behavior_individuals(self):
         with self.assertRaises(AssertionError):
             self.Canvas.add_behavior('individuals')
@@ -882,7 +868,7 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
             self.Canvas.add_behavior('thumbnail-nav')
         with self.assertRaises(AssertionError):
             self.Canvas.add_behavior('no-nav')
-    
+
     def test_behavior_thumbnail_nav(self):
         self.Range.add_behavior('thumbnail-nav')
         with self.assertRaises(AssertionError):
@@ -938,7 +924,7 @@ class Test_repr_and_print(unittest.TestCase):
         t = "teststring12312=)123123'''òò"
         g = iiifpapi3.Recommended(t)
         self.assertEqual(g.__repr__(),"Recommended attribute:%s"%t)
-    
+
     def test_required(self):
         t = "teststring12312=)123123'''òò"
         g = iiifpapi3.Required(t)
@@ -953,7 +939,7 @@ class Test_repr_and_print(unittest.TestCase):
     def assert_stdout(self, n, expected_output, mock_stdout):
         iiifpapi3.check_valid_URI(n)
         self.assertEqual(mock_stdout.getvalue(), expected_output)
-    
+
     def test_only_numbers(self):
         correct = "I found: a space here. \ntest \n    ^\n"
         self.assert_stdout("https:/test ", correct)
@@ -969,7 +955,7 @@ class Test_repr_and_print(unittest.TestCase):
 
 
 
-        
+
 
 if __name__ == '__main__':
     unittest.main()
