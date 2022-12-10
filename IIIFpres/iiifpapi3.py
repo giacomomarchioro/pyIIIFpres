@@ -430,14 +430,55 @@ class Format(object):
         self.format = format
 
 
-class HeightWidth(object):
+class _HeightWidth(object):
+    """HELPER CLASS for setting Height and Width.
+    """
+
+    def _checkpositiveinteger(self, value):
+        """Return the value if positive integer.
+
+        Args:
+            value (int,str): Value to check.
+
+        Returns:
+            inputvalue (int): the value coerced to int.
+        """
+        #  because we accept string and int it is easier to assume they are int
+        assert str(value).isdigit(), "Must be a digit. It was %s" % value
+        assert str(value).isnumeric(), "Must be a positive integer"
+        assert int(value) > 0, "Must be a positive integer"
+        return int(value)
+
     def set_width(self, width):
-        self.width = int(width)
+        """Set the width of the resource.
+
+        https://iiif.io/api/presentation/3.0/#width
+
+        Args:
+            width (int,str): The width of the resource.
+        """
+        self.width = self._checkpositiveinteger(width)
 
     def set_height(self, height):
-        self.height = int(height)
+        """Set the height of the resource.
+
+        https://iiif.io/api/presentation/3.0/#height
+
+        Args:
+            height (int,str): The height of the resource.
+        """
+        self.height = self._checkpositiveinteger(height)
 
     def set_hightwidth(self, height, width):
+        """Set both the height and the width of the resource.
+
+        https://iiif.io/api/presentation/3.0/#height
+        https://iiif.io/api/presentation/3.0/#width
+
+        Args:
+            height (int, str): The height of the resource.
+            width (int, str): The width of the resource.
+        """
         self.set_width(width)
         self.set_height(height)
 
