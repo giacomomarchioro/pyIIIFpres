@@ -10,7 +10,7 @@ manifest.set_viewingDirection("right-to-left")
 rendering = manifest.add_rendering()
 rendering.set_id("https://fixtures.iiif.io/other/UCLA/kabuki_ezukushi_rtl.pdf")
 rendering.set_type("Text")
-rendering.add_label("en","PDF version")
+rendering.add_label("en", "PDF version")
 rendering.set_format("application/pdf")
 
 data = [('front cover',

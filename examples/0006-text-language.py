@@ -19,8 +19,8 @@ manifest.add_summary(text="Arrangement in Grey and Black No. 1, also called Port
 manifest.add_summary(text="Arrangement en gris et noir n°1, also called Portrait de la mère de l'artiste.",
                     language="fr")
 reqstat = manifest.set_requiredStatement()
-reqstat.add_label(language="en",label="Held By")
-reqstat.add_label(language="fr",label="Détenu par")
+reqstat.add_label(language="en", label="Held By")
+reqstat.add_label(language="fr", label="Détenu par")
 reqstat.add_value(value="Musée d'Orsay, Paris, France")
 canvas = manifest.add_canvas_to_items()
 canvas.set_id(extendbase_url="canvas/p1")

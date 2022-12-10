@@ -3,7 +3,7 @@ from IIIFpres import iiifpapi3
 iiifpapi3.BASE_URL = r"https://iiif.io/api/cookbook/recipe/0230-navdate/"
 manifest_1 = iiifpapi3.Manifest()
 manifest_1.set_id(extendbase_url="navdate_map_1-manifest.json")
-manifest_1.add_label("en","1987 Chesapeake and Ohio Canal, Washington, D.C., Maryland, West Virginia, official map and guide")
+manifest_1.add_label("en", "1987 Chesapeake and Ohio Canal, Washington, D.C., Maryland, West Virginia, official map and guide")
 manifest_1.set_navDate("1987-01-01T00:00:00+00:00")
 canvas = manifest_1.add_canvas_to_items()
 canvas.set_id(extendbase_url="canvas/p1")
