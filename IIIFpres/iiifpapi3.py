@@ -182,7 +182,7 @@ def add_to(selfx, destination, classx, obj, acceptedclasses=None, target=None):
         selfx (object): The class it-self
         destination (str): The class list attribute where the object will be stored.
         classx (object): The IIIF class that will be used for instantiating the
-        obejct.
+            obejct.
         obj (object): An already instantiated IIIF object.
         acceptedclasses (objects, optional): Accepted classes for obj. Defaults to None.
         target (str, optional): The target of an Annotation. Defaults to None.
@@ -255,10 +255,12 @@ def check_ID(self, extendbase_url, objid):
         if objid:
             raise ValueError(
                 "Set id using extendbase_url or objid not both.")
-
+        # this prevents the case the user forget the slash; in case the user
+        # really wants to join the string: objid = iiifpapi3.BASE_URL + myid
         assert BASE_URL.endswith("/") or extendbase_url.startswith("/"), \
             "Add / to extandbase_url or BASE_URL"
         joined = "".join((BASE_URL, extendbase_url))
+        assert joined.startswith("http"), "ID must start with http or https"
         assert check_valid_URI(joined), "Special characters must be encoded"
         return joined
     else:
@@ -305,9 +307,10 @@ class _CoreAttributes(object):
 
         Args:
             objid (str, optional): A string corresponding to the ID of the
-                object.Defaults to None.
+                object `id = objid`.Defaults to None.
             extendbase_url (str , optional): A string containing the URL part
-                to be joined with the iiifpapi3.BASE_URL . Defaults to None.
+                to be joined with the iiifpapi3.BASE_URL:
+                `id = iiifpapi3.BASE_URL + extendbase_url`. Defaults to None.
         """
         self.id = check_ID(self, extendbase_url, objid)
 
@@ -364,7 +367,8 @@ class _CoreAttributes(object):
             ensure_ascii (bool, optional): Ensure ASCI are used.
                 Defaults to False.
             sort_keys (bool, optional): Sort the keys. Defaults to False.
-            context (_type_, optional): Add additional context. Defaults to None.
+            context (str,list, optional): Add additional context. Defaults to
+                None.
 
         Returns:
             str: The JSON object as a string.
@@ -732,7 +736,7 @@ class _SeeAlso(object):
 
         Args:
             seeAlsoobj (iiifpapi3.seeAlso, optional): a iiifpapi3.seeAlso
-            object. Defaults to None.
+                object. Defaults to None.
 
         Returns:
             iiifpapi3.seeAlso: if seeAlsoobj is None a iiifpapi3.seeAlso
@@ -835,8 +839,8 @@ class _Service(object):
 
         Args:
             serviceobj (serviceobj, optional): A `iiifpapi3.service` object or
-            a dict representing the service in case of older service.
-            Defaults to None.
+                a dict representing the service in case of older service.
+                Defaults to None.
 
         Returns:
             iiifpapi3.service: In case serviceobj is None a iiifpapi3.service.
@@ -1081,7 +1085,7 @@ class _Hompage(object):
 
         Args:
             homepageobj (iiifpapi3.homepage, optional): a iiifpapi3.homepage
-            object. Defaults to None.
+                object. Defaults to None.
 
         Returns:
             iiifpapi3.homepage: If homepage is None a iiifpapi3.homepage object
@@ -1244,7 +1248,7 @@ class _ServicesList(object):
 
         Args:
             serviceobj (iiifpapi3.service, optional): a iiifpapi3.service to be
-            added. Defaults to None.
+                added. Defaults to None.
 
         Returns:
             iiifpapi3.service: If serviceobj is None a iiifpapi3.service object
@@ -1275,7 +1279,7 @@ class languagemap(object):
         Args:
             value (str): The value of the language map e.g. Author:
             language (str, optional): The language of the value e.g. en.
-            Defaults to "none".
+                Defaults to "none".
         """
         if unused(self.value):
             self.value = {}
@@ -1303,7 +1307,7 @@ class languagemap(object):
         Args:
             label (str): The value of the language map e.g. Dante Alighieri:
             language (str, optional): The language of the value e.g. it.
-            Defaults to "none".
+                Defaults to "none".
 
         """
         if unused(self.label):
@@ -1383,7 +1387,7 @@ class _CommonAttributes(_CoreAttributes, _Thumbnail, _Service, _Hompage,
 
         Returns:
             iiifpapi3.languagemap: If no arguments are passed a language map
-            is return as handler so that the user can fill the fields.
+            is returned as handler so that the user can fill the fields.
         """
         if unused(self.metadata):
             self.metadata = []
@@ -1447,12 +1451,11 @@ class _CommonAttributes(_CoreAttributes, _Thumbnail, _Service, _Hompage,
         Args:
             label (str, optional): The label e.g. `Attribution:`. Defaults to None.
             value (str, optional): The value e.g. `Provided courtesy of Example
-            Institution`.
-            Defaults to None.
+                Institution`.Defaults to None.
             language_l (str, optional): the language of the label e.g. `en`.
-            Defaults to "none".
+                Defaults to "none".
             language_v (str, optional): the langugage of the value e.g. `none`
-            or `en`. Defaults to "none".
+                or `en`. Defaults to "none".
             entry (dict, optional): A metadata dict. Defaults to None.
 
         Raises:
@@ -1682,7 +1685,7 @@ class _CommonAttributes(_CoreAttributes, _Thumbnail, _Service, _Hompage,
 
         Args:
             renderingobj (iiifpapi3.rendering, optional): a iiifpapi3.rendering
-            to be added. Defaults to None.
+                to be added. Defaults to None.
 
         Returns:
             iiifpapi3.rendering: If renderingobj is None a iiifpapi3.rendering
@@ -1708,7 +1711,7 @@ class _CommonAttributes(_CoreAttributes, _Thumbnail, _Service, _Hompage,
 
         Args:
             providerobj (iiifpapi3.provider, optional): a iiifpapi3.provider
-            to beadded. Defaults to None.
+                to beadded. Defaults to None.
 
         Returns:
             iiifpapi3.provider: If providerobj is None a iiifpapi3.provider
@@ -1812,7 +1815,7 @@ class Annotation(_CommonAttributes):
 
         Args:
             specificresource (`iiifpapi3.sepcificreosurce`, optional): a
-             `iiifpapi3.sepcificreosurce` object. Defaults to None.
+                `iiifpapi3.sepcificreosurce` object. Defaults to None.
 
         Raises:
             ValueError: if you add the wrong object.
@@ -1901,10 +1904,10 @@ class AnnotationCollection(_CommonAttributes):
 
         Args:
             objid (str, optional): A string corresponding to the ID of the
-            object.
-            Defaults to None.
+                object `id = objid`.Defaults to None.
             extendbase_url (str , optional): A string containing the URL part
-            to be joined with the iiifpapi3.BASE_URL . Defaults to None.
+                to be joined with the iiifpapi3.BASE_URL:
+                `id = iiifpapi3.BASE_URL + extendbase_url`. Defaults to None.
         """
         try:
             return super().set_id(objid=objid, extendbase_url=extendbase_url)
@@ -1937,7 +1940,7 @@ class _AnnotationsList(object):
 
         Args:
             annopageobj (AnnnotationPage, optional): An `AnnotationPage`
-            object. Defaults to None.
+                object. Defaults to None.
 
         Returns:
             AnnotationPage: An `AnnotationPage` if `annopageobj` is `None`.
@@ -1954,9 +1957,9 @@ class _AddAnnoP2Items(object):
 
         Args:
             annotationpageobj (`iiifpapi3.AnnotationPage, optional): An object
-            instance of `iiifpapi3.AnnotationPage`. Defaults to None.
+                instance of `iiifpapi3.AnnotationPage`. Defaults to None.
             target (str, optional): The `target`of the annotation.
-            Defaults to None.
+                Defaults to None.
 
         Returns:
             iiifpapi3.AnnotationPage(): if `annotationpageobj` is None.
@@ -2070,7 +2073,7 @@ class bodypainting(contentresources, _Service, _AddLanguage):
 
         Args:
             choiceobj (dict, optional): A dictionary representing the Choice.
-            Defaults to None.
+                Defaults to None.
 
         Raises:
             ValueError: if you try to add the wrong object type.
@@ -2152,11 +2155,11 @@ class _CMRCattributes(_CommonAttributes, _AnnotationsList, _ImmutableType):
 
         Args:
             phcnv (iiifpapi3.Canvas, optional): A Canvas to be used as
-            placeholderCanvas.
+                placeholderCanvas.
 
         Raises:
             AttributeError: if you are tyring to ad a placeholder Canvas to a
-            placeholder Canvas.
+                placeholder Canvas.
 
         Returns:
             iiifpapi3.Canvas: A modified Canvas to be used as placeholder
@@ -2174,11 +2177,11 @@ class _CMRCattributes(_CommonAttributes, _AnnotationsList, _ImmutableType):
 
         Args:
             phcnv (iiifpapi3.Canvas, optional): A Canvas to be used as
-            accompanyingCanvas.
+                accompanyingCanvas.
 
         Raises:
             AttributeError: if you are tyring to ad a accompanying Canvas to a
-            accompanying Canvas.
+                accompanying Canvas.
 
         Returns:
             iiifpapi3.Canvas: A modified Canvas to be used as accompanying
@@ -2289,7 +2292,7 @@ class start(_CoreAttributes):
 
         Args:
             mtype (str): The type of the resource that must be Canvas or
-            SpecificResource.
+                SpecificResource.
         """
         if mtype != "Canvas" and self.source is None:
             self.source = Required(
@@ -2428,8 +2431,8 @@ class Manifest(_CMRCattributes, _ViewingDirection, _Start, _ServicesList):
             >>> canvas.set_width(1200)
 
         Returns:
-            iiifpapi3.Canvas: if canvasobj is None an empty iiifpapi3.
-            Canvas obj
+            iiifpapi3.Canvas: if canvasobj is None an empty iiifpapi3.Canvas
+            obj
         """
         return add_to(self, 'items', Canvas, canvasobj)
 
@@ -2735,7 +2738,7 @@ class SpecificResource(_CommonAttributes):
         Args:
             source (str): The source is usually an URL.
             extendbase_url (str, optional): For extending the BASE_URL and
-            using it as a source. Defaults to None.
+                using it as a source. Defaults to None.
         """
         self.source = check_ID(self, extendbase_url=extendbase_url, objid=source)
 
