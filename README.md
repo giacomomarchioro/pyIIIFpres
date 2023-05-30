@@ -3,8 +3,6 @@
 ----------------
 This is a Python module built for easing the construction of JSON manifests compliant with IIIF [API 3.0](https://iiif.io/api/presentation/3.0/) in a production environment, similarly to [iiif-prezi](https://github.com/iiif-prezi/iiif-prezi) for earlier versions of the protocol.
 
-**NOTE: This is NOT a reference implementation. Pull requests and issues are welcome!**
-
 ## Installation
 The library uses only standard libraries and can be installed using `pip`.
 
@@ -92,4 +90,9 @@ See the [project wiki](https://github.com/giacomomarchioro/pyIIIFpres/wiki)  or 
 
 
 ## Acknowledgements
+The package is provided by the [Laboratorio di Studi Medievali e Danteschi](https://sites.hss.univr.it/laboratori_integrati/laboratorio-lamedan/) of the [University of Verona](https://www.univr.it/en/home)
+
+<img src="https://i.ibb.co/tcTNXRP/layerlores.png" alt="LaMeDan Logo" width="250">
+
+
 Bisides contributors, I would like to thank  [dnoneill](https://github.com/dnoneill) for suggestions , and IIIF community and coordinators.
