@@ -618,6 +618,12 @@ class _HeightWidth(object):
         self.height = self._checkpositiveinteger(height)
 
     def set_hightwidth(self, height, width):
+        """ Deprecated method use `set_heightWidth` instead."""
+        warnings.warn('Please use `set_heightWidth` instead.', DeprecationWarning)
+        self.set_width(width)
+        self.set_height(height)
+
+    def set_heightWidth(self, height, width):
         """Set both the height and the width of the resource.
 
         https://iiif.io/api/presentation/3.0/#height
@@ -960,7 +966,7 @@ class thumbnail(_MutableType, _CoreAttributes, _Format, _HeightWidth,
         >>> tmb.set_id("https://act1-thumbnail.png")
         >>> tmb.set_type("Image")
         >>> tmb.set_format("image/jpeg")
-        >>> tmb.set_hightwidth(1234,1234)
+        >>> tmb.set_heightWidth(1234,1234)
     """
     def __init__(self):
         super(thumbnail, self).__init__()
