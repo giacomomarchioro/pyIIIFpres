@@ -327,6 +327,13 @@ class Test_required_recommended_and_optionals(unittest.TestCase):
         self.assertEqual(self.AnnotationPage.thumbnail, None)
         self.assertEqual(self.Annotation.thumbnail, None)
 
+    def test_thumbnail_args(self):
+        self.assertEqual(self.thumbnail.id, Required())
+        self.assertEqual(self.thumbnail.type, Required())
+        self.assertEqual(self.thumbnail.format, Recommended())
+        self.assertEqual(self.thumbnail.width, Recommended())
+        self.assertEqual(self.thumbnail.height, Recommended())
+
     def test_navDate(self):
         self.assertEqual(self.Collection.navDate, None)
         self.assertEqual(self.Manifest.navDate, None)

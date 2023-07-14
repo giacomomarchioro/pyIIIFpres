@@ -959,10 +959,17 @@ class thumbnail(_MutableType, _CoreAttributes, _Format, _HeightWidth,
         >>> tmb = canvas.add_thumbnail()
         >>> tmb.set_id("https://act1-thumbnail.png")
         >>> tmb.set_type("Image")
+        >>> tmb.set_format("image/jpeg")
+        >>> tmb.set_hightwidth(1234,1234)
     """
     def __init__(self):
         super(thumbnail, self).__init__()
         self.service = None
+        self.type = Required("A thumbnail must have a type, usually 'Image'.")
+        self.format = Recommended("A thumbnail should have a format.")
+        self.height = Recommended("Should have an height or a duration.")
+        self.width = Recommended("Should have an width or a duration.")
+        self.duration = None
 
 
 class _Thumbnail(object):
