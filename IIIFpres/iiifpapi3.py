@@ -1040,7 +1040,7 @@ class homepage(_MutableType, _CoreAttributes, _Format, _AddLanguage):
         >>> homp.set_type("Text")
         >>> homp.add_label("en","UCLA Library Digital Collections")
         >>> homp.set_format("text/html")
-        >>> homp.set_language("en")
+        >>> homp.add_language("en")
     """
 
     def __init__(self):
@@ -1081,7 +1081,7 @@ class _Hompage(object):
             >>> homp.set_type("Text")
             >>> homp.add_label("en","UCLA Library Digital Collections")
             >>> homp.set_format("text/html")
-            >>> homp.set_language("en")
+            >>> homp.add_language("en")
 
         Args:
             homepageobj (iiifpapi3.homepage, optional): a iiifpapi3.homepage
