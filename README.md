@@ -16,7 +16,7 @@ Development :
 
 ## Basic usage
 The module maps the API structure to Python classes. The user `set_` objects that can have only one value (e.g. `id`) and `add_` objects that can have multiple entities (e.g. `labels`).
-As an example, we will execute the [Simple Manifest - Book recipe](https://iiif.io/api/cookbook/recipe/0009-book-1/) from the IIIF cookbook. More examples from the [cookbook](https://iiif.io/api/cookbook/) in the examples folder of this repository.
+As an example, we will execute the [Simple Manifest - Book recipe](https://iiif.io/api/cookbook/recipe/0009-book-1/) from the IIIF cookbook. More examples from the [cookbook](https://iiif.io/api/cookbook/) are in the examples folder of this repository.
 
 ```python
 from IIIFpres import iiifpapi3
@@ -59,7 +59,7 @@ manifest.json_save("manifest.json")
 ```
 
 ## Debug the manifest
-When you are populating a new IIIF type from scratch some helpful function can be
+When you are populating a new IIIF type from scratch some helpful functions can be
 used for spotting errors.
 
 `.inspect()` method returns a JSON representation of the object where the 
@@ -71,7 +71,7 @@ manifest = iiifpapi3.Manifest()
 manifest.inspect()
 ```
 
-`.show_errors_in_browser()` method open a new browser tab highlighting the 
+`.show_errors_in_browser()` method opens a new browser tab highlighting the 
 required and recommended fields.
 
 ```python
@@ -79,7 +79,7 @@ manifest.show_errors_in_browser()
 ```
 
 ## Reading the manifest (experimental)
-A json file compliant with presentation API3 can be read as follow:
+A JSON file compliant with presentation API3 can be read as follows:
 ```python
 from IIIFpres.utilities import read_API3_json
 mymanifest = read_API3_json('manifest.json')
@@ -95,4 +95,4 @@ The package is provided by the [Laboratorio di Studi Medievali e Danteschi](http
 <img src="https://i.ibb.co/tcTNXRP/layerlores.png" alt="LaMeDan Logo" width="250">
 
 
-Bisides contributors, I would like to thank  [dnoneill](https://github.com/dnoneill) for suggestions , and IIIF community and coordinators.
+Besides contributors, I would like to thank  [dnoneill](https://github.com/dnoneill) for suggestions, and IIIF community and coordinators.
