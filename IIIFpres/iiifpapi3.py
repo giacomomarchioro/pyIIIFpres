@@ -1804,7 +1804,7 @@ class Annotation(_CommonAttributes):
         of as being from the Canvas.
 
         """
-        motivations = ["painting", "supplementing", "commenting", "tagging"]
+        motivations = ["painting", "supplementing", "commenting", "tagging","contentState"]
         if motivation not in motivations:
             warnings.warn("Motivation not in %s" % motivations)
         if motivation == "painting":
@@ -1812,6 +1812,50 @@ class Annotation(_CommonAttributes):
         if motivation == "commenting" or motivation == "tagging":
             self.body = bodycommenting()
         self.motivation = motivation
+
+    def add_motivation(self, motivation):
+        """add the motivation of the annotation without changing the body type.
+
+        https://iiif.io/api/presentation/3.0/#values-for-motivation
+
+        Args:
+            motivation (str): the motivation of the annotation usually is
+            `painting`, `supplementing`, `commenting`, `tagging`
+
+        IIIF: this specification defines only motivations for Annotations that
+        target Canvases. These motivations allow clients to determine how the
+        Annotation should be rendered, by distinguishing between Annotations
+        that provide the content of the Canvas, from ones with externally
+        defined motivations which are typically comments about the Canvas.
+
+        Additional motivations may be added to the Annotation to further
+        clarify the intent, drawn from extensions or other sources. Other
+        motivation values given in the Web Annotation specification should be
+        used where appropriate, and examples are given in the Presentation API
+        Cookbook.
+
+        painting - Resources associated with a Canvas by an Annotation that has
+        the motivation value painting must be presented to the user as the
+        representation of the Canvas. The content can be thought of as being of
+        the Canvas.
+
+        supplementing - Resources associated with a Canvas by an Annotation
+        that has the motivation value supplementing may be presented to the
+        user as part of the representation of the Canvas, or may be presented
+        in a different part of the user interface. The content can be thought
+        of as being from the Canvas.
+
+        """
+        motivations = ["painting", "supplementing", "commenting", "tagging","contentState"]
+        if motivation not in motivations:
+            warnings.warn("Motivation not in %s" % motivations)
+        if isinstance(self.motivation,list):
+            self.motivation.append(motivation)
+        elif isinstance(self.motivation,str):
+            previousValue = self.motivation
+            self.motivation = [motivation,previousValue]
+        else:
+            self.motivation = [motivation]
 
     def set_target_specific_resource(self, specificresource=None):
         """Set a specific resource as the target of the annotation.
