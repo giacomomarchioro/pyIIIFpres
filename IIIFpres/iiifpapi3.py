@@ -77,7 +77,7 @@ global CONTEXT
 CONTEXT = "http://iiif.io/api/presentation/3/context.json"
 global INVALID_URI_CHARACTERS
 # removed comma which is used by IIIF Image API and #
-INVALID_URI_CHARACTERS = r"""!"$%&'()*+ :;<=>?@[\]^`{|}~ """
+INVALID_URI_CHARACTERS = r"""!"$&'()*+ :;<=>?@[\]^`{|}~ """
 global BEHAVIOURS
 BEHAVIOURS = ["auto-advance",
               "no-auto-advance",
