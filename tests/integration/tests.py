@@ -17,11 +17,14 @@ try:
         """
         for diff in list(dictdiffer.diff(dict_1, dict_2)):
             print(diff)
+
     import geojson
 
 
 except ImportError:
     # pip install dictdiffer
+    def printdiff(x,y):
+        print("To show the differences install `dictdiffer`")
     pass
 # unittest.util._MAX_LENGTH=500000
 # python -m unittest tests.py -v
@@ -264,7 +267,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         Test 0013-placeholderCanvas
         """
         ref, json_manifest = get_files("0013-placeholderCanvas")
-        printdiff(ref, json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0021_tagging(self):
@@ -272,7 +274,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         0021-tagging
         """
         ref, json_manifest = get_files("0021-tagging")
-        printdiff(ref, json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0024_book_4_toc(self):
@@ -287,7 +288,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         0026-toc-opera
         """
         ref, json_manifest = get_files("0026-toc-opera")
-        # printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0033_choice(self):
@@ -309,7 +309,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         0053-seeAlso
         """
         ref, json_manifest = get_files("0053-seeAlso")
-        # printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0065_opera_multiple_canvases(self):
@@ -317,7 +316,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         0065-opera-multiple-canvases
         """
         ref, json_manifest = get_files("0065-opera-multiple-canvases")
-        # printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0117_add_image_thumbnail(self):
@@ -335,8 +333,9 @@ class TestWithReferenceManifest(unittest.TestCase):
             "http://iiif.io/api/presentation/3/context.json",
             "http://geojson.org/geojson-ld/geojson-context.jsonld",
         ]
-        ref, json_manifest = get_files("0139-geolocate-canvas-fragment",
-                                       context=contexts)
+        ref, json_manifest = get_files(
+            "0139-geolocate-canvas-fragment", context=contexts
+        )
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0154_geo_extension(self):
@@ -348,7 +347,6 @@ class TestWithReferenceManifest(unittest.TestCase):
             "http://iiif.io/api/presentation/3/context.json",
         ]
         ref, json_manifest = get_files("0154-geo-extension", context=context)
-        printdiff(ref, json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0202_start_canvas(self):
@@ -391,7 +389,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         0266-full-canvas-annotation
         """
         ref, json_manifest = get_files("0266-full-canvas-annotation")
-        printdiff(ref, json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0261_non_rectangular_commenting(self):
@@ -399,7 +396,6 @@ class TestWithReferenceManifest(unittest.TestCase):
         0261-non-rectangular-commenting
         """
         ref, json_manifest = get_files("0261-non-rectangular-commenting")
-        printdiff(ref, json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0269_embedded_or_referenced_annotations(self):
@@ -531,7 +527,6 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         Test 0013-placeholderCanvas
         """
         ref, json_manifest = get_files2("0013-placeholderCanvas")
-        printdiff(ref, json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0230_navdate_navdate_map_2(self):
@@ -581,7 +576,6 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         0053-seeAlso
         """
         ref, json_manifest = get_files2("0053-seeAlso")
-        # printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0065_opera_multiple_canvases(self):
@@ -589,7 +583,6 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         0065-opera-multiple-canvases
         """
         ref, json_manifest = get_files2("0065-opera-multiple-canvases")
-        # printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0026_toc_opera(self):
@@ -597,7 +590,6 @@ class Test_ReadAndWriteBack(unittest.TestCase):
         0026-toc-opera
         """
         ref, json_manifest = get_files2("0026-toc-opera")
-        # printdiff(ref,json_manifest)
         self.assertEqual(ordered(ref), ordered(json_manifest))
 
     def test_0266_full_canvas_annotation(self):
