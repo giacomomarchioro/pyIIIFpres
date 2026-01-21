@@ -73,6 +73,20 @@ class TestEmptyManifest(unittest.TestCase):
         self.manifest.add_label("it", "test2")
         self.assertEqual(self.manifest.label, {"it": ["test2", "test1"]})
 
+    def test_if_I_use_a_number_metadata_is_coerced_to_string(self):
+        """Integer should be converted to string."""
+        md = self.manifest.add_metadata()
+        md.add_label("Date","en")
+        md.add_value(1289,"none")
+        self.assertEqual(md.value,{'none': ['1289']})
+
+    def test_that_error_rises_if_items_in_metadata_values_are_not_string(self):
+        """If we add multiple label they should concatenate."""
+        with self.assertRaises(AssertionError):
+            md = self.manifest.add_metadata()
+            md.add_label("Date","en")
+            md.add_value(["test",1289],"none")
+
     def test_raising_error_objid_and_extendbaseURL(self):
         """User try to set ID using both objid and extendbaseURL."""
         with self.assertRaises(ValueError):
