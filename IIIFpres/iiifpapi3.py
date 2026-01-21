@@ -182,7 +182,7 @@ def add_to(selfx, destination, classx, obj, acceptedclasses=None, target=None):
         selfx (object): The class it-self
         destination (str): The class list attribute where the object will be stored.
         classx (object): The IIIF class that will be used for instantiating the
-            obejct.
+            object.
         obj (object): An already instantiated IIIF object.
         acceptedclasses (objects, optional): Accepted classes for obj. Defaults to None.
         target (str, optional): The target of an Annotation. Defaults to None.
@@ -1297,7 +1297,13 @@ class languagemap(object):
         if unused(self.value):
             self.value = {}
         if not isinstance(value, list):
-            value = [value]
+            # The associated values must be arrays of strings, where each item
+            # is the content in the given language.
+            value = [str(value)]
+        if isinstance(value,list):
+            assert all(isinstance(item, str) for item in value),\
+            "The associated values must be arrays of strings."\
+            "https://iiif.io/api/presentation/3.0/#language-of-property-values"
 
         # TODO: if html must begin with < and end with >
         # https://iiif.io/api/presentation/3.0/#45-html-markup-in-property-values
@@ -2381,9 +2387,9 @@ class _Start(object):
             handler see example below on how to use it.
 
         Examples:
-            manifest.set_start()
-            manifest.start.set_type('Canvas')
-            manifest.start.set_id("https://example.org/iiif/1/canvas/1")
+            >>> manifest.set_start()
+            >>> manifest.start.set_type('Canvas')
+            >>> manifest.start.set_id("https://example.org/iiif/1/canvas/1")
 
         Returns:
             start object: a reference to the start object to be used
